@@ -43,7 +43,13 @@ cd Vela-frontend
 npm install
 ```
 
-### 3. Start udviklingsserveren
+### 3. Åbn kodebasen i VS Code
+
+```bash
+code .
+```
+
+### 4. Start udviklingsserveren
 
 ```bash
 npm run dev
