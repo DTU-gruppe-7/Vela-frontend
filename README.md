@@ -37,22 +37,13 @@ git clone https://github.com/DTU-gruppe-7/Vela-frontend.git
 cd Vela-frontend
 ```
 
-### 2. Gå til frontend-mappen
-
-```bash
-cd frontend
-```
-
-> **Vigtigt:**
-> Alle `npm`-kommandoer skal køres fra `frontend/`-mappen, ikke fra roden.
-
-### 3. Installer afhængigheder
+### 2. Installer afhængigheder
 
 ```bash
 npm install
 ```
 
-### 4. Start udviklingsserveren
+### 3. Start udviklingsserveren
 
 ```bash
 npm run dev
@@ -65,7 +56,7 @@ Appen kører nu på **[http://localhost:5173](http://localhost:5173)** 🎉
 ## 📁 Projektstruktur
 
 ```
-frontend/src/
+src/
 ├── api/           # Axios-klient + API-kald per domæne
 ├── components/
 │   ├── layout/    # Header, Footer, MainLayout
@@ -101,7 +92,7 @@ Se [FRONTEND_STRUCTURE.md](./FRONTEND_STRUCTURE.md) for den fulde guide.
 ## ❓ Fejlfinding
 
 - **`"Missing script: 'dev'"**
-  → Du er ikke i `frontend/`-mappen. Kør `cd frontend` først.
+  → Du er ikke i `Vela-frontend/`-mappen. Sørg for at følge installationsanvisningerne korrekt.
 
 - **Tailwind-klasser virker ikke**
   → Sørg for at `index.css` indeholder `@import "tailwindcss"` og at `vite.config.ts` har `tailwindcss()` som plugin.
