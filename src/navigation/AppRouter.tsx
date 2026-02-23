@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import SwipePage from '../features/swipe/SwipePage'
 import GroupPage from '../features/groups/GroupPage'
 import ProfilePage from '../features/profile/ProfilePage'
+import RecipePage from '../features/recipes/RecipePage'
 
 
 function AppRouter() {
@@ -10,7 +11,8 @@ function AppRouter() {
             <Route path="/swipe" element={<SwipePage />} />
             <Route path="/groups" element={<GroupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="*" element={<Navigate to="/swipe" replace />} />
+            <Route path="/recipes" element={<RecipePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )
 }
