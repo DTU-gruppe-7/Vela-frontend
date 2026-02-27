@@ -3,7 +3,7 @@ import { recipeApi } from "../api/recipeApi";
 import type { Recipe } from "../types/Recipe";
 
 const PREFETCH_THRESHOLD = 5;
-const BATCH_SIZE = 15;
+const BATCH_SIZE = 20;
 
 export const useRecipeQueue = () => {
     const [queue, setQueue] = useState<Recipe[]>([]);
