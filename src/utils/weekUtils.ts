@@ -1,3 +1,5 @@
+export const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'] as const;
+
 export interface WeekInfo {
   weekNumber: number;
   dateRange: string;
