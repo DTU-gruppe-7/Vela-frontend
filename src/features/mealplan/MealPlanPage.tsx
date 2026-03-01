@@ -72,9 +72,11 @@ export default function MealPlanPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-transparent rounded-l-2xl" />
             <button
               onClick={() => setWeekOffset((o) => o - 1)}
-              className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all text-lg font-bold opacity-40 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
+              className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all opacity-70 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
             >
-              ←
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
           </div>
         )}
@@ -85,9 +87,11 @@ export default function MealPlanPage() {
             <div className="absolute inset-0 bg-gradient-to-l from-white/70 to-transparent rounded-r-2xl" />
             <button
               onClick={() => setWeekOffset((o) => o + 1)}
-              className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all text-lg font-bold opacity-40 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
+              className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all opacity-70 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
             >
-              →
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         )}
