@@ -19,7 +19,9 @@ function formatDuration(iso: string): string {
 interface RecipeCardProps {
     recipe: RecipeSummary;
     isFavorite?: boolean;
+    compact?: boolean;
     onToggleFavorite?: (id: string) => void;
+    onRemove?: () => void;
     onCategoryClick?: (category: string) => void;
     onKeywordClick?: (keyword: string) => void;
 }
@@ -27,7 +29,9 @@ interface RecipeCardProps {
 function RecipeCard({
     recipe,
     isFavorite = false,
+    compact = false,
     onToggleFavorite,
+    onRemove,
     onCategoryClick,
     onKeywordClick,
 }: RecipeCardProps) {
@@ -38,7 +42,7 @@ function RecipeCard({
     return (
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group">
             {/* Image with title overlay */}
-            <div className="relative h-56 overflow-hidden">
+            <div className={`relative overflow-hidden ${compact ? 'h-32' : 'h-56'}`}>
                 {recipe.thumbnailUrl ? (
                     <img
                         src={recipe.thumbnailUrl}
@@ -51,13 +55,21 @@ function RecipeCard({
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <h3 className="absolute bottom-4 left-4 right-4 text-lg font-bold text-white drop-shadow-md">
+                <h3 className={`absolute left-4 right-4 font-bold text-white drop-shadow-md ${compact ? 'bottom-2 text-sm' : 'bottom-4 text-lg'}`}>
                     {recipe.name}
                 </h3>
+                {onRemove && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
             {/* Card body */}
-            <div className="p-4 space-y-3">
+            <div className={compact ? 'p-2 space-y-1' : 'p-4 space-y-3'}>
                 {/* Category & favorite */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
