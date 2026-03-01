@@ -14,7 +14,7 @@
       return response.data;
     },
 
-    getNextRecipe: async (limit = 20): Promise<Recipe[]> => {
+    getNextRecipes: async (limit = 20): Promise<Recipe[]> => {
       const response = await axiosClient.get<Recipe[]>(`/recipe/next?limit=${limit}`);
       return response.data;
     },
