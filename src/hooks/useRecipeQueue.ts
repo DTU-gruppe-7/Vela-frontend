@@ -16,7 +16,7 @@ export const useRecipeQueue = () => {
         isFetching.current = true;
         setIsLoading(true);
         try {
-            const newBatch = await recipeApi.getNextRecipe(BATCH_SIZE);
+            const newBatch = await recipeApi.getNextRecipes(BATCH_SIZE);
             setQueue((prev) => [...prev, ...newBatch]);
         } catch (error) {
             console.error("Failed to fetch more recipes:", error);
