@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import {
   FaHome,
   FaUsers,
-  FaLayerGroup,
   FaCalendarAlt,
   FaClipboardList,
   FaBell,
@@ -15,7 +14,6 @@ const Header: React.FC = () => {
   const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
   const navItems = [
     { href: '/', icon: <FaHome />, label: 'Hjem', key: 'home' },
-    { href: '/swipe', icon: <FaLayerGroup />, label: 'Swipe', key: 'swipe' },
     { href: '/groups', icon: <FaUsers />, label: 'Grupper', key: 'groups' },
     { href: '/mealplan', icon: <FaCalendarAlt />, label: 'Madplan', key: 'mealplan' },
     { href: '/shoppinglist', icon: <FaClipboardList />, label: 'Indkøbsliste', key: 'shoppinglist' },
@@ -24,23 +22,37 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-6 bg-white shadow-sm">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5">
-        <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
-        <span className="text-xl font-bold text-gray-900">Vela</span>
+      {/* Container for Logo and Actions */}
+      <div className="flex items-center gap-8">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
+          <span className="text-xl font-bold text-gray-900">Vela</span>
+        </div>
+
+        {/* Swipe Button */}
+        <a
+          href="/swipe"
+          className={`flex items-center justify-center px-6 py-2 rounded-full border-2 text-lg font-medium transition-all duration-200 shadow-sm
+            ${activePage === 'swipe'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
+              : 'border-gray-300 text-gray-700 bg-white hover:border-gray-400 hover:text-indigo-600 hover:bg-gray-50'
+            }`}
+        >
+          Swipe
+        </a>
       </div>
 
       {/* Navigation */}
-      <nav className="flex items-center gap-1">
+      <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
         {navItems.map((item) => (
           <a
             key={item.key}
             href={item.href}
-            className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-lg text-xs transition-all duration-200 
-              ${
-                activePage === item.key
-                  ? 'bg-indigo-600 bg-indigo-50'
-                  : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'
+            className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-lg text-xs transition-all duration-200 
+              ${activePage === item.key
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'
               }`}
           >
             <span className="text-xl">{item.icon}</span>
@@ -51,9 +63,9 @@ const Header: React.FC = () => {
 
       {/* Notification Bell */}
       <div className="flex items-center gap-3">
-        <button 
-        className="relative p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
-        aria-label="Notifikationer"
+        <button
+          className="relative p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+          aria-label="Notifikationer"
         >
           <FaBell />
           <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[0.65rem] font-bold text-white bg-red-500 rounded-full">
@@ -63,7 +75,7 @@ const Header: React.FC = () => {
         <button
           className="p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
           aria-label="Profil"
-          >
+        >
           <FaUserCircle />
         </button>
       </div>

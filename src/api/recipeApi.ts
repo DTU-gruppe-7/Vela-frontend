@@ -20,7 +20,7 @@
     },
 
     recordSwipe: async ( recipeId: string, direction: 'like' | 'dislike' ): Promise<void> => {
-      await axiosClient.post(`/swipe`, { recipeId, direction });
+      await axiosClient.post(`/recipe/swipe`, { recipeId, direction });
     },
 
   };
