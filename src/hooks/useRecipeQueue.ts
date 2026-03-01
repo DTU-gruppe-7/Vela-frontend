@@ -48,7 +48,7 @@ export const useRecipeQueue = () => {
         if (queue.length <= PREFETCH_THRESHOLD && queue.length > 0) {
             fetchMoreRecipes();
         }
-    }, [queue.length, fetchMoreRecipes]);   
+    }, [queue.length, fetchMoreRecipes]);
 
     return {
         queue,
