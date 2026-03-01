@@ -6,7 +6,8 @@ import {
   FaCalendarAlt,
   FaClipboardList,
   FaBell,
-  FaUserCircle
+  FaUserCircle,
+  FaBook
 } from 'react-icons/fa';
 
 const Header: React.FC = () => {
@@ -17,7 +18,7 @@ const Header: React.FC = () => {
     { href: '/groups', icon: <FaUsers />, label: 'Grupper', key: 'groups' },
     { href: '/mealplan', icon: <FaCalendarAlt />, label: 'Madplan', key: 'mealplan' },
     { href: '/shoppinglist', icon: <FaClipboardList />, label: 'Indkøbsliste', key: 'shoppinglist' },
-    { href: '/recipes', icon: <FaClipboardList />, label: 'Opskrifter', key: 'recipes' },
+    { href: '/recipes', icon: <FaBook />, label: 'Opskrifter', key: 'recipes' },
   ];
 
   return (
