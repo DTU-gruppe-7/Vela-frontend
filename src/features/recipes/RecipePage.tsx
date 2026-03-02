@@ -258,23 +258,40 @@ function RecipePage() {
                     )}
                 </div>
 
-                {/* Page size selector */}
-                <div className="flex items-center gap-2 mb-8">
-                    <span className="text-sm text-gray-500">Vis</span>
-                    {pageSizeOptions.map((size) => (
-                        <button
-                            key={size}
-                            onClick={() => handlePageSizeChange(size)}
-                            className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition ${
-                                pageSize === size
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'
-                            }`}
-                        >
-                            {size}
-                        </button>
-                    ))}
-                    <span className="text-sm text-gray-500">per side</span>
+                {/* Page size selector + Liked Recipes button */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Vis</span>
+                        {pageSizeOptions.map((size) => (
+                            <button
+                                key={size}
+                                onClick={() => handlePageSizeChange(size)}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition ${
+                                    pageSize === size
+                                        ? 'bg-orange-500 text-white border-orange-500'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'
+                                }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                        <span className="text-sm text-gray-500">per side</span>
+                    </div>
+                    <button
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border transition ${
+                            showFavoritesOnly
+                                ? 'bg-red-50 text-red-500 border-red-300'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'
+                        }`}
+                    >
+                        {showFavoritesOnly ? (
+                            <FaHeart className="text-red-500" />
+                        ) : (
+                            <FaRegHeart />
+                        )}
+                        Likede opskrifter
+                    </button>
                 </div>
 
                 {/* Error state */}

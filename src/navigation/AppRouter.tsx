@@ -5,6 +5,7 @@ import ProfilePage from '../features/profile/ProfilePage'
 import RecipePage from '../features/recipes/RecipePage'
 import ShoppingListPage from '../features/shopping/ShoppingListPage'
 
+import MealPlanPage from '../features/mealplan/MealPlanPage'
 
 function AppRouter() {
     return (
@@ -14,6 +15,7 @@ function AppRouter() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/recipes" element={<RecipePage />} />
             <Route path="/shoppinglist" element={<ShoppingListPage />} />
+            <Route path="/mealplan" element={<MealPlanPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )
