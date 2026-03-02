@@ -3,6 +3,8 @@ import SwipePage from '../features/swipe/SwipePage'
 import GroupPage from '../features/groups/GroupPage'
 import ProfilePage from '../features/profile/ProfilePage'
 import RecipePage from '../features/recipes/RecipePage'
+import ShoppingListPage from '../features/shopping/ShoppingListPage'
+
 import MealPlanPage from '../features/mealplan/MealPlanPage'
 
 function AppRouter() {
@@ -12,6 +14,7 @@ function AppRouter() {
             <Route path="/groups" element={<GroupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/recipes" element={<RecipePage />} />
+            <Route path="/shoppinglist" element={<ShoppingListPage />} />
             <Route path="/mealplan" element={<MealPlanPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
