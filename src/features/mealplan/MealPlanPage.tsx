@@ -19,6 +19,7 @@ export default function MealPlanPage() {
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
 
+  
   const { mealPlan, addRecipe, removeRecipe, error } = useMealPlan(
     recipeApi.getAllRecipes,
     weekInfo
