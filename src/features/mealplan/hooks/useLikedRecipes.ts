@@ -8,10 +8,6 @@ export function useLikedRecipes() {
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // Reset state when (re)fetching
-        setIsLoading(true);
-        setError(null);
-
         recipeApi.getLikedRecipes()
             .then(setLikedRecipes)
             .catch((err) => {

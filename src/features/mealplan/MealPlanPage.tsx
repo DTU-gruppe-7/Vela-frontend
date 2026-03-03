@@ -9,7 +9,7 @@ import { useLikedRecipes } from './hooks/useLikedRecipes';
 const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
-  const { likedRecipes } = useLikedRecipes();
+  const { likedRecipes, isLoading: isLoadingRecipes, error: recipesError } = useLikedRecipes();
   const { mealPlan, addRecipe, removeRecipe } = useMealPlan(() => Promise.resolve([]));
 
   const [weekOffset, setWeekOffset] = useState(0);
@@ -110,6 +110,8 @@ export default function MealPlanPage() {
           if (selectedDay) addRecipe(selectedDay, recipe);
           setSelectedDay(null);
         }}
+        isLoading={isLoadingRecipes}
+        error={recipesError}
       />
     </div>
   );
