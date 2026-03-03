@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { ALL_ALLERGENS, ALLERGEN_LABELS, type Allergen } from '../../types/User';
-import { authApi } from '../../api/authApi';
+import { saveAllergensToStorage, isAllergenFilterEnabled, setAllergenFilterEnabled } from '../../utils/allergenStorage';
 
 interface AllergiesDialogProps {
   isOpen: boolean;
@@ -19,9 +19,11 @@ export function AllergiesDialog({
   const [selectedAllergens, setSelectedAllergens] = useState<Allergen[]>(currentAllergens);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterAllergenEnabled, setFilterAllergenEnabled] = useState(false);
 
   useEffect(() => {
     setSelectedAllergens(currentAllergens);
+    setFilterAllergenEnabled(isAllergenFilterEnabled());
     setError(null);
   }, [currentAllergens, isOpen]);
 
@@ -33,13 +35,15 @@ export function AllergiesDialog({
     );
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     try {
       setIsSaving(true);
       setError(null);
-      await authApi.updateAllergens(selectedAllergens);
+      // Gem allergener og filter-indstilling lokalt
+      saveAllergensToStorage(selectedAllergens);
+      setAllergenFilterEnabled(filterAllergenEnabled);
       onSave(selectedAllergens);
-      // Close dialog after successful save
+      // Luk dialog efter succesfuld gemning
       setTimeout(() => {
         onClose();
       }, 300);
@@ -97,6 +101,34 @@ export function AllergiesDialog({
                 </span>
               </label>
             ))}
+          </div>
+
+          {/* Filter Toggle Section */}
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-900">Skjul opskrifter med allergier</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {filterAllergenEnabled 
+                    ? 'Opskrifter med dine allergier skjules' 
+                    : 'Se alle opskrifter'}
+                </p>
+              </div>
+              <button
+                onClick={() => setFilterAllergenEnabled(!filterAllergenEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  filterAllergenEnabled 
+                    ? 'bg-indigo-600' 
+                    : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    filterAllergenEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
 

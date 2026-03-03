@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaHeartbeat, FaSignOutAlt } from 'react-icons/fa';
 import type { Allergen } from '../../types/User';
 import { AllergiesDialog } from './AllergiesDialog';
-import { authApi } from '../../api/authApi';
+import { getAllergensFromStorage } from '../../utils/allergenStorage';
 
 interface ProfileMenuProps {
   onClose: () => void;
@@ -14,19 +14,10 @@ export default function ProfileMenu({ onClose }: ProfileMenuProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load user profile with allergens
-    const loadProfile = async () => {
-      try {
-        const profile = await authApi.getCurrentUser();
-        setAllergens(profile.allergens || []);
-      } catch (err) {
-        console.error('Fejl ved indlæsning af profil:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
+    // Hent allergener fra localStorage
+    const storedAllergens = getAllergensFromStorage();
+    setAllergens(storedAllergens);
+    setIsLoading(false);
   }, []);
 
   const handleAllergiesClick = () => {
@@ -38,14 +29,9 @@ export default function ProfileMenu({ onClose }: ProfileMenuProps) {
     onClose(); // Close profile menu after saving allergies
   };
 
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      // Redirect to login page or handle logout UI
-      window.location.href = '/login';
-    } catch (err) {
-      console.error('Fejl ved logout:', err);
-    }
+  const handleLogout = () => {
+    // Redirect til login side
+    window.location.href = '/login';
   };
 
   return (
