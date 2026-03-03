@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   FaHome,
@@ -9,10 +9,29 @@ import {
   FaUserCircle,
   FaBook
 } from 'react-icons/fa';
+import ProfileMenu from '../ui/ProfileMenu.tsx';
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showProfileMenu]);
   const navItems = [
     { href: '/', icon: <FaHome />, label: 'Hjem', key: 'home' },
     { href: '/groups', icon: <FaUsers />, label: 'Grupper', key: 'groups' },
@@ -73,12 +92,21 @@ const Header: React.FC = () => {
             3
           </span>
         </button>
-        <button
-          className="p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
-          aria-label="Profil"
-        >
-          <FaUserCircle />
-        </button>
+        
+        {/* Profile Menu */}
+        <div className="relative" ref={profileMenuRef}>
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+            aria-label="Profil"
+          >
+            <FaUserCircle />
+          </button>
+          
+          {showProfileMenu && (
+            <ProfileMenu onClose={() => setShowProfileMenu(false)} />
+          )}
+        </div>
       </div>
     </header>
   );
