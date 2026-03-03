@@ -9,6 +9,7 @@ import { useLikedRecipes } from './hooks/useLikedRecipes';
 import { recipeApi } from '../../api/recipeApi';
 const VISIBLE_COLUMNS = 4;
 
+
 export default function MealPlanPage() {
   const { likedRecipes } = useLikedRecipes();
   const [weekOffset, setWeekOffset] = useState(0);
@@ -17,6 +18,7 @@ export default function MealPlanPage() {
 
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
+
   
   const { mealPlan, addRecipe, removeRecipe, error } = useMealPlan(
     recipeApi.getAllRecipes,

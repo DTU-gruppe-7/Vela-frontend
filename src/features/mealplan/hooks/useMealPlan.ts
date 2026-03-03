@@ -146,11 +146,15 @@ export function useMealPlan(
         console.error('Fejl ved tilføjelse af opskrift til server:', err);
         setError('Kunne ikke gemme opskriften på serveren. Det er gemt lokalt.');
         
-        // Rollback local state if backend fails
-        setMealPlan((prev) => ({
-          ...prev,
-          [day]: prev[day].filter((r) => r.id !== recipe.id),
-        }));
+        // Rollback local state and localStorage if backend fails
+        setMealPlan((prev) => {
+          const rolled = {
+            ...prev,
+            [day]: prev[day].filter((r) => r.id !== recipe.id),
+          };
+          saveMealPlanToStorage(weekInfo, rolled);
+          return rolled;
+        });
       }
     },
     [mealPlanId, weekInfo]
@@ -183,13 +187,17 @@ export function useMealPlan(
           console.error('Fejl ved fjernelse af opskrift fra server:', err);
           setError('Kunne ikke fjerne opskriften fra serveren.');
           
-          // Rollback - læg opskriften tilbage hvis sletningen fejlede
+          // Rollback - læg opskriften tilbage og opdater localStorage hvis sletningen fejlede
           const recipe = availableRecipes.find((r) => r.id === recipeId);
           if (recipe) {
-            setMealPlan((prev) => ({
-              ...prev,
-              [day]: [...prev[day], recipe],
-            }));
+            setMealPlan((prev) => {
+              const rolled = {
+                ...prev,
+                [day]: [...prev[day], recipe],
+              };
+              saveMealPlanToStorage(weekInfo, rolled);
+              return rolled;
+            });
           }
         }
       }
