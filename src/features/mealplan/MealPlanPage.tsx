@@ -9,12 +9,17 @@ import { recipeApi } from '../../api/recipeApi';
 const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
-  const { mealPlan, availableRecipes, addRecipe, removeRecipe } = useMealPlan(recipeApi.getAllRecipes);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  const { weekNumber, dateRange } = getWeekInfo(selectedWeek);
+  const weekInfo = getWeekInfo(selectedWeek);
+  const { weekNumber, dateRange } = weekInfo;
+  
+  const { mealPlan, availableRecipes, addRecipe, removeRecipe, error } = useMealPlan(
+    recipeApi.getAllRecipes,
+    weekInfo
+  );
 
   const canGoBack = weekOffset > 0;
   const canGoForward = weekOffset * VISIBLE_COLUMNS < DAYS.length - VISIBLE_COLUMNS;
@@ -43,6 +48,12 @@ export default function MealPlanPage() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* Outer: overflow hidden, viser præcis VISIBLE_COLUMNS kolonner */}
       <div className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white">
