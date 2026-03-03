@@ -84,7 +84,7 @@ const Header: React.FC = () => {
       {/* Notification Bell */}
       <div className="flex items-center gap-3">
         <button
-          className="relative p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+          className="relative p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
           aria-label="Notifikationer"
         >
           <FaBell />
@@ -97,7 +97,7 @@ const Header: React.FC = () => {
         <div className="relative" ref={profileMenuRef}>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="p-2 text-xl text-gray-500 rounded-full transistion-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+            className="p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
             aria-label="Profil"
           >
             <FaUserCircle />

@@ -1,9 +1,8 @@
-import type { Allergen } from '../types/User';
 import { getAllergensFromStorage, isAllergenFilterEnabled } from './allergenStorage';
 
 export interface RecipeWithAllergens {
   id: string;
-  title: string;
+  name: string;
   allergens?: string[];
   // ... andre recipe-properties
 }
