@@ -7,6 +7,8 @@ interface AddRecipeModalProps {
   onClose: () => void;
   day: string;
   availableRecipes: RecipeSummary[];
+  isLoading: boolean;
+  error: Error | null;
   addedRecipes: RecipeSummary[];
   onSelect: (recipe: RecipeSummary) => void;
 }
@@ -16,6 +18,8 @@ export function AddRecipeModal({
   onClose,
   day,
   availableRecipes,
+  isLoading,
+  error,
   addedRecipes,
   onSelect,
 }: AddRecipeModalProps) {
@@ -24,7 +28,11 @@ export function AddRecipeModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Tilføj opskrift – ${day}`}>
-      {selectableRecipes.length > 0 ? (
+      {isLoading ? (
+        <p className="text-sm text-slate-400 text-center py-8">Indlæser opskrifter...</p>
+      ) : error ? (
+        <p className="text-sm text-red-400 text-center py-8">Kunne ikke indlæse opskrifter.</p>
+      ) : selectableRecipes.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {selectableRecipes.map((recipe) => (
             <button
@@ -39,7 +47,7 @@ export function AddRecipeModal({
       ) : (
         <p className="text-sm text-slate-400 text-center py-8">
           {availableRecipes.length === 0
-            ? 'Indlæser opskrifter...'
+            ? 'Du har ingen likede opskrifter endnu.'
             : 'Alle opskrifter er allerede tilføjet til denne dag.'}
         </p>
       )}
