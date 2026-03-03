@@ -5,10 +5,13 @@ import { AddRecipeButton } from '../../components/ui/AddRecipeButton';
 import { AddRecipeModal } from './components/AddRecipeModal';
 import { getWeekInfo, DAYS } from '../../utils/weekUtils';
 import { useMealPlan } from './hooks/useMealPlan';
-import { recipeApi } from '../../api/recipeApi';
+import { useLikedRecipes } from './hooks/useLikedRecipes';
 const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
+  const { likedRecipes } = useLikedRecipes();
+  const { mealPlan, addRecipe, removeRecipe } = useMealPlan(() => Promise.resolve([]));
+
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -113,7 +116,7 @@ export default function MealPlanPage() {
         isOpen={selectedDay !== null}
         onClose={() => setSelectedDay(null)}
         day={selectedDay ?? ''}
-        availableRecipes={availableRecipes}
+        availableRecipes={likedRecipes}
         addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
         onSelect={(recipe) => {
           if (selectedDay) addRecipe(selectedDay, recipe);
