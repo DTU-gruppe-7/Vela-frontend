@@ -5,7 +5,7 @@ import {
     type PanInfo,
 } from "framer-motion";
 import RecipeCard from "../../components/ui/RecipeCard";
-import type { Recipe } from "../../types/Recipe";
+import type { RecipeSummary } from "../../types/Recipe";
 
 /* ─── Konstanter ─── */
 const SWIPE_THRESHOLD = 120;
@@ -13,13 +13,13 @@ const EXIT_X = 600;
 const MAX_ROTATION = 18;
 
 export interface SwipeCardProps {
-    recipe: Recipe;
+    recipeSummary: RecipeSummary;
     isTop: boolean;
     stackIndex: number;
     onSwipe: (id: string, dir: "like" | "dislike") => void;
 }
 
-function SwipeCard({ recipe, isTop, stackIndex, onSwipe }: SwipeCardProps) {
+function SwipeCard({ recipeSummary, isTop, stackIndex, onSwipe }: SwipeCardProps) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-300, 0, 300], [-MAX_ROTATION, 0, MAX_ROTATION]);
     const likeOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
@@ -27,9 +27,9 @@ function SwipeCard({ recipe, isTop, stackIndex, onSwipe }: SwipeCardProps) {
 
     function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
         if (info.offset.x > SWIPE_THRESHOLD) {
-            onSwipe(recipe.id, "like");
+            onSwipe(recipeSummary.id, "like");
         } else if (info.offset.x < -SWIPE_THRESHOLD) {
-            onSwipe(recipe.id, "dislike");
+            onSwipe(recipeSummary.id, "dislike");
         }
     }
 
@@ -69,7 +69,7 @@ function SwipeCard({ recipe, isTop, stackIndex, onSwipe }: SwipeCardProps) {
         >
             {/* LIKE / NOPE overlays over RecipeCard */}
             <div className="relative h-full select-none pointer-events-none">
-                <RecipeCard recipe={recipe} />
+                <RecipeCard recipe={recipeSummary} />
 
                 {isTop && (
                     <>

@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useRecipeQueue } from "../../hooks/useRecipeQueue";
+import { recipeApi } from "../../api/recipeApi";
+import CategoryFilter from "../../components/ui/CategoryFilter";
 import SwipeCard from "./SwipeCard";
 
 function SwipePage() {
 
-    const { queue, swipe, isLoading } = useRecipeQueue();
+    const [categories, setCategories] = useState<string[]>([]);
+    const [activeCategory, setActiveCategory] = useState("Alle");
+    const { queue, swipe, isLoading } = useRecipeQueue(activeCategory);
     const [lastDir, setLastDir] = useState<"like" | "dislike">("like");
 
     /** Sæt retning før kortet fjernes, så exit-animation ved hvilken vej */
@@ -13,6 +17,12 @@ function SwipePage() {
         setLastDir(dir);
         swipe(id, dir);
     };
+
+    useEffect(() => {
+        recipeApi.getCategories().then(setCategories).catch((error) => {
+            console.error("Failed to fetch categories:", error);
+        });
+    }, []);
 
     /* ── Loading state ── */
     if (isLoading) {
@@ -41,12 +51,22 @@ function SwipePage() {
 
     return (
         <div className="flex flex-col items-center justify-center px-4 pt-4 pb-8 min-h-[80vh] select-none overflow-hidden">
-            <div className="relative w-full max-w-[380px] h-[520px]">
+                {/* Category filter*/}
+                <div className="w-full max-w-[420px] mb-2">
+                    <CategoryFilter
+                        categories={categories}
+                        activeCategory={activeCategory}
+                        onCategoryChange={setActiveCategory}
+                    />
+                </div>
+                
+                <div className="relative w-full max-w-[380px] h-[520px]">
+
                 <AnimatePresence mode="popLayout" custom={lastDir}>
-                    {queue.slice(0, 3).map((recipe, index) => (
-                        <SwipeCard
-                            key={recipe.id}
-                            recipe={recipe}
+                    {queue.slice(0, 3).map((recipeSummary, index) => (
+                        <SwipeCard 
+                            key={recipeSummary.id}
+                            recipeSummary={recipeSummary}
                             isTop={index === 0}
                             stackIndex={index}
                             onSwipe={handleSwipe}

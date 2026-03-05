@@ -14,8 +14,10 @@
       return response.data;
     },
 
-    getNextRecipes: async (limit = 20): Promise<RecipeSummary[]> => {
-      const response = await axiosClient.get<RecipeSummary[]>(`/recipe/next?limit=${limit}`);
+    getNextRecipes: async (limit = 20, category?: string): Promise<RecipeSummary[]> => {
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (category && category !== "Alle") params.set("category", category);
+      const response = await axiosClient.get<RecipeSummary[]>(`/recipe/next?${params}`);
       return response.data;
     },
 
@@ -25,6 +27,11 @@
 
     getLikedRecipes: async (): Promise<RecipeSummary[]> => {
       const response = await axiosClient.get<RecipeSummary[]>(`/swipe/liked`);
+      return response.data;
+    },
+
+    getCategories : async (): Promise<string[]> => {
+      const response = await axiosClient.get<string[]>(`/recipe/categories`);
       return response.data;
     }
 
