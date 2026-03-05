@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { recipeApi } from '../../api/recipeApi';
 import type { RecipeSummary } from '../../types/Recipe';
-import { FiChevronDown, FiChevronUp, FiSearch, FiSliders } from 'react-icons/fi';
+import { FiSearch, FiSliders } from 'react-icons/fi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import RecipeCard from '../../components/ui/RecipeCard';
+import CategoryFilter from '../../components/ui/CategoryFilter';
 
 function RecipePage() {
     const [allRecipes, setAllRecipes] = useState<RecipeSummary[]>([]);
@@ -19,7 +20,6 @@ function RecipePage() {
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
     const [showKeywordDropdown, setShowKeywordDropdown] = useState(false);
-    const [expandCategories, setExpandCategories] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Luk dropdown ved klik udenfor
@@ -206,57 +206,27 @@ function RecipePage() {
                     </div>
                 </div>
 
-                {/* Category tags + favorites toggle */}
-                <div className="relative mb-4">
-                    <div
-                        className={`flex items-center gap-2 flex-wrap overflow-hidden transition-all duration-300 ${
-                            expandCategories ? 'max-h-[500px]' : 'max-h-[42px]'
+                <CategoryFilter
+                    categories={categories.filter((c) => c !== 'Alle')}
+                    activeCategory={activeCategory}
+                    onCategoryChange={setActiveCategory}
+                >
+                    <button
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${
+                            showFavoritesOnly
+                                ? 'bg-red-50 text-red-500 border-red-300'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-400'
                         }`}
                     >
-                        {categories.map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => setActiveCategory(cat)}
-                                className={`px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${
-                                    activeCategory === cat
-                                        ? 'bg-orange-500 text-white border-orange-500'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-
-                        <button
-                            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                            className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${
-                                showFavoritesOnly
-                                    ? 'bg-red-50 text-red-500 border-red-300'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-400'
-                            }`}
-                        >
-                            {showFavoritesOnly ? (
-                                <FaHeart className="text-red-500" />
-                            ) : (
-                                <FaRegHeart />
-                            )}
-                            Favoritter
-                        </button>
-                    </div>
-
-                    {categories.length > 6 && (
-                        <button
-                            onClick={() => setExpandCategories((v) => !v)}
-                            className="mt-1 flex items-center gap-1 text-xs text-gray-400 hover:text-orange-500 transition"
-                        >
-                            {expandCategories ? (
-                                <><FiChevronUp className="text-sm" /> Vis færre</>
-                            ) : (
-                                <><FiChevronDown className="text-sm" /> Vis alle kategorier</>
-                            )}
-                        </button>
-                    )}
-                </div>
+                        {showFavoritesOnly ? (
+                            <FaHeart className="text-red-500" />
+                        ) : (
+                            <FaRegHeart />
+                        )}
+                        Favoritter
+                    </button>
+                </CategoryFilter>
 
                 {/* Page size selector + Liked Recipes button */}
                 <div className="flex items-center justify-between mb-8">

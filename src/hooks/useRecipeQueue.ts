@@ -5,7 +5,7 @@ import type { RecipeSummary } from "../types/Recipe";
 const PREFETCH_THRESHOLD = 5;
 const BATCH_SIZE = 20;
 
-export const useRecipeQueue = () => {
+export const useRecipeQueue = (category?: string) => {
     const [queue, setQueue] = useState<RecipeSummary[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const isFetching = useRef(false);
@@ -16,7 +16,7 @@ export const useRecipeQueue = () => {
         isFetching.current = true;
         setIsLoading(true);
         try {
-            const newBatch = await recipeApi.getNextRecipes(BATCH_SIZE);
+            const newBatch = await recipeApi.getNextRecipes(BATCH_SIZE, category);
             setQueue((prev) => [...prev, ...newBatch]);
         } catch (error) {
             console.error("Failed to fetch more recipes:", error);
@@ -24,11 +24,13 @@ export const useRecipeQueue = () => {
             setIsLoading(false);
             isFetching.current = false;
         }
-    }, []);
+    }, [category]);
 
     useEffect(() => {
-        fetchMoreRecipes();
-    }, [fetchMoreRecipes]);
+            setQueue([]);
+            isFetching.current = false;
+            fetchMoreRecipes();
+    },  [fetchMoreRecipes]);
 
     const swipe = useCallback(
         async (recipeId: string, direction: "like" | "dislike") => {
