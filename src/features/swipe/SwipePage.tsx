@@ -19,7 +19,19 @@ function SwipePage() {
     };
 
     useEffect(() => {
-        recipeApi.getCategories().then(setCategories).catch((error) => {
+        recipeApi.getCategories().then((allCategories) => {
+            const preferredOrder = ["aftensmad", "frokost", "dessert"];
+
+            const preferred = preferredOrder
+                .map((preferredCategory) => allCategories.find((category) => category.toLowerCase() === preferredCategory))
+                .filter((category): category is string => Boolean(category));
+
+            const remaining = allCategories.filter(
+                (category) => !preferred.some((selected) => selected.toLowerCase() === category.toLowerCase())
+            );
+
+            setCategories([...preferred, ...remaining]);
+        }).catch((error) => {
             console.error("Failed to fetch categories:", error);
         });
     }, []);
