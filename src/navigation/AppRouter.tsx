@@ -1,22 +1,45 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import SwipePage from '../features/swipe/SwipePage'
-import GroupPage from '../features/groups/GroupPage'
-import ProfilePage from '../features/profile/ProfilePage'
-import RecipePage from '../features/recipes/RecipePage'
-import ShoppingListPage from '../features/shopping/ShoppingListPage'
+// src/navigation/AppRouter.tsx
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-import MealPlanPage from '../features/mealplan/MealPlanPage'
+// Guards
+import ProtectedRoute from './ProtectedRoute';
+import GuestRoute from './GuestRoute';
+
+// Layout
+import MainLayout from '../components/layout/MainLayout';
+
+// Auth pages (no header/footer)
+import LoginPage from '../features/auth/LoginPage';
+import RegisterPage from '../features/auth/RegisterPage';
+
+// App pages (with header/footer)
+import SwipePage from '../features/swipe/SwipePage';
+import GroupPage from '../features/groups/GroupPage';
+import ProfilePage from '../features/profile/ProfilePage';
+import RecipePage from '../features/recipes/RecipePage';
+import ShoppingListPage from '../features/shopping/ShoppingListPage';
+import MealPlanPage from '../features/mealplan/MealPlanPage';
 
 function AppRouter() {
     return (
         <Routes>
-            <Route path="/swipe" element={<SwipePage />} />
-            <Route path="/groups" element={<GroupPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/recipes" element={<RecipePage />} />
-            <Route path="/shoppinglist" element={<ShoppingListPage />} />
-            <Route path="/mealplan" element={<MealPlanPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route element={<GuestRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+                <Route element={<MainLayout />}>
+                    <Route path="/swipe" element={<SwipePage />} />
+                    <Route path="/groups" element={<GroupPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/recipes" element={<RecipePage />} />
+                    <Route path="/shoppinglist" element={<ShoppingListPage />} />
+                    <Route path="/mealplan" element={<MealPlanPage />} />
+                </Route>
+            </Route>
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
     )
 }

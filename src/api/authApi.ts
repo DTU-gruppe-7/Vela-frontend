@@ -1,21 +1,28 @@
 import axiosClient from './axiosClient';
-import type { UserProfile } from '../types/User';
+import type {AuthResponse, LoginRequest, RegisterRequest} from '../types/Auth';
 
 export const authApi = {
-  // Get current user profile
-  getCurrentUser: async (): Promise<UserProfile> => {
-    const response = await axiosClient.get<UserProfile>('/auth/profile');
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/login', data);
     return response.data;
   },
 
-  // Update user allergens
-  updateAllergens: async (allergens: string[]): Promise<UserProfile> => {
-    const response = await axiosClient.put<UserProfile>('/auth/profile/allergens', { allergens });
+  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/register', data);
     return response.data;
   },
 
-  // Logout
+  // Logout requires auth header
   logout: async (): Promise<void> => {
     await axiosClient.post('/auth/logout');
   },
+
+  // Refresh token endpoint
+  refreshToken: async (token: string, refreshToken: string): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/refresh-token', {
+      token,
+      refreshToken
+    });
+    return response.data;
+  }
 };
