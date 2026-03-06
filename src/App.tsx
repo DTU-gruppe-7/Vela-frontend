@@ -1,15 +1,17 @@
-import { } from 'react'
+import { useEffect } from 'react'
 import AppRouter from './navigation/AppRouter';
-import MainLayout from './components/layout/MainLayout';
+import { useAuthStore } from './stores/authStore';
 
 
 function App() {
+    const hydrate = useAuthStore((s) => s.hydrate);
 
-  return (
-    <MainLayout>
-      <AppRouter />
-    </MainLayout>
-  );
+    // Gendan session fra localStorage ved app-start
+    useEffect(() => {
+        hydrate();
+    }, [hydrate]);
+
+    return <AppRouter />;
 }
 
 export default App

@@ -13,15 +13,6 @@ export type Allergen =
   | 'lupin'
   | 'mollusks';
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  allergens: Allergen[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 export const ALLERGEN_LABELS: Record<Allergen, string> = {
   peanuts: 'Jordnødder',
   tree_nuts: 'Nødder (træ)',
