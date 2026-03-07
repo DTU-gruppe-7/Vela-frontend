@@ -1,51 +1,36 @@
 import axiosClient from './axiosClient';
-import type { RecipeSummary } from '../types/Recipe';
-
-export interface MealPlanEntry {
-  id: string;
-  mealPlanId: string;
-  recipeId: string;
-  day: string; // 'Mandag', 'Tirsdag', osv.
-  addedAt: string;
-  notes?: string;
-  recipe?: RecipeSummary;
-}
-
-export interface MealPlanDto {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-  entries: MealPlanEntry[];
-}
+import type { MealPlanEntry, MealPlan } from '../types/MealPlan';
 
 export const mealplanApi = {
-  // Get current user's meal plan
-  getMealPlan: async (): Promise<MealPlanDto> => {
+  // Hent alle madplaner for brugeren (Vi bruger nu det hardcodede endpoint)
+  getMealPlans: async (): Promise<MealPlan[]> => { // Bemærk det er en liste []
     try {
-      const response = await axiosClient.get<MealPlanDto>(`/mealplan/current`);
+      // Ret ruten til at matche din controller: /api/MealPlan
+      const response = await axiosClient.get<MealPlan[]>(`/MealPlan`);
       return response.data;
     } catch (error) {
-      console.error('Fejl ved hentning af madplan:', error);
+      console.error('Fejl ved hentning af madplaner:', error);
       throw error;
     }
   },
 
-  // Add a recipe entry to a specific meal plan
+  // Tilføj en opskrift til en madplan
   addEntry: async (
     mealplanId: string,
     recipeId: string,
     day: string,
-    notes?: string
+    mealType: string, // Tilføjet da din backend forventer MealType
+    servings: number  // Tilføjet da din backend forventer Servings
   ): Promise<MealPlanEntry> => {
     try {
+      // Din backend rute: /api/MealPlan/{mealPlanId}/entries
       const response = await axiosClient.post<MealPlanEntry>(
-        `/mealplan/${mealplanId}/entries`,
+        `/MealPlan/${mealplanId}/entries`,
         {
           recipeId,
           day,
-          notes,
+          mealType,
+          servings
         }
       );
       return response.data;
@@ -55,29 +40,13 @@ export const mealplanApi = {
     }
   },
 
-  // Remove a recipe entry from current user's meal plan
-  removeEntry: async (entryId: string): Promise<void> => {
+  // Fjern en opskrift
+  removeEntry: async (mealPlanId: string, entryId: string): Promise<void> => {
     try {
-      await axiosClient.delete(`/mealplan/entries/${entryId}`);
+      // Din backend rute kræver både mealPlanId og entryId
+      await axiosClient.delete(`/MealPlan/${mealPlanId}/entries/${entryId}`);
     } catch (error) {
       console.error('Fejl ved fjernelse af opskrift:', error);
-      throw error;
-    }
-  },
-
-  // Update week's meal plan (optional - for batch updates)
-  updateWeekPlan: async (
-    mealplanId: string,
-    entries: Omit<MealPlanEntry, 'id' | 'addedAt'>[]
-  ): Promise<MealPlanDto> => {
-    try {
-      const response = await axiosClient.put<MealPlanDto>(
-        `/mealplan/${mealplanId}`,
-        { entries }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Fejl ved opdatering af madplan:', error);
       throw error;
     }
   },
