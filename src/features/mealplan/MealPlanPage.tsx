@@ -67,10 +67,11 @@ export default function MealPlanPage() {
             transform: `translateX(-${translateX}%)`,
           }}
         >
-          {DAYS.map((day) => (
+          {DAYS.map((day, index) => (
             <div key={day} style={{ width: `${100 / DAYS.length}%` }} className="flex-shrink-0">
               <DayColumn
                 day={day}
+                date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
                 recipes={mealPlan[day] || []}
                 onRemoveRecipe={removeRecipe}
                 onAddClick={() => setSelectedDay(day)}
@@ -128,19 +129,24 @@ export default function MealPlanPage() {
 
 function DayColumn({
   day,
+  date,
   recipes,
   onRemoveRecipe,
   onAddClick,
 }: {
   day: string;
+  date: Date;
   recipes: RecipeSummary[];
   onRemoveRecipe: (day: string, recipeId: string) => void;
   onAddClick: () => void;
 }) {
+  const dateStr = date.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' });
+  
   return (
     <div className="flex flex-col gap-0">
       <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
         <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
+        <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
       </div>
       <div className="p-4 flex flex-col min-h-96 bg-white">
         {recipes.length > 0 ? (
