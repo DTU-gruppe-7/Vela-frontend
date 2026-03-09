@@ -29,6 +29,7 @@ function AppRouter() {
             </Route>
             <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
+                    <Route path="/" element={<Navigate to="/swipe" replace />} />
                     <Route path="/swipe" element={<SwipePage />} />
                     <Route path="/groups" element={<GroupPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
