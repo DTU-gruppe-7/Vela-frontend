@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { DAYS, type WeekInfo } from '../../../utils/weekUtils';
 import { mealplanApi} from '../../../api/mealplanApi';
@@ -56,6 +56,7 @@ export function useMealPlan(
   const [error, setError] = useState<string | null>(null);
   const [mealPlanId, setMealPlanId] = useState<string | null>(null);
   const [entryMap, setEntryMap] = useState<MealPlanEntriesMap>({});
+  const creatingPlanRef = useRef(false);
 
   // A. Hent alle tilgængelige opskrifter (til modallen)
   useEffect(() => {
@@ -73,8 +74,16 @@ export function useMealPlan(
       setLoading(true);
       setError(null);
       try {
-        const plans = await mealplanApi.getMealPlans();
+        let plans = await mealplanApi.getMealPlans();
         
+        // Hvis brugeren ikke har en madplan, opret en automatisk (men kun én gang)
+        if ((!plans || plans.length === 0) && !creatingPlanRef.current) {
+          creatingPlanRef.current = true;
+          console.log('Ingen madplan fundet - opretter en ny...');
+          const newPlan = await mealplanApi.createMealPlan();
+          plans = [newPlan];
+        }
+
         if (plans && plans.length > 0) {
           const activePlan = plans[0];
           setMealPlanId(activePlan.id);
@@ -92,6 +101,7 @@ export function useMealPlan(
       } catch (err) {
         console.error('Fejl ved indlæsning:', err);
         setError('Kunne ikke indlæse fra server.');
+        creatingPlanRef.current = false; // Reset ved fejl så den kan prøve igen
       } finally {
         setLoading(false);
       }

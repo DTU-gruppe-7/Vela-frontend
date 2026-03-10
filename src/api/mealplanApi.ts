@@ -13,6 +13,19 @@ export const mealplanApi = {
     }
   },
 
+  // Opret en ny madplan for brugeren
+  createMealPlan: async (): Promise<MealPlan> => {
+    try {
+      const response = await axiosClient.post<MealPlan>(`/MealPlan`, {
+        name: 'Min madplan'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Fejl ved oprettelse af madplan:', error);
+      throw error;
+    }
+  },
+
   // Tilføj en opskrift til en madplan
   addEntry: async (
     mealplanId: string,
