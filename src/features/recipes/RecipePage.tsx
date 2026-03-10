@@ -5,6 +5,7 @@ import { FiSearch, FiSliders } from 'react-icons/fi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import RecipeCard from '../../components/ui/RecipeCard';
 import CategoryFilter from '../../components/ui/CategoryFilter';
+import { RecipeDetailModal } from './RecipeDetailModal';
 
 function RecipePage() {
     const [allRecipes, setAllRecipes] = useState<RecipeSummary[]>([]);
@@ -21,6 +22,7 @@ function RecipePage() {
     const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
     const [showKeywordDropdown, setShowKeywordDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
 
     // Luk dropdown ved klik udenfor
     useEffect(() => {
@@ -285,14 +287,19 @@ function RecipePage() {
                                   <SkeletonCard key={i} />
                               ))
                             : paginatedRecipes.map((recipe) => (
-                                  <RecipeCard
+                                  <div
                                       key={recipe.id}
-                                      recipe={recipe}
-                                      isFavorite={favoriteIds.has(recipe.id)}
-                                      onToggleFavorite={toggleFavorite}
-                                      onCategoryClick={setActiveCategory}
-                                      onKeywordClick={setActiveKeyword}
-                                  />
+                                      onClick={() => setSelectedRecipeId(recipe.id)}
+                                      className="cursor-pointer"
+                                  >
+                                      <RecipeCard
+                                          recipe={recipe}
+                                          isFavorite={favoriteIds.has(recipe.id)}
+                                          onToggleFavorite={toggleFavorite}
+                                          onCategoryClick={setActiveCategory}
+                                          onKeywordClick={setActiveKeyword}
+                                      />
+                                  </div>
                               ))}
                     </div>
                 )}
@@ -372,6 +379,12 @@ function RecipePage() {
                     </p>
                 )}
             </div>
+
+            {/* Recipe Detail Modal */}
+            <RecipeDetailModal
+                recipeId={selectedRecipeId}
+                onClose={() => setSelectedRecipeId(null)}
+            />
         </div>
     );
 }
