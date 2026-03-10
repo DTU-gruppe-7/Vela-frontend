@@ -13,6 +13,7 @@ export default function MealPlanPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
 
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
@@ -118,6 +119,7 @@ export default function MealPlanPage() {
         day={selectedDay ?? ''}
         availableRecipes={availableRecipes}
         addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
+        likedIds={likedIds}
         onSelect={(recipe) => {
           if (selectedDay) addRecipe(selectedDay, recipe);
           setSelectedDay(null);

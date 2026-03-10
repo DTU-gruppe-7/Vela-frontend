@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRecipeDetails } from '../../hooks/useRecipeDetails';
 
 interface Props {
@@ -24,16 +24,36 @@ function formatDuration(iso: string): string {
 export const RecipeDetailModal: React.FC<Props> = ({ recipeId, onClose }) => {
   const { recipe, loading, error, instructions } = useRecipeDetails(recipeId);
 
+  // Luk ved Escape-tast
+  useEffect(() => {
+    if (!recipeId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [recipeId, onClose]);
+
+  // Lås scroll på body mens modal er åben
+  useEffect(() => {
+    if (recipeId) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [recipeId]);
+
   if (!recipeId) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog" aria-modal="true" aria-labelledby="recipe-modal-title">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800">{recipe?.name || 'Henter opskrift...'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+          <h2 id="recipe-modal-title" className="text-2xl font-bold text-gray-800">{recipe?.name || 'Henter opskrift...'}</h2>
+          <button onClick={onClose} aria-label="Luk opskrift" className="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
         </div>
 
         <div className="overflow-y-auto p-6">

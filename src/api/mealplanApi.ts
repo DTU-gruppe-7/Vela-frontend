@@ -34,16 +34,6 @@ export const mealplanApi = {
     mealType: string, 
     servings: number  
   ): Promise<MealPlanEntry> => {
-    // --- DEBUG LOG START ---
-    console.log("🚀 API KALD: addEntry blev kaldt med:", {
-      mealplanId,
-      recipeId,
-      date,
-      mealType,
-      servings
-    });
-    // --- DEBUG LOG SLUT ---
-
     try {
       const response = await axiosClient.post<MealPlanEntry>(
         `/MealPlan/${mealplanId}/entries`,
@@ -55,10 +45,9 @@ export const mealplanApi = {
         }
       );
       
-      console.log("✅ API SUCCESS:", response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ API FEJL ved tilføjelse:', error);
+      console.error('Fejl ved tilføjelse af opskrift:', error);
       throw error;
     }
   },
