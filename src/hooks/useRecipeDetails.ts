@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { recipeApi } from "../api/recipeApi";
 import type { Recipe } from "../types/Recipe";
 
@@ -30,15 +30,32 @@ export function useRecipeDetails(recipeId: string | null) {
     loadRecipe();
   }, [recipeId]);
 
-  const getInstructions = (): string[] => {
-    if (!recipe?.instructionsJson) return [];
+  const instructions = useMemo(() => {
+    if (!recipe?.instructionsJson) {
+      return [];
+    }
     try {
-      return JSON.parse(recipe.instructionsJson);
+      const parsed = JSON.parse(recipe.instructionsJson);
+      
+      // Hvis det er et objekt med sections, flatter vi det
+      if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const flattened: string[] = [];
+        Object.entries(parsed).forEach(([section, steps]: [string, any]) => {
+          flattened.push(`**${section}**`);
+          if (Array.isArray(steps)) {
+            flattened.push(...steps);
+          }
+        });
+        return flattened;
+      }
+      
+      // Hvis det allerede er et array
+      return parsed;
     } catch (e) {
       console.error("Fejl ved parsing af instruktioner:", e);
       return [recipe.instructionsJson]; // Fallback til rå tekst
     }
-  };
+  }, [recipe?.instructionsJson]);
 
-  return { recipe, loading, error, instructions: getInstructions() };
+  return { recipe, loading, error, instructions };
 }

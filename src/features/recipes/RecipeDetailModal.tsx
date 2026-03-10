@@ -6,6 +6,21 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Parse an ISO 8601 duration string (e.g. "PT1H20M", "PT45M", "PT2H") into a
+ * human-readable Danish string like "1 t 20 min" or "45 min".
+ */
+function formatDuration(iso: string): string {
+  const match = iso.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/i);
+  if (!match) return iso;
+  const hours = match[1] ? parseInt(match[1], 10) : 0;
+  const minutes = match[2] ? parseInt(match[2], 10) : 0;
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours} t`);
+  if (minutes > 0) parts.push(`${minutes} min`);
+  return parts.length > 0 ? parts.join(' ') : '0 min';
+}
+
 export const RecipeDetailModal: React.FC<Props> = ({ recipeId, onClose }) => {
   const { recipe, loading, error, instructions } = useRecipeDetails(recipeId);
 
@@ -39,7 +54,7 @@ export const RecipeDetailModal: React.FC<Props> = ({ recipeId, onClose }) => {
                   {recipe.ingredients && recipe.ingredients.length > 0 ? (
                     recipe.ingredients.map((ing, idx) => (
                       <li key={idx} className="text-gray-700">
-                        <span className="font-semibold">{ing.quantity} {ing.unit}</span> {ing.name}
+                        <span className="font-semibold">{ing.quantity} {ing.unit}</span> {ing.ingredientName}
                       </li>
                     ))
                   ) : (
@@ -51,8 +66,13 @@ export const RecipeDetailModal: React.FC<Props> = ({ recipeId, onClose }) => {
               {/* Højre side: Info og Fremgangsmåde */}
               <div className="md:col-span-2">
                 <div className="flex gap-4 mb-6 text-sm text-gray-500 font-medium">
-                  <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">⏱ {recipe.totalTime} i alt</div>
-                  <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">👥 {recipe.servings} portioner</div>
+                  {recipe.workTime && (
+                    <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">⏱ Arbejdstid: {formatDuration(recipe.workTime)}</div>
+                  )}
+                  {recipe.totalTime && (
+                    <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">⏱ Total: {formatDuration(recipe.totalTime)}</div>
+                  )}
+                  <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">👥 {recipe.servingSize} portioner</div>
                 </div>
 
                 <h3 className="text-lg font-bold mb-3 text-emerald-700 uppercase tracking-wider">Fremgangsmåde</h3>
