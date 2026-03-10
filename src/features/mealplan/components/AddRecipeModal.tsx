@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { useState, useMemo } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import RecipeCard from '../../../components/ui/RecipeCard';
+import { useLikedRecipes } from '../hooks/useLikedRecipes';
 
 interface AddRecipeModalProps {
   isOpen: boolean;
@@ -23,6 +25,7 @@ export function AddRecipeModal({
   onSelect,
   favoriteIds = new Set(), // Default til tom hvis den ikke sendes med
 }: AddRecipeModalProps) {
+  
   const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
 
   // Find ud af hvilke opskrifter der allerede er på madplanen for denne dag
