@@ -92,13 +92,13 @@ export const RecipeDetailModal: React.FC<Props> = ({ recipeId, onClose }) => {
                   {recipe.totalTime && (
                     <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">⏱ Total: {formatDuration(recipe.totalTime)}</div>
                   )}
-                  <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">👥 {recipe.servingSize} portioner</div>
+                  <div className="bg-emerald-50 px-3 py-1 rounded-full text-emerald-700">👥 {recipe.servings} portioner</div>
                 </div>
 
                 <h3 className="text-lg font-bold mb-3 text-emerald-700 uppercase tracking-wider">Fremgangsmåde</h3>
                 <ol className="space-y-4">
                   {instructions && instructions.length > 0 ? (
-                    instructions.map((step, idx) => (
+                    instructions.map((step: string, idx: number) => (
                       <li key={idx} className="flex gap-4">
                         <span className="flex-shrink-0 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
                           {idx + 1}

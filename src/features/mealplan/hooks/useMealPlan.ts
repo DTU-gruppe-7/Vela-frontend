@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { DAYS, type WeekInfo } from '../../../utils/weekUtils';
 import { mealplanApi} from '../../../api/mealplanApi';
-import type { MealPlan, MealPlanEntry } from '../../../types/MealPlan';
+import type { MealPlanEntry } from '../../../types/MealPlan';
 
 type MealPlanData = { [key: string]: RecipeSummary[] };
 type MealPlanEntriesMap = { [entryId: string]: MealPlanEntry };
@@ -12,7 +12,7 @@ function getEmptyMealPlan(): MealPlanData {
   return Object.fromEntries(DAYS.map((d) => [d, []]));
 }
 
-function getDateStringForDay(dayName: string, weekInfo: WeekInfo): string {
+function getDateStringForDay(dayName: typeof DAYS[number], weekInfo: WeekInfo): string {
   const dayIndex = DAYS.indexOf(dayName);
   const date = new Date(weekInfo.monday);
   date.setDate(date.getDate() + dayIndex);
@@ -79,7 +79,6 @@ export function useMealPlan(
         // Hvis brugeren ikke har en madplan, opret en automatisk (men kun én gang)
         if ((!plans || plans.length === 0) && !creatingPlanRef.current) {
           creatingPlanRef.current = true;
-          console.log('Ingen madplan fundet - opretter en ny...');
           const newPlan = await mealplanApi.createMealPlan();
           plans = [newPlan];
         }
@@ -111,7 +110,7 @@ export function useMealPlan(
   }, [weekInfo.weekNumber]); 
 
   const addRecipe = useCallback(
-    async (day: string, recipe: RecipeSummary) => {
+    async (day: typeof DAYS[number], recipe: RecipeSummary) => {
       if (!mealPlanId) return;
 
       const targetDate = getDateStringForDay(day, weekInfo);
@@ -137,7 +136,7 @@ export function useMealPlan(
   );
 
   const removeRecipe = useCallback(
-    async (day: string, recipeId: string) => {
+    async (day: typeof DAYS[number], recipeId: string) => {
       const targetDate = getDateStringForDay(day, weekInfo);
       
       const entryId = Object.entries(entryMap).find(
