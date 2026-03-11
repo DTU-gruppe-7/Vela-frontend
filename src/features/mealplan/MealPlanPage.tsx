@@ -6,8 +6,8 @@ import { AddRecipeModal } from './components/AddRecipeModal';
 import { getWeekInfo, DAYS } from '../../utils/weekUtils';
 import { useMealPlan } from './hooks/useMealPlan';
 import { recipeApi } from '../../api/recipeApi';
-const VISIBLE_COLUMNS = 4;
 
+const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -15,9 +15,14 @@ export default function MealPlanPage() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
-
-
-  const { mealPlan, availableRecipes, addRecipe, removeRecipe, error } = useMealPlan(
+  const { 
+    mealPlan, 
+    availableRecipes, 
+    likedIds, 
+    addRecipe, 
+    removeRecipe, 
+    error 
+  } = useMealPlan(
     recipeApi.getAllRecipes,
     weekInfo
   );
@@ -56,9 +61,8 @@ export default function MealPlanPage() {
         </div>
       )}
 
-      {/* Outer: overflow hidden, viser præcis VISIBLE_COLUMNS kolonner */}
+      {/* Horisontal uge-oversigt */}
       <div className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white">
-        {/* Track: alle dage, bredde beregnet dynamisk */}
         <div
           className="flex divide-x-2 divide-slate-200 transition-transform duration-500 ease-out"
           style={{
@@ -79,7 +83,7 @@ export default function MealPlanPage() {
           ))}
         </div>
 
-        {/* Venstre pil */}
+        {/* Navigationspile */}
         {canGoBack && (
           <div className="absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-transparent rounded-l-2xl" />
@@ -94,7 +98,6 @@ export default function MealPlanPage() {
           </div>
         )}
 
-        {/* Højre pil */}
         {canGoForward && (
           <div className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-l from-white/70 to-transparent rounded-r-2xl" />
@@ -117,6 +120,7 @@ export default function MealPlanPage() {
         day={selectedDay ?? ''}
         availableRecipes={availableRecipes}
         addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
+        favoriteIds={likedIds} 
         onSelect={(recipe) => {
           if (selectedDay) addRecipe(selectedDay, recipe);
           setSelectedDay(null);
