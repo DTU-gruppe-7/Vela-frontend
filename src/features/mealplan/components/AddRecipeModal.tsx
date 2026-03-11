@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { RecipeSummary } from '../../../types/Recipe';
+import { useState, useMemo } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { useLikedRecipes } from '../hooks/useLikedRecipes';
@@ -11,6 +12,8 @@ interface AddRecipeModalProps {
   availableRecipes: RecipeSummary[];
   addedRecipes: RecipeSummary[];
   onSelect: (recipe: RecipeSummary) => void;
+  // Tilføj denne hvis du vil have "Likede" til at virke med dine favoritter
+  favoriteIds?: Set<string>; 
 }
 
 export function AddRecipeModal({
@@ -20,91 +23,77 @@ export function AddRecipeModal({
   availableRecipes,
   addedRecipes,
   onSelect,
+  favoriteIds = new Set(), // Default til tom hvis den ikke sendes med
 }: AddRecipeModalProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showOnlyLiked, setShowOnlyLiked] = useState(true);
+  
+  const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
 
-  // Hent liked opskrifter via hooket. Kører kun når modalen er åben.
-  const { likedRecipes, isLoading: isLoadingLiked } = useLikedRecipes();
+  // Find ud af hvilke opskrifter der allerede er på madplanen for denne dag
+  const addedIds = useMemo(() => new Set(addedRecipes.map((r) => r.id)), [addedRecipes]);
 
-  const addedIds = new Set(addedRecipes.map((r) => r.id));
+  // Opskrifter der kan vælges (dem der ikke allerede er tilføjet)
+  const selectableRecipes = useMemo(() => 
+    availableRecipes.filter((r) => !addedIds.has(r.id)),
+    [availableRecipes, addedIds]
+  );
 
-  // Vælg hvilken liste vi kigger i ("Mine favoritter" eller "Alle")
-  const sourceRecipes = showOnlyLiked ? likedRecipes : availableRecipes;
-
-  // Filtrer først dem fra som allerede er tilføjet, og derefter ud fra søgeordet
-  const selectableRecipes = sourceRecipes
-    .filter((r) => !addedIds.has(r.id))
-    .filter((r) => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  // Nulstil alt state når modalen lukkes
-  const handleClose = () => {
-    setSearchTerm('');
-    setShowOnlyLiked(true); // Reset til at vise Liked by default næste gang
-    onClose();
-  };
+  // Filtrering baseret på knapperne "Alle" eller "Likede"
+  const filteredRecipes = useMemo(() => {
+    if (filterMode === 'liked') {
+      // Vi tjekker mod favoriteIds sættet
+      return selectableRecipes.filter((r) => favoriteIds.has(r.id));
+    }
+    return selectableRecipes;
+  }, [filterMode, selectableRecipes, favoriteIds]);
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Tilføj opskrift – ${day}`}>
-      <div className="mb-4 flex flex-col gap-3">
-        {/* Toggle knapper for Liked vs All */}
-        <div className="flex bg-slate-100 p-1 mx-auto rounded-xl inline-flex w-fit">
-          <button
-            onClick={() => setShowOnlyLiked(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${showOnlyLiked
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-          >
-            Dine Favoritter
-          </button>
-          <button
-            onClick={() => setShowOnlyLiked(false)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!showOnlyLiked
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-          >
-            Alle Opskrifter
-          </button>
-        </div>
-
-        {/* Søgefelt */}
-        <input
-          type="text"
-          placeholder={`Søg i ${showOnlyLiked ? 'favoritter' : 'alle opskrifter'}...`}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-slate-400 text-slate-700"
-        />
+    <Modal isOpen={isOpen} onClose={onClose} title={`Tilføj opskrift – ${day}`}>
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setFilterMode('all')}
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
+            filterMode === 'all'
+              ? 'bg-orange-500 text-white shadow-md'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          Alle
+        </button>
+        <button
+          onClick={() => setFilterMode('liked')}
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
+            filterMode === 'liked'
+              ? 'bg-orange-500 text-white shadow-md'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          Likede
+        </button>
       </div>
 
-      {isLoadingLiked && showOnlyLiked ? (
-        <p className="text-sm text-slate-400 text-center py-8">Indlæser dine favoritter...</p>
-      ) : selectableRecipes.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {selectableRecipes.map((recipe) => (
-            <button
-              key={recipe.id}
-              onClick={() => {
-                onSelect(recipe);
-                setSearchTerm(''); // Nulstil søgefeltet efter valg
-              }}
-              className="text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-2xl transition-transform hover:scale-[1.02] active:scale-95"
-            >
-              <RecipeCard recipe={recipe} compact />
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-400 text-center py-8">
-          {sourceRecipes.length === 0
-            ? (showOnlyLiked ? 'Du har ikke nogen favoritopskrifter endnu.' : 'Indlæser opskrifter...')
-            : searchTerm
-              ? 'Ingen opskrifter matchede din søgning.'
-              : 'Alle opskrifter i denne kategori er allerede tilføjet til denne dag.'}
-        </p>
-      )}
+      <div className="max-h-[60vh] overflow-y-auto pr-2">
+        {filteredRecipes.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {filteredRecipes.map((recipe) => (
+              <button
+                key={recipe.id}
+                onClick={() => onSelect(recipe)}
+                className="group text-left focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-2xl transition-transform hover:scale-[1.02]"
+              >
+                <RecipeCard recipe={recipe} compact />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-slate-400 text-sm">
+              {filterMode === 'liked'
+                ? 'Du har ingen favoritter blandt de tilgængelige opskrifter.'
+                : 'Ingen flere opskrifter at tilføje.'}
+            </p>
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }

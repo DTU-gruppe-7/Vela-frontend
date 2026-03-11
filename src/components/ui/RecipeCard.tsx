@@ -76,7 +76,7 @@ function RecipeCard({
                         {recipe.category && (
                             <button
                                 type="button"
-                                onClick={() => onCategoryClick?.(recipe.category)}
+                                onClick={(e) => { e.stopPropagation(); onCategoryClick?.(recipe.category); }}
                                 className="px-3 py-1 text-xs font-medium text-orange-700 bg-orange-100 rounded-full hover:bg-orange-200 transition"
                             >
                                 {recipe.category}
@@ -85,7 +85,7 @@ function RecipeCard({
                     </div>
                     {onToggleFavorite && (
                         <button
-                            onClick={() => onToggleFavorite(recipe.id)}
+                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe.id); }}
                             className="text-xl transition-transform duration-200 hover:scale-110"
                         >
                             {isFavorite ? (
@@ -104,7 +104,7 @@ function RecipeCard({
                             <button
                                 type="button"
                                 key={kw}
-                                onClick={() => onKeywordClick?.(kw)}
+                                onClick={(e) => { e.stopPropagation(); onKeywordClick?.(kw); }}
                                 className="px-2 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition"
                             >
                                 {kw}
