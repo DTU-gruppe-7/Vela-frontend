@@ -11,8 +11,6 @@ interface AddRecipeModalProps {
   availableRecipes: RecipeSummary[];
   addedRecipes: RecipeSummary[];
   onSelect: (recipe: RecipeSummary) => void;
-  // Tilføj denne hvis du vil have "Likede" til at virke med dine favoritter
-  favoriteIds?: Set<string>; 
 }
 
 export function AddRecipeModal({
@@ -22,16 +20,19 @@ export function AddRecipeModal({
   availableRecipes,
   addedRecipes,
   onSelect,
-  favoriteIds = new Set(), // Default til tom hvis den ikke sendes med
 }: AddRecipeModalProps) {
-  
+
   const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
+
+  // Hent likede opskrifter fra backend via hooket
+  const { likedRecipes } = useLikedRecipes();
+  const favoriteIds = useMemo(() => new Set(likedRecipes.map((r) => r.id)), [likedRecipes]);
 
   // Find ud af hvilke opskrifter der allerede er på madplanen for denne dag
   const addedIds = useMemo(() => new Set(addedRecipes.map((r) => r.id)), [addedRecipes]);
 
   // Opskrifter der kan vælges (dem der ikke allerede er tilføjet)
-  const selectableRecipes = useMemo(() => 
+  const selectableRecipes = useMemo(() =>
     availableRecipes.filter((r) => !addedIds.has(r.id)),
     [availableRecipes, addedIds]
   );
@@ -50,21 +51,19 @@ export function AddRecipeModal({
       <div className="mb-6 flex gap-2">
         <button
           onClick={() => setFilterMode('all')}
-          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
-            filterMode === 'all'
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${filterMode === 'all'
               ? 'bg-orange-500 text-white shadow-md'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
+            }`}
         >
           Alle
         </button>
         <button
           onClick={() => setFilterMode('liked')}
-          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
-            filterMode === 'liked'
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${filterMode === 'liked'
               ? 'bg-orange-500 text-white shadow-md'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
+            }`}
         >
           Likede
         </button>
