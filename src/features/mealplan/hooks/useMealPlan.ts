@@ -58,28 +58,28 @@ export function useMealPlan(
   useEffect(() => {
     fetchRecipes()
       .then(setAvailableRecipes)
-      .catch(err => {
-        console.error('Fejl ved hentning af opskrifter:', err);
+      .catch(() => {
         setError('Kunne ikke hente opskrifter');
       });
   }, [fetchRecipes]);
 
-  // 2. FASE 1: Hent likede opskrifter fra API
+  
   useEffect(() => {
     recipeApi.getLikedRecipes()
       .then(data => {
-        console.log("Fase 1 - Likede opskrifter hentet:", data.length);
         setLikedRecipes(data);
       })
-      .catch(err => console.error('Fase 1 fejl:', err));
+      .catch(() => {
+        setError('Kunne ikke hente likede opskrifter');
+      });
   }, []);
 
-  // 3. FASE 1: Lav et lynhurtigt Set af ID'er (lowercase for at undgå mismatch)
+  // Lav et lynhurtigt Set af ID'er for filtrering
   const likedIds = useMemo(() => {
     return new Set(likedRecipes.map(r => r.id.toLowerCase()));
   }, [likedRecipes]);
 
-  // Hent madplan (eksisterende logik)
+  // Hent madplan for den valgte uge
   useEffect(() => {
     const loadMealPlan = async () => {
       setLoading(true);
@@ -134,7 +134,7 @@ export function useMealPlan(
   return { 
     mealPlan, 
     availableRecipes, 
-    likedIds, // <--- Vi eksporterer vores nye Set her
+    likedIds, 
     addRecipe, 
     removeRecipe, 
     loading, 
