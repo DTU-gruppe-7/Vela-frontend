@@ -13,11 +13,8 @@ export default function MealPlanPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
-
-  // Fase 2: Vi trækker likedIds ud her
   const { 
     mealPlan, 
     availableRecipes, 
@@ -123,7 +120,7 @@ export default function MealPlanPage() {
         day={selectedDay ?? ''}
         availableRecipes={availableRecipes}
         addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
-        favoriteIds={likedIds} // Fase 2: Her sendes dataen ned
+        favoriteIds={likedIds} 
         onSelect={(recipe) => {
           if (selectedDay) addRecipe(selectedDay, recipe);
           setSelectedDay(null);
@@ -147,7 +144,7 @@ function DayColumn({
   onAddClick: () => void;
 }) {
   const dateStr = date.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' });
-  
+
   return (
     <div className="flex flex-col gap-0">
       <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">

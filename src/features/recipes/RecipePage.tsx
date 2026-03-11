@@ -6,6 +6,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import RecipeCard from '../../components/ui/RecipeCard';
 import CategoryFilter from '../../components/ui/CategoryFilter';
 import { RecipeDetailModal } from './RecipeDetailModal';
+import { useLikedRecipes } from '../mealplan/hooks/useLikedRecipes';
 
 function RecipePage() {
     const [allRecipes, setAllRecipes] = useState<RecipeSummary[]>([]);
@@ -19,7 +20,6 @@ function RecipePage() {
     const [activeCategory, setActiveCategory] = useState('Alle');
     const [activeKeyword, setActiveKeyword] = useState('Alle');
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-    const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
     const [showKeywordDropdown, setShowKeywordDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
@@ -59,17 +59,9 @@ function RecipePage() {
         setCurrentPage(1);
     };
 
-    const toggleFavorite = (id: string) => {
-        setFavoriteIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
-            return next;
-        });
-    };
+    // Hook til liked/favorit opskrifter
+    const { likedRecipes, toggleLike } = useLikedRecipes();
+    const favoriteIds = useMemo(() => new Set(likedRecipes.map((r) => r.id)), [likedRecipes]);
 
     // Kategorier fra ALLE opskrifter
     const categories = useMemo(() => {
@@ -175,11 +167,10 @@ function RecipePage() {
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setShowKeywordDropdown((v) => !v)}
-                            className={`flex items-center justify-center w-12 h-12 border rounded-xl transition shadow-sm ${
-                                activeKeyword !== 'Alle'
+                            className={`flex items-center justify-center w-12 h-12 border rounded-xl transition shadow-sm ${activeKeyword !== 'Alle'
                                     ? 'bg-orange-50 border-orange-400 text-orange-600'
                                     : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-orange-600'
-                            }`}
+                                }`}
                         >
                             <FiSliders className="text-lg" />
                         </button>
@@ -194,11 +185,10 @@ function RecipePage() {
                                             setActiveKeyword(kw);
                                             setShowKeywordDropdown(false);
                                         }}
-                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${
-                                            activeKeyword === kw
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition ${activeKeyword === kw
                                                 ? 'bg-orange-100 text-orange-700 font-medium'
                                                 : 'text-gray-700 hover:bg-gray-100'
-                                        }`}
+                                            }`}
                                     >
                                         {kw}
                                     </button>
@@ -215,11 +205,10 @@ function RecipePage() {
                 >
                     <button
                         onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                        className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${
-                            showFavoritesOnly
+                        className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${showFavoritesOnly
                                 ? 'bg-red-50 text-red-500 border-red-300'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-400'
-                        }`}
+                            }`}
                     >
                         {showFavoritesOnly ? (
                             <FaHeart className="text-red-500" />
@@ -238,11 +227,10 @@ function RecipePage() {
                             <button
                                 key={size}
                                 onClick={() => handlePageSizeChange(size)}
-                                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition ${
-                                    pageSize === size
+                                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition ${pageSize === size
                                         ? 'bg-orange-500 text-white border-orange-500'
                                         : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'
-                                }`}
+                                    }`}
                             >
                                 {size}
                             </button>
@@ -251,11 +239,10 @@ function RecipePage() {
                     </div>
                     <button
                         onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                        className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border transition ${
-                            showFavoritesOnly
+                        className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border transition ${showFavoritesOnly
                                 ? 'bg-red-50 text-red-500 border-red-300'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500'
-                        }`}
+                            }`}
                     >
                         {showFavoritesOnly ? (
                             <FaHeart className="text-red-500" />
@@ -284,23 +271,23 @@ function RecipePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {loading
                             ? Array.from({ length: 6 }).map((_, i) => (
-                                  <SkeletonCard key={i} />
-                              ))
+                                <SkeletonCard key={i} />
+                            ))
                             : paginatedRecipes.map((recipe) => (
-                                  <div
-                                      key={recipe.id}
-                                      onClick={() => setSelectedRecipeId(recipe.id)}
-                                      className="cursor-pointer"
-                                  >
-                                      <RecipeCard
-                                          recipe={recipe}
-                                          isFavorite={favoriteIds.has(recipe.id)}
-                                          onToggleFavorite={toggleFavorite}
-                                          onCategoryClick={setActiveCategory}
-                                          onKeywordClick={setActiveKeyword}
-                                      />
-                                  </div>
-                              ))}
+                                <div
+                                    key={recipe.id}
+                                    onClick={() => setSelectedRecipeId(recipe.id)}
+                                    className="cursor-pointer"
+                                >
+                                    <RecipeCard
+                                        recipe={recipe}
+                                        isFavorite={favoriteIds.has(recipe.id)}
+                                        onToggleFavorite={() => toggleLike(recipe)}
+                                        onCategoryClick={setActiveCategory}
+                                        onKeywordClick={setActiveKeyword}
+                                    />
+                                </div>
+                            ))}
                     </div>
                 )}
 
@@ -349,11 +336,10 @@ function RecipePage() {
                                         <button
                                             key={item}
                                             onClick={() => { setCurrentPage(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className={`w-10 h-10 text-sm font-medium rounded-xl transition ${
-                                                currentPage === item
+                                            className={`w-10 h-10 text-sm font-medium rounded-xl transition ${currentPage === item
                                                     ? 'bg-orange-500 text-white shadow-sm'
                                                     : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                                            }`}
+                                                }`}
                                         >
                                             {item}
                                         </button>
