@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import type { RecipeSummary } from '../../../types/Recipe';
 import { useState, useMemo } from 'react';
+import type { RecipeSummary } from '../../../types/Recipe';
 import { Modal } from '../../../components/ui/Modal';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { useLikedRecipes } from '../hooks/useLikedRecipes';
