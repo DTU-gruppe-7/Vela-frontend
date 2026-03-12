@@ -8,6 +8,9 @@ import GuestRoute from './GuestRoute';
 // Layout
 import MainLayout from '../components/layout/MainLayout';
 
+// LandingPage
+import { LandingPage } from '../features/landing/LandingPage';
+
 // Auth pages (no header/footer)
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
@@ -24,8 +27,10 @@ function AppRouter() {
     return (
         <Routes>
             <Route element={<GuestRoute />}>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
+                <Route element={<LandingPage />}>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
