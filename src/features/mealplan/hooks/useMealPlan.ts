@@ -132,7 +132,8 @@ export function useMealPlan(
   }, [entryMap, mealPlanId, weekInfo.weekNumber]);
 
   return { 
-    mealPlan, 
+    mealPlan,
+    mealPlanId,
     availableRecipes, 
     likedIds, 
     addRecipe, 
