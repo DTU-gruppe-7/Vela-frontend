@@ -3,10 +3,9 @@ import type { RecipeSummary } from '../../../types/Recipe';
 import { DAYS, type WeekInfo } from '../../../utils/weekUtils';
 import { mealplanApi} from '../../../api/mealplanApi';
 import type { MealPlanEntry } from '../../../types/MealPlan';
-import { recipeApi } from '../../../api/recipeApi'; // Sikr dig denne import er her
+import { recipeApi } from '../../../api/recipeApi';
 
-type MealPlanData = { [key: string]: RecipeSummary[] };
-type MealPlanEntriesMap = { [entryId: string]: MealPlanEntry };
+type MealPlanData = { [key: string]: MealPlanEntry[] };
 
 function getEmptyMealPlan(): MealPlanData {
   return Object.fromEntries(DAYS.map((d) => [d, []]));
@@ -32,8 +31,8 @@ function convertEntriesToMealPlanData(entries: MealPlanEntry[], weekInfo: WeekIn
       const dayIndex = weekDates.indexOf(entryDateOnly);
       if (dayIndex !== -1) {
         const dayName = DAYS[dayIndex];
-        if (!mealPlan[dayName].some((r) => r.id === entry.recipe!.id)) {
-          mealPlan[dayName].push(entry.recipe);
+        if (!mealPlan[dayName].some((e) => e.id === entry.id)) {
+          mealPlan[dayName].push(entry);
         }
       }
     }
@@ -51,7 +50,6 @@ export function useMealPlan(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mealPlanId, setMealPlanId] = useState<string | null>(null);
-  const [entryMap, setEntryMap] = useState<MealPlanEntriesMap>({});
   const creatingPlanRef = useRef(false);
 
   // 1. Hent alle tilgængelige opskrifter
@@ -93,9 +91,6 @@ export function useMealPlan(
         if (plans && plans.length > 0) {
           const activePlan = plans[0];
           setMealPlanId(activePlan.id);
-          const entriesMap: MealPlanEntriesMap = {};
-          (activePlan.entries || []).forEach(e => entriesMap[e.id] = e);
-          setEntryMap(entriesMap);
           setMealPlan(convertEntriesToMealPlanData(activePlan.entries || [], weekInfo));
         }
       } catch (err) {
@@ -110,26 +105,74 @@ export function useMealPlan(
   const addRecipe = useCallback(async (day: string, recipe: RecipeSummary) => {
     if (!mealPlanId) return;
     const targetDate = getDateStringForDay(day, weekInfo);
-    setMealPlan(prev => ({ ...prev, [day]: [...(prev[day] || []), recipe] }));
+    const tempId = `temp-${Date.now()}`;
     try {
-      const entry = await mealplanApi.addEntry(mealPlanId, recipe.id, targetDate, "Dinner", 4);
-      setEntryMap(prev => ({ ...prev, [entry.id]: entry }));
+      const fullRecipe = await recipeApi.getRecipeById(recipe.id);
+      const initialServings = fullRecipe.servings || 4;
+      const tempEntry: MealPlanEntry = {
+        id: tempId,
+        recipeId: recipe.id,
+        recipe,
+        date: targetDate,
+        mealType: 'Dinner',
+        servings: initialServings,
+      };
+      setMealPlan(prev => ({ ...prev, [day]: [...(prev[day] || []), tempEntry] }));
+      const entry = await mealplanApi.addEntry(mealPlanId, recipe.id, targetDate, "Dinner", initialServings);
+      // Erstat midlertidigt entry med det rigtige fra backend, og sikr servings er korrekt
+      const finalEntry: MealPlanEntry = { ...entry, servings: entry.servings || initialServings };
+      setMealPlan(prev => ({
+        ...prev,
+        [day]: prev[day].map(e => e.id === tempId ? finalEntry : e)
+      }));
     } catch {
+      // Rollback: fjern midlertidigt entry
+      setMealPlan(prev => ({
+        ...prev,
+        [day]: prev[day].filter(e => e.id !== tempId)
+      }));
       setError('Kunne ikke gemme');
     }
   }, [mealPlanId, weekInfo.weekNumber]);
 
-  const removeRecipe = useCallback(async (day: string, recipeId: string) => {
-    const targetDate = getDateStringForDay(day, weekInfo);
-    const entryId = Object.entries(entryMap).find(([, e]) => e.recipeId === recipeId && e.date?.startsWith(targetDate))?.[0];
-    if (entryId) {
-      setMealPlan(prev => ({ ...prev, [day]: prev[day].filter(r => r.id !== recipeId) }));
-      try {
-        await mealplanApi.removeEntry(mealPlanId!, entryId);
-        setEntryMap(prev => { const u = {...prev}; delete u[entryId]; return u; });
-      } catch { setError('Kunne ikke fjerne'); }
+  const updateServings = useCallback(async (entryId: string, newServings: number) => {
+    if (!mealPlanId || newServings < 1) return;
+    let previousServings: number | undefined;
+    for (const entries of Object.values(mealPlan)) {
+      const found = entries.find(e => e.id === entryId);
+      if (found) { previousServings = found.servings; break; }
     }
-  }, [entryMap, mealPlanId, weekInfo.weekNumber]);
+    // Optimistic update
+    setMealPlan(prev => {
+      const next = { ...prev };
+      for (const day of Object.keys(next)) {
+        next[day] = next[day].map(e => e.id === entryId ? { ...e, servings: newServings } : e);
+      }
+      return next;
+    });
+    try {
+      await mealplanApi.updateEntryServings(mealPlanId, entryId, newServings);
+    } catch {
+      // Rollback ved fejl
+      if (previousServings !== undefined) {
+        setMealPlan(prev => {
+          const next = { ...prev };
+          for (const day of Object.keys(next)) {
+            next[day] = next[day].map(e => e.id === entryId ? { ...e, servings: previousServings! } : e);
+          }
+          return next;
+        });
+      }
+      setError('Kunne ikke opdatere antal personer');
+    }
+  }, [mealPlanId, mealPlan]);
+
+  const removeRecipe = useCallback(async (day: string, entryId: string) => {
+    setMealPlan(prev => ({ ...prev, [day]: prev[day].filter(e => e.id !== entryId) }));
+    try {
+      await mealplanApi.removeEntry(mealPlanId!, entryId);
+    } catch { setError('Kunne ikke fjerne'); }
+  }, [mealPlanId]);
 
   return { 
     mealPlan, 
@@ -137,6 +180,7 @@ export function useMealPlan(
     likedIds, 
     addRecipe, 
     removeRecipe, 
+    updateServings,
     loading, 
     error 
   };

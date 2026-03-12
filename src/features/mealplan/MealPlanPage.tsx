@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { RecipeSummary } from '../../types/Recipe';
+import type { MealPlanEntry } from '../../types/MealPlan';
 import RecipeCard from '../../components/ui/RecipeCard';
+import { ServingsControl } from '../../components/ui/ServingsControl';
 import { AddRecipeButton } from '../../components/ui/AddRecipeButton';
 import { AddRecipeModal } from './components/AddRecipeModal';
 import { getWeekInfo, DAYS } from '../../utils/weekUtils';
@@ -21,6 +22,7 @@ export default function MealPlanPage() {
     likedIds, 
     addRecipe, 
     removeRecipe, 
+    updateServings,
     error 
   } = useMealPlan(
     recipeApi.getAllRecipes,
@@ -75,8 +77,9 @@ export default function MealPlanPage() {
               <DayColumn
                 day={day}
                 date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
-                recipes={mealPlan[day] || []}
+                entries={mealPlan[day] || []}
                 onRemoveRecipe={removeRecipe}
+                onUpdateServings={updateServings}
                 onAddClick={() => setSelectedDay(day)}
               />
             </div>
@@ -119,7 +122,7 @@ export default function MealPlanPage() {
         onClose={() => setSelectedDay(null)}
         day={selectedDay ?? ''}
         availableRecipes={availableRecipes}
-        addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
+        addedRecipes={selectedDay ? (mealPlan[selectedDay] || []).filter(e => e.recipe).map(e => e.recipe!) : []}
         favoriteIds={likedIds} 
         onSelect={(recipe) => {
           if (selectedDay) addRecipe(selectedDay, recipe);
@@ -133,14 +136,16 @@ export default function MealPlanPage() {
 function DayColumn({
   day,
   date,
-  recipes,
+  entries,
   onRemoveRecipe,
+  onUpdateServings,
   onAddClick,
 }: {
   day: string;
   date: Date;
-  recipes: RecipeSummary[];
-  onRemoveRecipe: (day: string, recipeId: string) => void;
+  entries: MealPlanEntry[];
+  onRemoveRecipe: (day: string, entryId: string) => void;
+  onUpdateServings: (entryId: string, newServings: number) => void;
   onAddClick: () => void;
 }) {
   const dateStr = date.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' });
@@ -152,15 +157,21 @@ function DayColumn({
         <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
       </div>
       <div className="p-4 flex flex-col min-h-96 bg-white">
-        {recipes.length > 0 ? (
+        {entries.length > 0 ? (
           <>
             <div className="flex flex-col gap-4">
-              {recipes.map((recipe) => (
+              {entries.filter(e => e.recipe).map((entry) => (
                 <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
+                  key={entry.id}
+                  recipe={entry.recipe!}
                   compact
-                  onRemove={() => onRemoveRecipe(day, recipe.id)}
+                  onRemove={() => onRemoveRecipe(day, entry.id)}
+                  topRightContent={
+                    <ServingsControl
+                      value={entry.servings}
+                      onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+                    />
+                  }
                 />
               ))}
             </div>

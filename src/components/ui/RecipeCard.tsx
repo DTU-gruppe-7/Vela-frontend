@@ -24,6 +24,7 @@ interface RecipeCardProps {
     onRemove?: () => void;
     onCategoryClick?: (category: string) => void;
     onKeywordClick?: (keyword: string) => void;
+    topRightContent?: React.ReactNode;
 }
 
 function RecipeCard({
@@ -34,6 +35,7 @@ function RecipeCard({
     onRemove,
     onCategoryClick,
     onKeywordClick,
+    topRightContent,
 }: RecipeCardProps) {
     const keywords: string[] = recipe.keywordsJson
         ? JSON.parse(recipe.keywordsJson)
@@ -83,6 +85,7 @@ function RecipeCard({
                             </button>
                         )}
                     </div>
+                    {topRightContent}
                     {onToggleFavorite && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe.id); }}
