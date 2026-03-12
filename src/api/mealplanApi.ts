@@ -68,12 +68,7 @@ export const mealplanApi = {
     servings: number
   ): Promise<void> => {
     try {
-      // TODO: Erstat med ægte kald, når backend endpoint findes, f.eks.:
-      // await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, { servings });
-      
-      // Vi returnerer instant success for at frontend state-opdatering virker
-      console.log(`STUB: Opdaterede entry ${entryId} til ${servings} personer i madplan ${mealplanId}`);
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulerer netværksforsinkelse
+      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, { servings });
     } catch (error) {
       console.error('Fejl ved opdatering af antal personer:', error);
       throw error;
