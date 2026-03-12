@@ -1,34 +1,33 @@
-export interface ShoppingItem {
+export interface ShoppingListSummary {
   id: string;
   name: string;
-  quantity: number;
-  unit: string;
-  category: string;
-  checked: boolean;
-  recipeId?: string;
-  recipeName?: string;
-  addedAt: string;
-}
-
-export interface ShoppingList {
-  id: string;
-  groupId: string;
-  items: ShoppingItem[];
+  userId?: string;
+  groupId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-/** Categories used to group shopping items in the UI */
-export const ITEM_CATEGORIES = [
-  'Frugt & Grønt',
-  'Mejeri & Æg',
-  'Kød & Fisk',
-  'Brød & Bageri',
-  'Kolonial',
-  'Frost',
-  'Drikkevarer',
-  'Krydderier & Olie',
-  'Andet',
-] as const;
+export interface ShoppingList extends ShoppingListSummary {
+  items: ShoppingListItem[];
+}
 
-export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
+export interface ShoppingListCreate {
+  name: string;
+  groupId?: string;
+}
+
+export interface AddShoppingListItem {
+  ingredientName: string;
+  quantity: number;
+  unit?: string;
+  assignedUserId?: string;
+}
+
+export interface ShoppingListItem extends AddShoppingListItem {
+  id: string;
+  price?: string;
+  shop?: string;
+  isBought: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
