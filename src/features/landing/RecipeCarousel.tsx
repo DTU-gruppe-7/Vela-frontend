@@ -10,7 +10,7 @@ const SLOT_COUNT = 12;
 export const RecipeCarousel = ({ recipes }: Props) => {
     const [slotIndices, setSlotIndices] = useState<number[]>([]);
     
-    //Laver 6 synlige pladser i karrusellen
+    //Laver "SLOT_COUNT" synlige pladser i karrusellen
     useEffect(() => {
         if (recipes.length === 0) {
             setSlotIndices([]);
@@ -42,7 +42,7 @@ export const RecipeCarousel = ({ recipes }: Props) => {
     }, [recipes.length]);
 
         if (recipes.length === 0) {
-            return <div>Indlæser opskrifter...</div>
+            return <div>Ingen opskrifter fundet</div>
         }
 
         return (

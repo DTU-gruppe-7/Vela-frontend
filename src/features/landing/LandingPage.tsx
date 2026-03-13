@@ -7,7 +7,7 @@ import { RecipeCarousel } from './RecipeCarousel'
 export const LandingPage = () => {
 
     const [recipes,setRecipes] = useState<RecipeSummary[]>([]);
-    const [loading, setloading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [error,setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -18,7 +18,7 @@ export const LandingPage = () => {
             } catch (err) {
                 setError('Kunne ikke hente opskrifter');
             } finally {
-                setloading(false);
+                setLoading(false);
             }
         };
 
@@ -27,7 +27,7 @@ export const LandingPage = () => {
 
     return (
         <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
-        <div className="w-2/3 max-w-6xl p-6 space-y-6 lg:overflow-y-auto">
+        <div className="w-full lg:w-2/3 max-w-6xl p-6 space-y-6 lg:overflow-y-auto">
   {/* Welcome Section */}
   <section className="relative overflow-hidden rounded-3xl border border-white/50 bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 p-8 shadow-lg">
     {/* Decorative blobs */}
@@ -59,7 +59,7 @@ export const LandingPage = () => {
 </div>
         
         {/* Højre side med Auth komponent */}
-        <div className="flex w-1/3 items-center justify-center bg-white">
+        <div className="w-full lg:w-1/3 items-center justify-center bg-white">
             <div className="w-full max-w-md p-8">
                 <Outlet />
             </div>
