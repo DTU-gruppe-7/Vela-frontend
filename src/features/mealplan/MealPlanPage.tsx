@@ -207,6 +207,15 @@ function DayColumn({
                 />
               ))}
             </div>
+            <AddRecipeButton className="mt-4" onClick={onAddClick} />
+                    </>
+                ) : (
+                    <>
+                        <AddRecipeButton onClick={onAddClick} />
+                        <p className="mt-3 text-xs text-slate-400 text-center">Ingen opskrift valgt</p>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
