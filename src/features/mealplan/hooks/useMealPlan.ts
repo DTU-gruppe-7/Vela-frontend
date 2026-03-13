@@ -106,9 +106,17 @@ export function useMealPlan(
     if (!mealPlanId) return;
     const targetDate = getDateStringForDay(day, weekInfo);
     const tempId = `temp-${Date.now()}`;
+    // Default servings; will be overridden if recipe details are available
+    let initialServings = 4;
     try {
-      const fullRecipe = await recipeApi.getRecipeById(recipe.id);
-      const initialServings = fullRecipe.servings || 4;
+      try {
+        const fullRecipe = await recipeApi.getRecipeById(recipe.id);
+        if (fullRecipe && typeof fullRecipe.servings === 'number') {
+          initialServings = fullRecipe.servings;
+        }
+      } catch {
+        // If fetching full recipe fails, fall back to default servings
+      }
       const tempEntry: MealPlanEntry = {
         id: tempId,
         recipeId: recipe.id,
