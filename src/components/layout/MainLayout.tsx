@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -8,10 +9,13 @@ interface Props {
 }
 
 function MainLayout({ children }: Props) {
+    const location = useLocation();
+    const isGroupDetailRoute = /^\/groups\/[^/]+/.test(location.pathname);
+
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
             <Header />
-            <main className="flex-1 p-6 md:p-12 pt-24 pb-28">
+            <main className={isGroupDetailRoute ? "flex-1 p-0" : "flex-1 p-6 md:p-12 pt-24 pb-28"}>
                 {children ?? <Outlet />}
             </main>
             <Footer />
