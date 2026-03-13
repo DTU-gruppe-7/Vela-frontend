@@ -3,6 +3,7 @@ import { FiPlus, FiUsers } from 'react-icons/fi';
 import { type Group } from '../../types/Group';
 import GroupCard from './GroupCard';
 import CreateGroupModal from './CreateGroupModal';
+import InviteGroupModal from './GroupInviteModal';
 
 // MOCK DATA: Dette simulerer hvad din kollega sender fra backenden tidligere
 const MOCK_GROUPS: Group[] = [
@@ -85,8 +86,10 @@ const MOCK_GROUPS: Group[] = [
 export default function GroupPage() {
     const [groups, setGroups] = useState<Group[]>(MOCK_GROUPS);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const handleCreateGroup = (name: string, description: string) => {
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
+    const handleCreateGroup = (name: string, description: string) => {
         const newId = (groups.length + 1).toString();
         const newGroup: Group = {
             id: newId,
@@ -104,6 +107,11 @@ export default function GroupPage() {
 
     const handleInvite = (id: string) => {
         console.log("Invite til gruppe:", id);
+        const group = groups.find(g => g.id === id);
+        if (group) {
+            setSelectedGroup(group);
+            setIsInviteModalOpen(true);
+        }
     };
 
     const handleSettings = (id: string) => {
@@ -112,14 +120,11 @@ export default function GroupPage() {
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-4">
-            {/* Top Bar: Titel og Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-800">Dine Grupper</h1>
                     <p className="text-slate-500 mt-1">Administrer dine mad-fællesskaber og planlæg sammen.</p>
                 </div>
-                
-                {/* Handlinger: Opret og Deltag knapper */}
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <button 
                         onClick={() => setIsModalOpen(true)}
@@ -142,21 +147,21 @@ export default function GroupPage() {
                             scrollbar-width: none;
                         }
                         .hover-scroll::-webkit-scrollbar {
+                            width: 0px;
+                        }
+                        .hover-scroll:hover {
+                            scrollbar-width: auto;
+                        }
+                        .hover-scroll:hover::-webkit-scrollbar {
                             width: 8px;
-                            background: transparent;
                         }
                         .hover-scroll::-webkit-scrollbar-track {
                             background: transparent;
                         }
                         .hover-scroll::-webkit-scrollbar-thumb {
-                            background: transparent;
-                            border-radius: 4px;
-                        }
-                        .hover-scroll:hover {
-                            scrollbar-width: auto;
-                        }
-                        .hover-scroll:hover::-webkit-scrollbar-thumb {
                             background: rgb(148, 163, 184);
+                            border-radius: 4px;
+                            margin-right: 8px;
                         }
                         .hover-scroll::-webkit-scrollbar-thumb:hover {
                             background: rgb(100, 116, 139);
@@ -190,6 +195,13 @@ export default function GroupPage() {
                 onClose={() => setIsModalOpen(false)} 
                 onCreate={handleCreateGroup} 
             />
+
+            <InviteGroupModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                groupName={selectedGroup?.name || ''}
+            />
         </div>
+        
     );
 }
