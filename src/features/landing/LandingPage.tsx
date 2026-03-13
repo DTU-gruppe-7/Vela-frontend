@@ -13,7 +13,7 @@ export const LandingPage = () => {
     useEffect(() => {
         const loadRecipes = async () => {
             try {
-                const data = await recipeApi.getNextRecipes(20);
+                const data = await recipeApi.getMostLikedRecipes(20);
                 setRecipes(data);
             } catch (err) {
                 setError('Kunne ikke hente opskrifter');
@@ -28,7 +28,7 @@ export const LandingPage = () => {
     return (
         <div className="flex min-h-screen">
         {/* Venstre side med opskriftskarrusel */}
-        <div className="flex w-1/2 items-center justify-center bg-gray-100">
+        <div className="flex w-2/3 items-center justify-center bg-gray-100">
             <div className="w-full max-w-xl p-6">
                 {loading && <p>Indlæser opskrifter...</p>}
                 {error && <p className="text-red-500">{error}</p>}
@@ -37,7 +37,7 @@ export const LandingPage = () => {
         </div>
         
         {/* Højre side med Auth komponent */}
-        <div className="flex w-1/2 items-center justify-center bg-white">
+        <div className="flex w-1/3 items-center justify-center bg-white">
             <div className="w-full max-w-md p-8">
                 <Outlet />
             </div>
