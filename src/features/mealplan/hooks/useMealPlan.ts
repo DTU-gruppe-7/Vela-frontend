@@ -183,7 +183,8 @@ export function useMealPlan(
   }, [mealPlanId]);
 
   return { 
-    mealPlan, 
+    mealPlan,
+    mealPlanId,
     availableRecipes, 
     likedIds, 
     addRecipe, 
