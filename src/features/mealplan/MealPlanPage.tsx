@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { RecipeSummary } from '../../types/Recipe';
+import type { MealPlanEntry } from '../../types/MealPlan';
 import RecipeCard from '../../components/ui/RecipeCard';
+import { ServingsControl } from '../../components/ui/ServingsControl';
 import { AddRecipeButton } from '../../components/ui/AddRecipeButton';
 import { AddRecipeModal } from './components/AddRecipeModal';
 import { GenerateShoppingListModal } from './components/GenerateShoppingListModal';
@@ -11,24 +12,27 @@ import { recipeApi } from '../../api/recipeApi';
 const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
-    const [weekOffset, setWeekOffset] = useState(0);
-    const [selectedWeek, setSelectedWeek] = useState(0);
-    const [selectedDay, setSelectedDay] = useState<string | null>(null);
-    const [showShoppingListModal, setShowShoppingListModal] = useState(false);
-    const weekInfo = getWeekInfo(selectedWeek);
-    const { weekNumber, dateRange } = weekInfo;
-    const {
-        mealPlan,
-        mealPlanId,
-        availableRecipes,
-        likedIds,
-        addRecipe,
-        removeRecipe,
-        error
-    } = useMealPlan(
-        recipeApi.getAllRecipes,
-        weekInfo
-    );
+
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedWeek, setSelectedWeek] = useState(0);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [showShoppingListModal, setShowShoppingListModal] = useState(false);
+  const weekInfo = getWeekInfo(selectedWeek);
+  const { weekNumber, dateRange } = weekInfo;
+  const { 
+    mealPlan, 
+    availableRecipes, 
+    likedIds,
+    mealPlanId,
+    addRecipe, 
+    removeRecipe, 
+    updateServings,
+    error 
+  } = useMealPlan(
+    recipeApi.getAllRecipes,
+    weekInfo
+  );
+
 
     const canGoBack = weekOffset > 0;
     const canGoForward = weekOffset * VISIBLE_COLUMNS < DAYS.length - VISIBLE_COLUMNS;
@@ -96,8 +100,9 @@ export default function MealPlanPage() {
                             <DayColumn
                                 day={day}
                                 date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
-                                recipes={mealPlan[day] || []}
+                                entries={mealPlan[day] || []}
                                 onRemoveRecipe={removeRecipe}
+                                onUpdateServings={updateServings}
                                 onAddClick={() => setSelectedDay(day)}
                             />
                         </div>
@@ -140,7 +145,7 @@ export default function MealPlanPage() {
                 onClose={() => setSelectedDay(null)}
                 day={selectedDay ?? ''}
                 availableRecipes={availableRecipes}
-                addedRecipes={selectedDay ? (mealPlan[selectedDay] || []) : []}
+                addedRecipes={selectedDay ? (mealPlan[selectedDay] || []).filter(e => e.recipe).map(e => e.recipe!) : []}
                 favoriteIds={likedIds}
                 onSelect={(recipe) => {
                     if (selectedDay) addRecipe(selectedDay, recipe);
@@ -163,45 +168,44 @@ export default function MealPlanPage() {
 function DayColumn({
                        day,
                        date,
-                       recipes,
+                       entries,
                        onRemoveRecipe,
+                       onUpdateServings,
                        onAddClick,
                    }: {
     day: string;
     date: Date;
-    recipes: RecipeSummary[];
+    entries: MealPlanEntry[];
     onRemoveRecipe: (day: string, recipeId: string) => void;
+    onUpdateServings: (entryId: string, newServings: number) => void;
     onAddClick: () => void;
 }) {
     const dateStr = date.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' });
 
-    return (
-        <div className="flex flex-col gap-0">
-            <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-                <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
-                <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
-            </div>
-            <div className="p-4 flex flex-col min-h-96 bg-white">
-                {recipes.length > 0 ? (
-                    <>
-                        <div className="flex flex-col gap-4">
-                            {recipes.map((recipe) => (
-                                <RecipeCard
-                                    key={recipe.id}
-                                    recipe={recipe}
-                                    compact
-                                    onRemove={() => onRemoveRecipe(day, recipe.id)}
-                                />
-                            ))}
-                        </div>
-                        <AddRecipeButton className="mt-4" onClick={onAddClick} />
-                    </>
-                ) : (
-                    <>
-                        <AddRecipeButton onClick={onAddClick} />
-                        <p className="mt-3 text-xs text-slate-400 text-center">Ingen opskrift valgt</p>
-                    </>
-                )}
+  return (
+    <div className="flex flex-col gap-0">
+      <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+        <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
+        <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
+      </div>
+      <div className="p-4 flex flex-col min-h-96 bg-white">
+        {entries.length > 0 ? (
+          <>
+            <div className="flex flex-col gap-4">
+              {entries.filter(e => e.recipe).map((entry) => (
+                <RecipeCard
+                  key={entry.id}
+                  recipe={entry.recipe!}
+                  compact
+                  onRemove={() => onRemoveRecipe(day, entry.id)}
+                  topRightContent={
+                    <ServingsControl
+                      value={entry.servings}
+                      onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+                    />
+                  }
+                />
+              ))}
             </div>
         </div>
     );

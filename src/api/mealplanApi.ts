@@ -61,4 +61,17 @@ export const mealplanApi = {
       throw error;
     }
   },
+
+  updateEntryServings: async (
+    mealplanId: string,
+    entryId: string,
+    servings: number
+  ): Promise<void> => {
+    try {
+      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, { servings });
+    } catch (error) {
+      console.error('Fejl ved opdatering af antal personer:', error);
+      throw error;
+    }
+  }
 };
