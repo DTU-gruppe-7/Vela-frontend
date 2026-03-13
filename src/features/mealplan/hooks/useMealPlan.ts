@@ -42,7 +42,8 @@ function convertEntriesToMealPlanData(entries: MealPlanEntry[], weekInfo: WeekIn
 
 export function useMealPlan(
   fetchRecipes: () => Promise<RecipeSummary[]>,
-  weekInfo: WeekInfo
+  weekInfo: WeekInfo,
+  groupId?: string
 ) {
   const [mealPlan, setMealPlan] = useState<MealPlanData>(getEmptyMealPlan());
   const [availableRecipes, setAvailableRecipes] = useState<RecipeSummary[]>([]);
@@ -82,7 +83,12 @@ export function useMealPlan(
     const loadMealPlan = async () => {
       setLoading(true);
       try {
-        let plans = await mealplanApi.getMealPlans();
+        let plans;
+        if (groupId) {
+          plans = await mealplanApi.getGroupMealPlans(groupId);
+        } else {
+          plans = await mealplanApi.getMealPlans();
+        }
         if ((!plans || plans.length === 0) && !creatingPlanRef.current) {
           creatingPlanRef.current = true;
           const newPlan = await mealplanApi.createMealPlan();
@@ -100,7 +106,7 @@ export function useMealPlan(
       }
     };
     loadMealPlan();
-  }, [weekInfo.weekNumber]);
+  }, [weekInfo.weekNumber, groupId]);
 
   const addRecipe = useCallback(async (day: string, recipe: RecipeSummary) => {
     if (!mealPlanId) return;
