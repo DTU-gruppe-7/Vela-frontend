@@ -20,6 +20,7 @@ import RecipePage from '../features/recipes/RecipePage';
 import ShoppingListPage from '../features/shoppingList/ShoppingListPage';
 import ShoppingListDetailPage from "../features/shoppingList/ShoppingListDetailPage.tsx";
 import MealPlanPage from '../features/mealplan/MealPlanPage';
+import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
 
 function AppRouter() {
     return (
@@ -35,6 +36,7 @@ function AppRouter() {
                     <Route path="/groups" element={<GroupPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/recipes" element={<RecipePage />} />
+                    <Route path="/recipes/:id" element={<RecipeDetailPage />} />
                     <Route path="/shoppinglist" element={<ShoppingListPage />} />
                         <Route path="/shoppinglist/:id" element={<ShoppingListDetailPage />} />
                     <Route path="/mealplan" element={<MealPlanPage />} />
