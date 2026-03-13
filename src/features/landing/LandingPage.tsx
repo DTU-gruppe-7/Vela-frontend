@@ -29,7 +29,7 @@ export const LandingPage = () => {
         <div className="flex min-h-screen">
         {/* Venstre side med opskriftskarrusel */}
         <div className="flex w-2/3 items-center justify-center bg-gray-100">
-            <div className="w-full max-w-xl p-6">
+            <div className="w-full max-w-6xl p-6">
                 {loading && <p>Indlæser opskrifter...</p>}
                 {error && <p className="text-red-500">{error}</p>}
                 {!loading && !error && <RecipeCarousel recipes={recipes} />}
