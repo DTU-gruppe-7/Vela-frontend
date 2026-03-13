@@ -5,7 +5,7 @@ import type {RecipeSummary } from '../../types/Recipe'
 interface Props {
     recipes: RecipeSummary[];
 }
-const SLOT_COUNT = 6;
+const SLOT_COUNT = 12;
 
 export const RecipeCarousel = ({ recipes }: Props) => {
     const [slotIndices, setSlotIndices] = useState<number[]>([]);
