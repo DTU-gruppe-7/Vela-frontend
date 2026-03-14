@@ -1,112 +1,50 @@
-import { useState } from 'react';
-import { FiPlus, FiUsers } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiPlus, FiUsers, FiLoader } from 'react-icons/fi';
 import { type Group } from '../../types/Group';
 import GroupCard from './GroupCard';
-import CreateGroupModal from './CreateGroupModal';
-import InviteGroupModal from './GroupInviteModal';
+import CreateGroupModal from './modal/CreateGroupModal';
+import InviteGroupModal from './modal/GroupInviteModal';
+import { groupApi } from '../../api/groupApi';
 
-// MOCK DATA: Dette simulerer hvad din kollega sender fra backenden tidligere
-const MOCK_GROUPS: Group[] = [
-    {
-       id: '1',
-        name: 'Hjemme hos Jensen',
-        description: 'Vores ugentlige madplan og fælles indkøbsliste for hele familien.',
-        members: [ /* ... dine members ... */ ],
-        
-    },
-    {
-        id: '2',
-        name: 'Kollektivet Lykken',
-        description: 'Madlavning i uge 30 og generelle ting til huset.',
-        members: [
-            { userId: 'u1', groupId: '2', role: 'member' },
-            { userId: 'u4', groupId: '2', role: 'admin' },
-        ],
-        
-    },
-    {
-        id: '3',
-        name: 'Fitness Venner',
-        description: 'Sundere madplaner og meal prep for træningsgruppen.',
-        members: [
-            { userId: 'u1', groupId: '3', role: 'member' },
-            { userId: 'u5', groupId: '3', role: 'admin' },
-            { userId: 'u6', groupId: '3', role: 'member' },
-            { userId: 'u7', groupId: '3', role: 'member' },
-        ],
-        
-    },
-    {
-        id: '4',
-        name: 'Fodbold Hold',
-        description: 'Arrangement af fælles måltidet efter træning.',
-        members: [
-            { userId: 'u8', groupId: '4', role: 'admin' },
-            { userId: 'u1', groupId: '4', role: 'member' },
-            { userId: 'u9', groupId: '4', role: 'member' },
-        ],
-        
-    },
-    {
-        id: '5',
-        name: 'Vegetar Klub',
-        description: 'Vegetariske og veganske opskrifter for hele gruppen.',
-        members: [
-            { userId: 'u10', groupId: '5', role: 'admin' },
-            { userId: 'u1', groupId: '5', role: 'member' },
-            { userId: 'u11', groupId: '5', role: 'member' },
-            { userId: 'u12', groupId: '5', role: 'member' },
-        ],
-       
-    },
-    {
-        id: '6',
-        name: 'Arbejds Frokost Gruppe',
-        description: 'Planering af fælles luncher på arbejde.',
-        members: [
-            { userId: 'u1', groupId: '6', role: 'admin' },
-            { userId: 'u13', groupId: '6', role: 'member' },
-            { userId: 'u14', groupId: '6', role: 'member' },
-        ],
-        
-    },
-    {
-        id: '7',
-        name: 'BBQ Mestre',
-        description: 'Sommerfester og grillaftner med venner.',
-        members: [
-            { userId: 'u15', groupId: '7', role: 'admin' },
-            { userId: 'u1', groupId: '7', role: 'member' },
-            { userId: 'u16', groupId: '7', role: 'member' },
-        ],
-        
-    }
-];
+
 
 export default function GroupPage() {
-    const [groups, setGroups] = useState<Group[]>(MOCK_GROUPS);
+    const [groups, setGroups] = useState<Group[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleCreateGroup = (name: string, description: string) => {
-        const newId = (groups.length + 1).toString();
-        const newGroup: Group = {
-            id: newId,
-            name: name,
-            description: description,
-            members: [{ userId: 'current', groupId: newId, role: 'admin' }],
+    useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                setIsLoading(true);
+                const data = await groupApi.getGroups();
+                setGroups(data);
+            } catch (error) {
+                console.error("Fejl ved hentning af grupper:", error);
+            } finally {
+                setIsLoading(false);
+            }
         };
-        setGroups(prev => [...prev, newGroup]);
-    }
+
+        fetchGroups();
+    }, []);
+
+    const handleCreateGroup = async (name: string, description: string) => {
+        try {
+            const newGroup = await groupApi.createGroup({ name, description });
+            setGroups(prev => [...prev, newGroup]);
+        } catch (error) {
+            console.error("Fejl ved oprettelse af gruppe:", error);
+        }
+    };
 
     const handleGroupClick = (id: string) => {
         console.log("Naviger til gruppe detaljer:", id);
-        // Her vil vi senere bruge useNavigate(`/groups/${id}`)
     };
-
+         
     const handleInvite = (id: string) => {
-        console.log("Invite til gruppe:", id);
         const group = groups.find(g => g.id === id);
         if (group) {
             setSelectedGroup(group);
@@ -117,6 +55,15 @@ export default function GroupPage() {
     const handleSettings = (id: string) => {
         console.log("Åbn indstillinger for gruppe:", id);
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-slate-500">
+                <FiLoader className="animate-spin mb-4" size={40} />
+                <p className="font-medium">Henter dine fællesskaber...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-4">
@@ -202,6 +149,6 @@ export default function GroupPage() {
                 groupName={selectedGroup?.name || ''}
             />
         </div>
-        
+
     );
 }
