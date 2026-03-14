@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiUsers, FiLoader } from 'react-icons/fi';
 import { type Group } from '../../types/Group';
 import GroupCard from './GroupCard';
@@ -12,6 +13,7 @@ export default function GroupPage() {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchGroups = async () => {
@@ -39,7 +41,7 @@ export default function GroupPage() {
     };
 
     const handleGroupClick = (id: string) => {
-        console.log("Naviger til gruppe detaljer:", id);
+        navigate(`/groups/${id}`);
     };
          
     const handleInvite = (id: string) => {

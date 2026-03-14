@@ -21,8 +21,8 @@ export const groupApi = {
     },
 
   getGroup: async (id: string): Promise<Group> => {
-    const response = await axiosClient.get<ApiResponse<Group>>(`/Group/${id}`);
-    return response.data.data;
+    const response = await axiosClient.get<Group>(`/Group/${id}`);
+    return response.data;
   },
 
   createGroup: async (data: CreateGroupRequest): Promise<Group> => {
@@ -43,8 +43,8 @@ export const groupApi = {
   },
 
   getMatches: async (id: string): Promise<any> => {
-    const response = await axiosClient.get<ApiResponse<any>>(`/Group/${id}/matches`);
-    return response.data.data;
+    const response = await axiosClient.get<any>(`/Group/${id}/matches`);
+    return response.data;
   },
 
   /* --- INVITATIONS --- */

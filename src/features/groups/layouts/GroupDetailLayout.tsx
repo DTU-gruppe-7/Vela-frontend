@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
-import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft } from 'react-icons/fi';
+import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader } from 'react-icons/fi';
+import { groupApi } from '../../../api/groupApi';
+import { type Group } from '../../../types/Group';
 
 const GroupDetailLayout: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
     const location = useLocation();
 
-    const groupName = "Gruppe 7";
+    const [group, setGroup] = useState<Group | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchGroup = async () => {
+            if (!groupId) return;
+            try {
+                setIsLoading(true);
+                const data = await groupApi.getGroup(groupId);
+                setGroup(data);
+            } catch (error) {
+                console.error("Fejl ved hentning af gruppe:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchGroup();
+    }, [groupId]);
+
+    const groupName = group?.name || (isLoading ? "Henter..." : "Ukendt Gruppe");
 
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
@@ -48,11 +70,17 @@ const GroupDetailLayout: React.FC = () => {
                 <div className="p-6 pt-4">
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-4 px-2">Medlemmer</p>
                     <div className="flex -space-x-2 px-2">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-9 h-9 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-700 shadow-sm ring-1 ring-orange-200">
-                                JD
-                            </div>
-                        ))}
+                        {isLoading ? (
+                            <FiLoader className="animate-spin text-slate-400 ml-2" />
+                        ) : group?.members && group.members.length > 0 ? (
+                            group.members.slice(0, 5).map((member, i) => (
+                                <div key={member.userId|| i} className="w-9 h-9 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-700 shadow-sm ring-1 ring-orange-200" title={member.userId}>
+                                    U{i + 1}
+                                </div>
+                            ))
+                        ) : (
+                            <span className="text-xs text-slate-400 ml-2">Ingen medlemmer</span>
+                        )}
                     </div>
                 </div>
             </aside>
