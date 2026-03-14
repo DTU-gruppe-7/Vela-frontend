@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { shoppingListApi } from '../../../api/shoppingListApi';
-import type { ShoppingListSummary, ShoppingListCreate } from '../../../types/ShoppingList';
+import type { ShoppingList, ShoppingListCreate } from '../../../types/ShoppingList';
 
 export function useShoppingLists() {
-    const [shoppingLists, setShoppingLists] = useState<ShoppingListSummary[]>([]);
+    const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -11,8 +11,8 @@ export function useShoppingLists() {
         setLoading(true);
         setError(null);
         try {
-            const data = await shoppingListApi.getAllShoppingLists();
-            setShoppingLists(data);
+            const data = await shoppingListApi.getPersonalShoppingList();
+            setShoppingLists([data]);
         } catch (err) {
             console.error('Error retrieving shopping lists:', err);
             setError('Kunne ikke hente indkøbslister. Prøv igen senere.');
@@ -25,10 +25,9 @@ export function useShoppingLists() {
         fetchShoppingLists();
     }, [fetchShoppingLists]);
 
-    const createShoppingList = useCallback(async (data: ShoppingListCreate): Promise<ShoppingListSummary | null> => {
+    const createShoppingList = useCallback(async (data: ShoppingListCreate): Promise<ShoppingList | null> => {
         try {
             const created = await shoppingListApi.createShoppingList(data);
-            // Optimistisk: tilføj til listen med det samme
             setShoppingLists(prev => [...prev, created]);
             return created;
         } catch (err) {
@@ -39,7 +38,7 @@ export function useShoppingLists() {
     }, []);
 
     const deleteShoppingList = useCallback(async (id: string): Promise<boolean> => {
-        try{
+        try {
             await shoppingListApi.deleteShoppingList(id);
             setShoppingLists(prev => prev.filter(list => list.id !== id));
             return true;
