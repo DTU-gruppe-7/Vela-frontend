@@ -84,11 +84,7 @@ export function useMealPlan(
       setLoading(true);
       try {
         let plans;
-        if (groupId) {
-          plans = await mealplanApi.getGroupMealPlans(groupId);
-        } else {
-          plans = await mealplanApi.getMealPlans();
-        }
+        plans = await mealplanApi.getMealPlans();
         if ((!plans || plans.length === 0) && !creatingPlanRef.current) {
           creatingPlanRef.current = true;
           const newPlan = await mealplanApi.createMealPlan();

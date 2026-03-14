@@ -20,11 +20,9 @@ import RecipePage from '../features/recipes/RecipePage';
 import ShoppingListPage from '../features/shoppingList/ShoppingListPage';
 import ShoppingListDetailPage from "../features/shoppingList/ShoppingListDetailPage.tsx";
 import MealPlanPage from '../features/mealplan/MealPlanPage';
-<<<<<<< HEAD
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
-=======
 import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
->>>>>>> origin/feature/groups
+
 
 function AppRouter() {
     return (
