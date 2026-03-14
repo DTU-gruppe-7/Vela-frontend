@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { shoppingListApi } from "../../../api/shoppingListApi.ts";
 import type { ShoppingList, ShoppingListItem, AddShoppingListItem } from "../../../types/ShoppingList.ts";
 
-export function useShoppingList(id: string) {
+export function useShoppingList(id: string | undefined) {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchShoppingList = useCallback(async () => {
+        if (!id) return;
         setLoading(true);
         setError(null);
         try {
@@ -23,8 +24,12 @@ export function useShoppingList(id: string) {
     }, [id]);
 
     useEffect(() => {
+        if (!id) {
+            setLoading(true);
+            return;
+        }
         fetchShoppingList();
-    }, [fetchShoppingList]);
+    }, [fetchShoppingList, id]);
 
     const addItem = useCallback(async (item: AddShoppingListItem) => {
         if (!shoppingList) return;
