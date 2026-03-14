@@ -6,8 +6,6 @@ import CreateGroupModal from './modal/CreateGroupModal';
 import InviteGroupModal from './modal/GroupInviteModal';
 import { groupApi } from '../../api/groupApi';
 
-
-
 export default function GroupPage() {
     const [groups, setGroups] = useState<Group[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -147,6 +145,7 @@ export default function GroupPage() {
                 isOpen={isInviteModalOpen}
                 onClose={() => setIsInviteModalOpen(false)}
                 groupName={selectedGroup?.name || ''}
+                groupId={selectedGroup?.id || ''}
             />
         </div>
 

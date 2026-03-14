@@ -50,9 +50,9 @@ export const groupApi = {
   /* --- INVITATIONS --- */
 
   
-  sendInvite: async (id: string, userId: string): Promise<void> => {
+  sendInvite: async (id: string, email: string): Promise<void> => {
     // Din kollega forventer et objekt med userId (som kan være email/id)
-    await axiosClient.post(`/Group/${id}/invites`, { userId });
+    await axiosClient.post(`/Group/${id}/invites`, { email: email });
   },
 
   getInvitesByGroup: async (id: string): Promise<GroupInvite[]> => {
