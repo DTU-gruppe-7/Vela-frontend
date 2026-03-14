@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiUsers } from 'react-icons/fi';
 import { type Group } from '../../types/Group';
 import GroupCard from './GroupCard';
@@ -10,99 +11,101 @@ const MOCK_GROUPS: Group[] = [
     {
        id: '1',
         name: 'Hjemme hos Jensen',
-        description: 'Vores ugentlige madplan og fælles indkøbsliste for hele familien.',
+        status: 'active',
         members: [ /* ... dine members ... */ ],
+        matches: []
         
     },
     {
         id: '2',
         name: 'Kollektivet Lykken',
-        description: 'Madlavning i uge 30 og generelle ting til huset.',
         members: [
             { userId: 'u1', groupId: '2', role: 'member' },
             { userId: 'u4', groupId: '2', role: 'admin' },
         ],
-        
+        status: 'active',
+        matches: []
     },
     {
         id: '3',
         name: 'Fitness Venner',
-        description: 'Sundere madplaner og meal prep for træningsgruppen.',
         members: [
             { userId: 'u1', groupId: '3', role: 'member' },
             { userId: 'u5', groupId: '3', role: 'admin' },
             { userId: 'u6', groupId: '3', role: 'member' },
             { userId: 'u7', groupId: '3', role: 'member' },
         ],
-        
+        status: 'active',
+        matches: []  
     },
     {
         id: '4',
         name: 'Fodbold Hold',
-        description: 'Arrangement af fælles måltidet efter træning.',
         members: [
             { userId: 'u8', groupId: '4', role: 'admin' },
             { userId: 'u1', groupId: '4', role: 'member' },
             { userId: 'u9', groupId: '4', role: 'member' },
         ],
-        
+        status: 'active',
+        matches: []  
     },
     {
         id: '5',
         name: 'Vegetar Klub',
-        description: 'Vegetariske og veganske opskrifter for hele gruppen.',
         members: [
             { userId: 'u10', groupId: '5', role: 'admin' },
             { userId: 'u1', groupId: '5', role: 'member' },
             { userId: 'u11', groupId: '5', role: 'member' },
             { userId: 'u12', groupId: '5', role: 'member' },
         ],
-       
+        status: 'active',
+        matches: []  
     },
     {
         id: '6',
         name: 'Arbejds Frokost Gruppe',
-        description: 'Planering af fælles luncher på arbejde.',
         members: [
             { userId: 'u1', groupId: '6', role: 'admin' },
             { userId: 'u13', groupId: '6', role: 'member' },
             { userId: 'u14', groupId: '6', role: 'member' },
         ],
-        
+        status: 'active',
+        matches: []  
     },
     {
         id: '7',
         name: 'BBQ Mestre',
-        description: 'Sommerfester og grillaftner med venner.',
         members: [
             { userId: 'u15', groupId: '7', role: 'admin' },
             { userId: 'u1', groupId: '7', role: 'member' },
             { userId: 'u16', groupId: '7', role: 'member' },
         ],
-        
+        status: 'active',
+        matches: []
     }
 ];
 
 export default function GroupPage() {
+    const navigate = useNavigate();
     const [groups, setGroups] = useState<Group[]>(MOCK_GROUPS);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
-    const handleCreateGroup = (name: string, description: string) => {
+    const handleCreateGroup = (name: string, Status: string) => {
         const newId = (groups.length + 1).toString();
         const newGroup: Group = {
             id: newId,
             name: name,
-            description: description,
             members: [{ userId: 'current', groupId: newId, role: 'admin' }],
+            status: Status,
+            matches: []
         };
         setGroups(prev => [...prev, newGroup]);
     }
 
     const handleGroupClick = (id: string) => {
-        console.log("Naviger til gruppe detaljer:", id);
-        // Her vil vi senere bruge useNavigate(`/groups/${id}`)
+        navigate(`/groups/${id}`);
     };
 
     const handleInvite = (id: string) => {
