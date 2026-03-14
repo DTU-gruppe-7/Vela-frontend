@@ -5,7 +5,7 @@ import { FiSearch, FiSliders } from 'react-icons/fi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import RecipeCard from '../../components/ui/RecipeCard';
 import CategoryFilter from '../../components/ui/CategoryFilter';
-import { RecipeDetailModal } from './RecipeDetailModal';
+import { useNavigate } from 'react-router-dom';
 import { useLikedRecipes } from '../mealplan/hooks/useLikedRecipes';
 
 function RecipePage() {
@@ -22,7 +22,7 @@ function RecipePage() {
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [showKeywordDropdown, setShowKeywordDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     // Luk dropdown ved klik udenfor
     useEffect(() => {
@@ -276,7 +276,7 @@ function RecipePage() {
                             : paginatedRecipes.map((recipe) => (
                                 <div
                                     key={recipe.id}
-                                    onClick={() => setSelectedRecipeId(recipe.id)}
+                                    onClick={() => navigate(`/recipes/${recipe.id}`)}
                                     className="cursor-pointer"
                                 >
                                     <RecipeCard
@@ -365,12 +365,6 @@ function RecipePage() {
                     </p>
                 )}
             </div>
-
-            {/* Recipe Detail Modal */}
-            <RecipeDetailModal
-                recipeId={selectedRecipeId}
-                onClose={() => setSelectedRecipeId(null)}
-            />
         </div>
     );
 }
