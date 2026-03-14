@@ -33,6 +33,11 @@
     getCategories : async (): Promise<string[]> => {
       const response = await axiosClient.get<string[]>(`/recipe/categories`);
       return response.data;
-    }
+    },
 
+    getMostLikedRecipes: async (limit = 20): Promise<RecipeSummary[]> => {
+      const params = new URLSearchParams({ limit: String(limit) });
+      const response = await axiosClient.get<RecipeSummary[]>('/recipe/most-liked?' + params)
+      return response.data;
+    }
   };

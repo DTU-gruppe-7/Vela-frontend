@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiShoppingCart, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { FiPlus, FiShoppingCart, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import type { ShoppingListItem } from '../../types/ShoppingList';
-import { useShoppingList } from './hooks/useShoppingList';
+import { usePersonalShoppingList } from './hooks/usePersonalShoppingList';
 import ShoppingItem from './ShoppingItem';
 import type { AddShoppingListItem } from '../../types/ShoppingList';
 
 function ShoppingListDetailPage() {
-    const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const {
+        personalListId,
         shoppingList,
         loading,
         error,
         addItem,
         toogleItem,
         removeItem,
-    } = useShoppingList(id!);
+    } = usePersonalShoppingList();
 
     // Form state for nyt item
     const [newItemName, setNewItemName] = useState('');
@@ -97,14 +95,8 @@ function ShoppingListDetailPage() {
     return (
         <div className="min-h-screen bg-orange-50/40">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                {/* Header med back-knap */}
+                {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
-                    <button
-                        onClick={() => navigate('/shoppinglist')}
-                        className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-orange-600 transition shadow-sm"
-                    >
-                        <FiArrowLeft className="text-lg" />
-                    </button>
                     <h1 className="text-3xl font-semibold text-gray-900">
                         {shoppingList?.name || 'Indkøbsliste'}
                     </h1>
@@ -218,6 +210,17 @@ function ShoppingListDetailPage() {
                                 onRemove={removeItem}
                             />
                         ))}
+                    </div>
+                )}
+
+                {/* Ingen personlig liste fundet */}
+                {!loading && !personalListId && !error && (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                        <FiShoppingCart className="text-5xl mb-4" />
+                        <p className="text-lg font-medium">Ingen indkøbsliste fundet</p>
+                        <p className="text-sm mt-1">
+                            Du har endnu ikke en personlig indkøbsliste.
+                        </p>
                     </div>
                 )}
 

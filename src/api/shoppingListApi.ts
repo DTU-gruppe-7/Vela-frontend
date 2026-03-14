@@ -2,30 +2,31 @@ import axiosClient from './axiosClient';
 import type {
   ShoppingList,
   ShoppingListItem,
-  ShoppingListSummary,
   ShoppingListCreate,
   AddShoppingListItem
 } from '../types/ShoppingList';
 
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  errorMessage: string | null;
-}
 export const shoppingListApi = {
-  /** Fetch the shoppingList list for a given group */
-  getAllShoppingLists: async (): Promise<ShoppingListSummary[]> => {
-    const response = await axiosClient.get<ShoppingListSummary[]>(
-        `/shoppingList/`,
+  /** Fetch the personal shopping list (no groupId) */
+  getPersonalShoppingList: async (): Promise<ShoppingList> => {
+    const response = await axiosClient.get<ShoppingList>(`/shoppingList`);
+    return response.data;
+  },
+
+  /** Fetch the shopping list for a specific group */
+  getGroupShoppingList: async (groupId: string): Promise<ShoppingList> => {
+    const response = await axiosClient.get<ShoppingList>(
+        `/shoppingList`,
+        { params: { groupId } },
     );
     return response.data;
   },
 
   getShoppingList: async (id: string): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ApiResponse<ShoppingList>>(
+    const response = await axiosClient.get<ShoppingList>(
         `/shoppingList/${id}`,
     );
-    return response.data.data;
+    return response.data;
   },
 
   createShoppingList: async(data: ShoppingListCreate): Promise<ShoppingList> => {
