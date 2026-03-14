@@ -16,7 +16,7 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 
 // App pages (with header/footer)
-import HomePage from '../features/home/HomePage';
+import {HomePage} from '../features/home/HomePage';
 import SwipePage from '../features/swipe/SwipePage';
 import GroupPage from '../features/groups/GroupPage';
 import ProfilePage from '../features/profile/ProfilePage';
