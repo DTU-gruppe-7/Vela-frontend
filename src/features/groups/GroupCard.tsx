@@ -14,7 +14,7 @@ export default function GroupCard({ group, onInvite, onSettings, onClick }: Grou
     return (
         <div 
             onClick={() => onClick(group.id)}
-            className="group relative bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-orange-300 transition-all duration-300 cursor-pointer"
+            className="group relative bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-orange-300 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
         >
             {/* Subtil gradient-effekt i hjørnet ved hover */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-tr-2xl" />
@@ -40,7 +40,7 @@ export default function GroupCard({ group, onInvite, onSettings, onClick }: Grou
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-slate-50 text-slate-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all border border-slate-100 shadow-sm"
                         >
                             <FiUserPlus size={14} />
-                            Invite
+                            Inviter
                         </button>
                         <button 
                             onClick={(e) => { e.stopPropagation(); onSettings(group.id); }}
