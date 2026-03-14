@@ -1,17 +1,112 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import {
+  FaHome,
+  FaUsers,
+  FaCalendarAlt,
+  FaClipboardList,
+  FaBell,
+  FaUserCircle,
+  FaBook
+} from 'react-icons/fa';
+import ProfileMenu from '../ui/ProfileMenu.tsx';
 
-import { Link } from "react-router-dom";
+const Header: React.FC = () => {
+  const location = useLocation();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
 
-function Header() {
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showProfileMenu]);
+  const navItems = [
+    { href: '/', icon: <FaHome />, label: 'Hjem', key: 'home' },
+    { href: '/groups', icon: <FaUsers />, label: 'Grupper', key: 'groups' },
+    { href: '/mealplan', icon: <FaCalendarAlt />, label: 'Madplan', key: 'mealplan' },
+    { href: '/shoppinglist', icon: <FaClipboardList />, label: 'Indkøbsliste', key: 'shoppinglist' },
+    { href: '/recipes', icon: <FaBook />, label: 'Opskrifter', key: 'recipes' },
+  ];
+
   return (
-    <header className="sticky top-0 w-full bg-gradient-to-br from-primary to-primary-strong text-white px-6 md:px-12 py-4 flex items-center justify-between gap-4 z-50 shadow-lg">
-      <div className="flex items-center">
-        <Link to="/" className="text-2xl font-bold tracking-tighter">
-          FOODAPP
-        </Link>
+    <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-6 bg-white shadow-sm">
+      {/* Container for Logo and Actions */}
+      <div className="flex items-center gap-8">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
+          <span className="text-xl font-bold text-gray-900">Vela</span>
+        </div>
+
+        {/* Swipe Button */}
+        <a
+          href="/swipe"
+          className={`flex items-center justify-center px-6 py-2 rounded-full border-2 text-lg font-medium transition-all duration-200 shadow-sm
+            ${activePage === 'swipe'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
+              : 'border-gray-300 text-gray-700 bg-white hover:border-gray-400 hover:text-indigo-600 hover:bg-gray-50'
+            }`}
+        >
+          Swipe
+        </a>
       </div>
-      <div className="flex gap-4">
-        <Link to="/login" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-white/20 transition-all hover:-translate-y-0.5">LOGIN</Link>
-        <Link to="/register" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-white/20 transition-all hover:-translate-y-0.5 border border-white/30">REGISTER</Link>
+
+      {/* Navigation */}
+      <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+        {navItems.map((item) => (
+          <a
+            key={item.key}
+            href={item.href}
+            className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-lg text-xs transition-all duration-200 
+              ${activePage === item.key
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'
+              }`}
+          >
+            <span className="text-xl">{item.icon}</span>
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </nav>
+
+      {/* Notification Bell */}
+      <div className="flex items-center gap-3">
+        <button
+          className="relative p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+          aria-label="Notifikationer"
+        >
+          <FaBell />
+          <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[0.65rem] font-bold text-white bg-red-500 rounded-full">
+            3
+          </span>
+        </button>
+        
+        {/* Profile Menu */}
+        <div className="relative" ref={profileMenuRef}>
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
+            aria-label="Profil"
+          >
+            <FaUserCircle />
+          </button>
+          
+          {showProfileMenu && (
+            <ProfileMenu onClose={() => setShowProfileMenu(false)} />
+          )}
+        </div>
       </div>
     </header>
   );
