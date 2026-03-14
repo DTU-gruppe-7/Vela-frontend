@@ -17,14 +17,13 @@ export default function MealPlanPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const weekInfo = getWeekInfo(selectedWeek);
   const { weekNumber, dateRange } = weekInfo;
   const { 
     mealPlan, 
     availableRecipes, 
-    likedIds,
     mealPlanId,
     addRecipe, 
     removeRecipe, 
@@ -143,18 +142,19 @@ export default function MealPlanPage() {
             </div>
 
             {/* Én fælles modal for hele siden */}
-            <AddRecipeModal
-                isOpen={selectedDay !== null}
-                onClose={() => setSelectedDay(null)}
-                day={selectedDay ?? ''}
-                availableRecipes={availableRecipes}
-                addedRecipes={selectedDay ? (mealPlan[selectedDay] || []).filter(e => e.recipe).map(e => e.recipe!) : []}
-                favoriteIds={likedIds}
-                onSelect={(recipe) => {
-                    if (selectedDay) addRecipe(selectedDay, recipe);
-                    setSelectedDay(null);
-                }}
-            />
+            {selectedDay !== null && (
+                <AddRecipeModal
+                    isOpen={true}
+                    onClose={() => setSelectedDay(null)}
+                    day={selectedDay}
+                    availableRecipes={availableRecipes}
+                    addedRecipes={(mealPlan[selectedDay] || []).filter(e => e.recipe).map(e => e.recipe!)}
+                    onSelect={(recipe) => {
+                        addRecipe(selectedDay, recipe);
+                        setSelectedDay(null);
+                    }}
+                />
+            )}
 
             {/* Generér indkøbsliste modal */}
             {mealPlanId && (

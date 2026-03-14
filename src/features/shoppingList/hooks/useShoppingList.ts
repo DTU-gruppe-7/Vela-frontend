@@ -68,7 +68,7 @@ export function useShoppingList(id: string | undefined) {
     }, [id, shoppingList]);
 
     const toogleItem = useCallback(async (itemId: string) => {
-        if (!shoppingList) return;
+        if (!shoppingList || !id || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const item = items.find(i => i.id === itemId);
@@ -95,7 +95,7 @@ export function useShoppingList(id: string | undefined) {
     }, [id, shoppingList]);
 
     const removeItem = useCallback(async (itemId: string) => {
-        if (!shoppingList) return;
+        if (!shoppingList || !id || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const removedItem = items.find(i => i.id === itemId);

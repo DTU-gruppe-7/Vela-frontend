@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { DAYS, type WeekInfo } from '../../../utils/weekUtils';
 import { mealplanApi} from '../../../api/mealplanApi';
@@ -11,7 +11,7 @@ function getEmptyMealPlan(): MealPlanData {
   return Object.fromEntries(DAYS.map((d) => [d, []]));
 }
 
-function getDateStringForDay(dayName: string, weekInfo: WeekInfo): string {
+function getDateStringForDay(dayName: typeof DAYS[number], weekInfo: WeekInfo): string {
   const dayIndex = DAYS.indexOf(dayName);
   const date = new Date(weekInfo.monday);
   date.setDate(date.getDate() + dayIndex);
@@ -51,7 +51,7 @@ export function useMealPlan(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mealPlanId, setMealPlanId] = useState<string | null>(null);
-  const creatingPlanRef = useRef(false);
+/*  const creatingPlanRef = useRef(false);*/
 
   // 1. Hent alle tilgængelige opskrifter
   useEffect(() => {
@@ -101,7 +101,7 @@ export function useMealPlan(
     loadMealPlan();
   }, [weekInfo.weekNumber, groupId]);
 
-  const addRecipe = useCallback(async (day: string, recipe: RecipeSummary) => {
+  const addRecipe = useCallback(async (day: typeof DAYS[number], recipe: RecipeSummary) => {
     if (!mealPlanId) return;
     const targetDate = getDateStringForDay(day, weekInfo);
     const tempId = `temp-${Date.now()}`;
@@ -140,7 +140,7 @@ export function useMealPlan(
       }));
       setError('Kunne ikke gemme');
     }
-  }, [mealPlanId, weekInfo.weekNumber]);
+  }, [mealPlanId, weekInfo, recipeApi, mealPlan]);
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;

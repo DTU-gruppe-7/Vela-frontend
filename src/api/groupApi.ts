@@ -1,18 +1,10 @@
 import axiosClient from './axiosClient';
 import type { 
-    Group, 
-    GroupMember, 
-    CreateGroupRequest, 
-    AddMemberRequest, 
-    SendInviteRequest, 
+    Group,
+    CreateGroupRequest,
     GroupInvite
  } from '../types/Group';
-
- interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  errorMessage: string | null;
-}
+import type {Match} from "../types/Match.ts";
 
 export const groupApi = {
     getGroups: async (): Promise<Group[]> => {
@@ -34,16 +26,12 @@ export const groupApi = {
     await axiosClient.delete(`/Group/${id}`);
   },
 
-  addMember: async (id: string, data: AddMemberRequest): Promise<void> => {
-    await axiosClient.post(`/Group/${id}/members`, data);
-  },
-
   removeMember: async (id: string, userId: string): Promise<void> => {
     await axiosClient.delete(`/Group/${id}/members/${userId}`);
   },
 
-  getMatches: async (id: string): Promise<any> => {
-    const response = await axiosClient.get<any>(`/Group/${id}/matches`);
+  getMatches: async (id: string): Promise<Match> => {
+    const response = await axiosClient.get<Match>(`/Group/${id}/matches`);
     return response.data;
   },
 

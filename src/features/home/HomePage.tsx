@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { recipeApi } from '../../api/recipeApi'
 import type { RecipeSummary } from '../../types/Recipe'
-import RecipeCard from '../../components/ui/RecipeCard'
 import {useNavigate} from 'react-router-dom'
 import { MostLikedRecipesWidget } from './MostLikedWidget'
 
@@ -13,21 +12,21 @@ const Placeholder = ({label }: { label: string}) => (
 
 export const HomePage = () => {
 const [mostLikedRecipes, setMostLikedRecipes] = useState<RecipeSummary[]>([]);
-const [loadingMostLiked, setLoadingMostLiked] = useState(true);
-const [mostLikedError, setMostLikedError] = useState<string | null>(null);
+    {/* const [loadingMostLiked, setLoadingMostLiked] = useState(true);
+const [mostLikedError, setMostLikedError] = useState<string | null>(null); */}
 const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMostLikedRecipes = async () => {
             try {
-                setLoadingMostLiked(true);
-                setMostLikedError(null);
+                /*setLoadingMostLiked(true);
+                setMostLikedError(null);*/
                 const data = await recipeApi.getMostLikedRecipes(25);
                 setMostLikedRecipes(data);
             } catch (err) {
-                setMostLikedError('Kunne ikke hente populære opskrifter');
+                /*setMostLikedError('Kunne ikke hente populære opskrifter');*/
             } finally {
-                setLoadingMostLiked(false);
+                /*setLoadingMostLiked(false);*/
             }
         };
 
