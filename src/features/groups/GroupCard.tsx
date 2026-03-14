@@ -52,9 +52,9 @@ export default function GroupCard({ group, onInvite, onSettings, onClick }: Grou
                 </div>
 
                 {/* Beskrivelse - fylder ikke meget, men giver kontekst */}
-                {group.description && (
+                {group.status && (
                     <p className="mt-3 text-sm text-slate-500 line-clamp-1 max-w-[80%]">
-                        {group.description}
+                        {group.status}
                     </p>
                 )}
             </div>

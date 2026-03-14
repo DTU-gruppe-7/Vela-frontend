@@ -7,7 +7,7 @@ export interface GroupMember {
 export interface Group {
     id: string;
     name: string;
-    status?: 'active' | 'inactive';
-    description?: string;
+    status: string;
     members: GroupMember[];
+    matches: any[]
 }

@@ -3,25 +3,14 @@ import type { MealPlanEntry, MealPlan } from '../types/MealPlan';
 
 export const mealplanApi = {
   // Hent alle madplaner for brugeren
-  getMealPlans: async (): Promise<MealPlan[]> => { 
+  getMealPlan: async (groupId?: string): Promise<MealPlan | null> => { 
     try {
-      const response = await axiosClient.get<MealPlan[]>(`/MealPlan`);
+      // Hvis groupId findes, tilføjes den som query param (?groupId=...)
+      const url = groupId ? `/MealPlan?groupId=${groupId}` : '/MealPlan';
+      const response = await axiosClient.get<MealPlan>(url);
       return response.data;
     } catch (error) {
       console.error('Fejl ved hentning af madplaner:', error);
-      throw error;
-    }
-  },
-
-  // Opret en ny madplan for brugeren
-  createMealPlan: async (): Promise<MealPlan> => {
-    try {
-      const response = await axiosClient.post<MealPlan>(`/MealPlan`, {
-        name: 'Min madplan'
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Fejl ved oprettelse af madplan:', error);
       throw error;
     }
   },

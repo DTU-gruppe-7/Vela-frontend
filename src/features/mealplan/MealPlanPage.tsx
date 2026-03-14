@@ -8,11 +8,13 @@ import { GenerateShoppingListModal } from './components/GenerateShoppingListModa
 import { getWeekInfo, DAYS } from '../../utils/weekUtils';
 import { useMealPlan } from './hooks/useMealPlan';
 import { recipeApi } from '../../api/recipeApi';
+import { useParams } from 'react-router-dom';
 
 const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
 
+  const { groupId } = useParams<{ groupId: string }>();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -30,7 +32,8 @@ export default function MealPlanPage() {
     error 
   } = useMealPlan(
     recipeApi.getAllRecipes,
-    weekInfo
+    weekInfo,
+    groupId,
   );
 
 

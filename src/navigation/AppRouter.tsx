@@ -21,9 +21,11 @@ import SwipePage from '../features/swipe/SwipePage';
 import GroupPage from '../features/groups/GroupPage';
 import ProfilePage from '../features/profile/ProfilePage';
 import RecipePage from '../features/recipes/RecipePage';
-import ShoppingListDetailPage from "../features/shoppingList/ShoppingListDetailPage.tsx";
+import ShoppingListDetailPage from '../features/shoppingList/ShoppingListDetailPage';
 import MealPlanPage from '../features/mealplan/MealPlanPage';
+import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
 import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
+
 
 function AppRouter() {
     return (
@@ -39,6 +41,12 @@ function AppRouter() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/swipe" element={<SwipePage />} />
                     <Route path="/groups" element={<GroupPage />} />
+                    <Route path="/groups/:groupId" element={<GroupDetailLayout />}>
+                        <Route index element={<Navigate to="mealplan" replace />} />
+                        <Route path="mealplan" element={<MealPlanPage />} />
+                        <Route path="shoppinglist" element={<ShoppingListDetailPage />} />
+                        <Route path="liked-recipes" element={<RecipePage />} />
+                    </Route>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/recipes" element={<RecipePage />} />
                     <Route path="/recipes/:id" element={<RecipeDetailPage />} />

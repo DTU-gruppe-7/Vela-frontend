@@ -13,5 +13,6 @@ export interface MealPlan {
   id: string;
   name?: string;
   userId?: string;
+  groupId?: string;
   entries: MealPlanEntry[];
 }

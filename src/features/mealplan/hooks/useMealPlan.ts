@@ -42,7 +42,8 @@ function convertEntriesToMealPlanData(entries: MealPlanEntry[], weekInfo: WeekIn
 
 export function useMealPlan(
   fetchRecipes: () => Promise<RecipeSummary[]>,
-  weekInfo: WeekInfo
+  weekInfo: WeekInfo,
+  groupId?: string
 ) {
   const [mealPlan, setMealPlan] = useState<MealPlanData>(getEmptyMealPlan());
   const [availableRecipes, setAvailableRecipes] = useState<RecipeSummary[]>([]);
@@ -82,16 +83,14 @@ export function useMealPlan(
     const loadMealPlan = async () => {
       setLoading(true);
       try {
-        let plans = await mealplanApi.getMealPlans();
-        if ((!plans || plans.length === 0) && !creatingPlanRef.current) {
-          creatingPlanRef.current = true;
-          const newPlan = await mealplanApi.createMealPlan();
-          plans = [newPlan];
-        }
-        if (plans && plans.length > 0) {
-          const activePlan = plans[0];
-          setMealPlanId(activePlan.id);
-          setMealPlan(convertEntriesToMealPlanData(activePlan.entries || [], weekInfo));
+        const plan = await mealplanApi.getMealPlan(groupId);
+        
+        if (plan) {
+          setMealPlanId(plan.id);
+          setMealPlan(convertEntriesToMealPlanData(plan.entries, weekInfo));
+        } else {
+          // Hvis planen er null, betyder det at backenden ikke har oprettet den endnu
+        setError('Ingen madplan fundet.');
         }
       } catch (err) {
         setError('Kunne ikke indlæse madplan');
@@ -100,7 +99,7 @@ export function useMealPlan(
       }
     };
     loadMealPlan();
-  }, [weekInfo.weekNumber]);
+  }, [weekInfo.weekNumber, groupId]);
 
   const addRecipe = useCallback(async (day: string, recipe: RecipeSummary) => {
     if (!mealPlanId) return;
