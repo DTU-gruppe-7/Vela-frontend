@@ -1,9 +1,10 @@
 import React from 'react';
+import velaLogo from '../../../assets/vela-logo.svg';
 
 const Logo: React.FC = () => (
-  <div className="flex items-center gap-2.5">
-    <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
-    <span className="text-xl font-bold text-gray-900">Vela</span>
+  <div className="flex items-center">
+    <img src={velaLogo} alt="Vela Logo" className="h-16 w-16" />
+    {/* Removed text as logo contains 'Vela' */}
   </div>
 );
 
