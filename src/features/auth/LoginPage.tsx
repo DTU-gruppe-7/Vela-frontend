@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import FormField from "../../components/ui/FormField.tsx";
+import velaLogo from '../../assets/vela-logo.svg';
 
 function LoginPage() {
     const { login, isLoading } = useAuth();
@@ -34,7 +35,7 @@ function LoginPage() {
             <Card className="w-full max-w-md p-8">
                 {/* Header */}
                 <div className="flex flex-col items-center gap-2 mb-8">
-                    <img src="/src/assets/vela-logo.svg" alt="Vela" className="h-10 w-10" />
+                    <img src={velaLogo} alt="Vela" className="h-10 w-10" />
                     <h1 className="text-2xl font-bold text-slate-900">Log ind</h1>
                     <p className="text-sm text-slate-500">Velkommen tilbage til Vela</p>
                 </div>

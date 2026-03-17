@@ -1,5 +1,6 @@
 // src/features/auth/RegisterPage.tsx
 import { type FormEvent, useState } from 'react';
+import velaLogo from '../../assets/vela-logo.svg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Card from '../../components/ui/Card';
@@ -63,7 +64,7 @@ function RegisterPage() {
             <Card className="w-full max-w-md p-8">
                 {/* Header */}
                 <div className="flex flex-col items-center gap-2 mb-8">
-                    <img src="/src/assets/vela-logo.svg" alt="Vela" className="h-10 w-10" />
+                    <img src={velaLogo} alt="Vela" className="h-10 w-10" />
                     <h1 className="text-2xl font-bold text-slate-900">Opret konto</h1>
                     <p className="text-sm text-slate-500">Kom i gang med Vela</p>
                 </div>
