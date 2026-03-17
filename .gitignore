@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 *.swo
 
 AGENTS.md
+CLAUDE.md
+.github/.DS_Store
+.DS_Store
