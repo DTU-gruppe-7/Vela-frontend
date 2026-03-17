@@ -1,4 +1,5 @@
 import React from 'react';
+import velaLogo from '../../assets/vela-logo.svg';
 import {
   FaFacebookF,
   FaInstagram,
@@ -63,7 +64,7 @@ const Footer: React.FC = () => {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
+              <img src={velaLogo} alt="Vela Logo" className="h-8 w-8" />
               <span className="text-xl font-bold text-white">Vela</span>
             </div>
             <p className="text-sm leading-relaxed text-gray-400 mb-6 max-w-xs">

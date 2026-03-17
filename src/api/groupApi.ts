@@ -53,12 +53,11 @@ export const groupApi = {
     return response.data;
   },
 
-  acceptInvite: async (inviteId: string): Promise<void> => {
-    await axiosClient.patch(`/Group/invites/${inviteId}/accept`);
+  acceptInvite: async (groupId: string): Promise<void> => {
+    await axiosClient.patch(`/Group/${groupId}/invites/accept`);
   },
 
-
-  declineInvite: async (inviteId: string): Promise<void> => {
-    await axiosClient.patch(`/Group/invites/${inviteId}/decline`);
+  declineInvite: async (groupId: string): Promise<void> => {
+    await axiosClient.patch(`/Group/${groupId}/invites/decline`);
   },
 };

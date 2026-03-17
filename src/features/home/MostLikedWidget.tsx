@@ -19,14 +19,13 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
         <div className="grid h-full grid-cols-5 grid-rows-5 gap-2">
             {gridItems.map((recipe, index) =>
                 recipe ? (
-                    <button
+                    <div
                         key={recipe.id}
-                        type="button"
                         onClick={() => onRecipeClick?.(recipe.id)}
-                        className="h-full w-full text-left"
-                        >
-                            <RecipeCard recipe={recipe} compact />
-                    </button>
+                        className="h-full w-full cursor-pointer"
+                    >
+                        <RecipeCard recipe={recipe} compact />
+                    </div>
                 ) : (
                     <div
                         key={'empty-' + index}
