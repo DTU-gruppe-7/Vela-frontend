@@ -32,8 +32,8 @@ const GroupDetailLayout: React.FC = () => {
 
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
-        { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
-        { label: 'Liked Recipes', path: 'liked-recipes', icon: <FiHeart /> },
+        { label: 'Indkøbsliste', path: 'shoppinglist', icon: <FiShoppingCart /> },
+        { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
     ];
 
     return (
