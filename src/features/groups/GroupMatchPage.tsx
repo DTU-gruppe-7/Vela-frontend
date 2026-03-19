@@ -1,4 +1,4 @@
-import react, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { groupApi} from "../../api/groupApi";
 import { recipeApi } from "../../api/recipeApi";
@@ -31,7 +31,7 @@ const GroupMatchPage: React.FC = () => {
                     setMatchedRecipes([]);
                     return;
                 }
-                const matchRecipeIds = new Set(matches.map((m) => m.recipeID));
+                const matchRecipeIds = new Set(matches.map((m) => m.recipeId));
                 const allRecipes = await recipeApi.getAllRecipes();
                 const groupMatchedRecipes = allRecipes.filter((recipe) => matchRecipeIds.has(recipe.id));
                 setMatchedRecipes(groupMatchedRecipes);
