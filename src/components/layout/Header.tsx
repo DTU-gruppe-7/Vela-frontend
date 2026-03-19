@@ -1,56 +1,90 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  FaHome,
-  FaUsers,
-  FaCalendarAlt,
-  FaClipboardList,
-  FaBell,
-  FaUserCircle,
-  FaBook
+  FaUserCircle
 } from 'react-icons/fa';
 import ProfileMenu from '../ui/ProfileMenu.tsx';
+import NotificationDropdown from '../ui/headerComponents/NotificationDropdown.tsx';
+import NotificationMenu from '../ui/headerComponents/NotificationMenu.tsx';
+import { useNotificationStore } from '../../stores/notificationStore';
+import Logo from '../ui/headerComponents/Logo.tsx';
+import Navigation from '../ui/headerComponents/Navigation.tsx';
+import NotificationBell from '../ui/headerComponents/NotificationBell.tsx';
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notifMenuRef = useRef<HTMLDivElement>(null);
+
   const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
 
-  // Close menu when clicking outside
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  // Hent data fra din notifikations-store
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    acceptGroupInvite,
+    declineGroupInvite,
+    dropdownVisible,
+    latestNotification,
+    hideDropdown,
+  } = useNotificationStore();
+
+  // Luk menuer når der klikkes udenfor
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
+      if (notifMenuRef.current && !notifMenuRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
     }
 
-    if (showProfileMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Håndtering af klik på en notifikation
+  // Opdateret klik-håndtering med dynamisk navigation
+  const handleNotificationClick = async (notif: any) => {
+    // 1. Marker som læst i baggrunden, hvis den er ulæst
+    if (!notif.isRead) {
+      await markAsRead(notif.id);
     }
-  }, [showProfileMenu]);
-  const navItems = [
-    { href: '/', icon: <FaHome />, label: 'Hjem', key: 'home' },
-    { href: '/groups', icon: <FaUsers />, label: 'Grupper', key: 'groups' },
-    { href: '/mealplan', icon: <FaCalendarAlt />, label: 'Madplan', key: 'mealplan' },
-    { href: '/shoppinglist', icon: <FaClipboardList />, label: 'Indkøbsliste', key: 'shoppinglist' },
-    { href: '/recipes', icon: <FaBook />, label: 'Opskrifter', key: 'recipes' },
-  ];
+
+    // 2. Luk notifikationsmenuen
+    setShowNotifications(false);
+
+    // 3. Naviger baseret på typen af notifikation
+    if (notif.relatedEntityId) {
+      const typeLower = notif.type.toLowerCase();
+
+      // Hvis typen indeholder ordet "group" (f.eks. "GroupInvite")
+      if (typeLower.includes('group')) {
+        navigate(`/groups/${notif.relatedEntityId}`);
+      }
+      // Hvis typen indeholder ordet "match" (f.eks. "NewMatch")
+      else if (typeLower.includes('match')) {
+        navigate(`/recipes/${notif.relatedEntityId}`);
+      }
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-6 bg-white shadow-sm">
       {/* Container for Logo and Actions */}
       <div className="flex items-center gap-8">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <img src="/src/assets/vela-logo.svg" alt="Vela Logo" className="h-8 w-8" />
-          <span className="text-xl font-bold text-gray-900">Vela</span>
-        </div>
-
-        {/* Swipe Button */}
+        <Logo />
         <a
           href="/swipe"
           className={`flex items-center justify-center px-6 py-2 rounded-full border-2 text-lg font-medium transition-all duration-200 shadow-sm
@@ -63,36 +97,38 @@ const Header: React.FC = () => {
         </a>
       </div>
 
-      {/* Navigation */}
-      <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-        {navItems.map((item) => (
-          <a
-            key={item.key}
-            href={item.href}
-            className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-lg text-xs transition-all duration-200 
-              ${activePage === item.key
-                ? 'text-indigo-600 bg-indigo-50'
-                : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'
-              }`}
-          >
-            <span className="text-xl">{item.icon}</span>
-            <span>{item.label}</span>
-          </a>
-        ))}
-      </nav>
+      <Navigation />
 
-      {/* Notification Bell */}
+      {/* Profile & Notifications */}
       <div className="flex items-center gap-3">
-        <button
-          className="relative p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
-          aria-label="Notifikationer"
-        >
-          <FaBell />
-          <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[0.65rem] font-bold text-white bg-red-500 rounded-full">
-            3
-          </span>
-        </button>
-        
+        {/* Notification Dropdown (temporary, floating) */}
+        <NotificationDropdown
+          notification={latestNotification}
+          visible={dropdownVisible}
+          onClose={hideDropdown}
+        />
+        <div className="relative" ref={notifMenuRef}>
+          <NotificationBell
+            unreadCount={unreadCount}
+            onClick={() => setShowNotifications(!showNotifications)}
+            notifMenuRef={notifMenuRef}
+          />
+          {showNotifications && (
+            <NotificationMenu
+              notifications={notifications}
+              processingId={processingId}
+              inviteError={inviteError}
+              acceptGroupInvite={acceptGroupInvite}
+              declineGroupInvite={declineGroupInvite}
+              handleNotificationClick={handleNotificationClick}
+              setProcessingId={setProcessingId}
+              setInviteError={setInviteError}
+              setShowNotifications={setShowNotifications}
+              navigate={navigate}
+            />
+          )}
+        </div>
+
         {/* Profile Menu */}
         <div className="relative" ref={profileMenuRef}>
           <button
@@ -102,7 +138,7 @@ const Header: React.FC = () => {
           >
             <FaUserCircle />
           </button>
-          
+
           {showProfileMenu && (
             <ProfileMenu onClose={() => setShowProfileMenu(false)} />
           )}

@@ -6,7 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # RET DETTE TIL DIT BRUGERNAVN (med små bogstaver)
   IMAGE_NAME: dtu-gruppe-7/vela-frontend
 
 jobs:
@@ -42,7 +41,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            cd ~/vela
+            
+            # Gå til den korrekte mappe i /opt/
+            cd /opt/vela
             
             # Hent det nye image og genstart KUN frontend og proxy containerne
             docker compose pull frontend
