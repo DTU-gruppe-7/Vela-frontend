@@ -4,7 +4,7 @@ import {FiUsers, FiArrowRight, FiLoader } from 'react-icons/fi'
 import {groupApi} from '../../api/groupApi'
 import type {Group} from '../../types/Group'
 
-export const GroupWidget = () => {
+export const GroupsWidget = () => {
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate =useNavigate();
