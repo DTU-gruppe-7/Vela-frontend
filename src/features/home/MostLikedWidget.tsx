@@ -16,7 +16,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const gridItems = build5x5Grid(recipes);
 
     return (
-        <div className="grid h-full grid-cols-5 grid-rows-5 gap-2">
+        <div className="grid grid-cols-5 gap-2">
             {gridItems.map((recipe, index) =>
                 recipe ? (
                     <div
