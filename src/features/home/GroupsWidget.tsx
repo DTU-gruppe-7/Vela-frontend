@@ -45,7 +45,7 @@ export const GroupsWidget = () => {
                     <FiLoader className="animate-spin"/>
                 </div>
             ) : groups.length > 0 ? (
-                <div className="h-[220px] space-y-2 overflow-y-auto pr-1">
+                <div className="h-[222px] space-y-2 overflow-y-auto pr-1">
                     {groups.map((group) => (
                         <button
                         key={group.id}
@@ -62,7 +62,7 @@ export const GroupsWidget = () => {
                     ))}
                 </div>
             ) : (
-                <div className="flex h-[220px] flex-col items-center justify-center text-center">
+                <div className="flex h-[222px] flex-col items-center justify-center text-center">
                     <p className="mb-3 text-sm text-slate-600">Du er ikke med i nogen grupper endnu.</p>
                     <button
                         type="button"

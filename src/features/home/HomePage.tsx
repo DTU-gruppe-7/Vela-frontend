@@ -42,7 +42,10 @@ const navigate = useNavigate();
             <ShoppingListWidget/>
             <CurrentRecipeWidget/>
         </div>
-        <div className="">
+        <div className="space-y-3">
+            <div className="flex items-center justify-center">
+                <h2 className="text-xl font-bold text-slate-800">Populære Opskrifter</h2>
+            </div>
             <MostLikedRecipesWidget
             recipes={mostLikedRecipes}
             onRecipeClick={(id) => navigate('/recipes/' + id)}

@@ -47,11 +47,11 @@ export const ShoppingListWidget = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-[220px] items-center justify-center text-slate-500">
+        <div className="flex h-[222px] items-center justify-center text-slate-500">
           <FiLoader className="animate-spin" />
         </div>
       ) : error ? (
-        <div className="flex h-[220px] flex-col items-center justify-center text-center">
+        <div className="flex h-[222px] flex-col items-center justify-center text-center">
           <p className="mb-3 text-sm text-red-500">{error}</p>
           <button
             type="button"
@@ -62,7 +62,7 @@ export const ShoppingListWidget = () => {
           </button>
         </div>
       ) : !shoppingList || shoppingList.items.length === 0 ? (
-        <div className="flex h-[220px] flex-col items-center justify-center text-center">
+        <div className="flex h-[222px] flex-col items-center justify-center text-center">
           <p className="mb-3 text-sm text-slate-600">Din liste er tom lige nu.</p>
           <button
             type="button"
@@ -73,7 +73,7 @@ export const ShoppingListWidget = () => {
           </button>
         </div>
       ) : (
-        <div className="h-[220px] overflow-y-auto pr-1">
+        <div className="h-[222px] overflow-y-auto pr-1">
           <div className="mb-2 text-xs text-slate-500">
             {uncheckedItems.length} mangler · {checkedCount} købt
           </div>
