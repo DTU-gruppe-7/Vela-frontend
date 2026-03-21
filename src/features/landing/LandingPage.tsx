@@ -15,7 +15,7 @@ export const LandingPage = () => {
             try {
                 const data = await recipeApi.getMostLikedRecipes(20);
                 setRecipes(data);
-            } catch (err) {
+            } catch {
                 setError('Kunne ikke hente opskrifter');
             } finally {
                 setLoading(false);

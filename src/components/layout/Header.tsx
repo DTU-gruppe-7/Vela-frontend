@@ -7,6 +7,7 @@ import ProfileMenu from '../ui/ProfileMenu.tsx';
 import NotificationDropdown from '../ui/headerComponents/NotificationDropdown.tsx';
 import NotificationMenu from '../ui/headerComponents/NotificationMenu.tsx';
 import { useNotificationStore } from '../../stores/notificationStore';
+import type { Notification } from '../../types/Notification';
 import Logo from '../ui/headerComponents/Logo.tsx';
 import Navigation from '../ui/headerComponents/Navigation.tsx';
 import NotificationBell from '../ui/headerComponents/NotificationBell.tsx';
@@ -56,9 +57,12 @@ const Header: React.FC = () => {
 
   // Håndtering af klik på en notifikation
   // Opdateret klik-håndtering med dynamisk navigation
-  const handleNotificationClick = async (notif: any) => {
+  const handleNotificationClick = async (notif: Notification) => {
+    const typeLower = notif.type.toLowerCase();
+
     // 1. Marker som læst i baggrunden, hvis den er ulæst
-    if (!notif.isRead) {
+    // Men ikke for GroupInvite - de skal først markeres som læst når brugeren accepterer/afviser
+    if (!notif.isRead && !typeLower.includes('groupinvite')) {
       await markAsRead(notif.id);
     }
 
@@ -67,8 +71,6 @@ const Header: React.FC = () => {
 
     // 3. Naviger baseret på typen af notifikation
     if (notif.relatedEntityId) {
-      const typeLower = notif.type.toLowerCase();
-
       // Hvis typen indeholder ordet "group" (f.eks. "GroupInvite")
       if (typeLower.includes('group')) {
         navigate(`/groups/${notif.relatedEntityId}`);
@@ -110,7 +112,10 @@ const Header: React.FC = () => {
         <div className="relative" ref={notifMenuRef}>
           <NotificationBell
             unreadCount={unreadCount}
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              hideDropdown();
+            }}
             notifMenuRef={notifMenuRef}
           />
           {showNotifications && (

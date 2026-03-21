@@ -30,14 +30,14 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
   const { markAllAsRead } = useNotificationStore();
   const [loadingAll, setLoadingAll] = useState(false);
   const [errorAll, setErrorAll] = useState<string | null>(null);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const markableUnreadCount = notifications.filter(n => !n.isRead && !n.type.toLowerCase().includes('group')).length;
 
   const handleMarkAllAsRead = async () => {
     setLoadingAll(true);
     setErrorAll(null);
     try {
       await markAllAsRead();
-    } catch (err) {
+    } catch {
       setErrorAll('Kunne ikke markere alle som læst. Prøv igen.');
     } finally {
       setLoadingAll(false);
@@ -48,7 +48,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
     <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 border border-gray-100 max-h-96 overflow-y-auto z-50">
       <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
         <h3 className="font-semibold text-gray-800">Notifikationer</h3>
-        {unreadCount > 0 && (
+        {markableUnreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
             disabled={loadingAll}
@@ -67,11 +67,11 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
         <ul className="divide-y divide-gray-100">
           {notifications.map((notif) => (
             <li key={notif.id}>
-              {notif.type === 'GroupInvite' ? (
-                <div className={`px-4 py-3 flex flex-col gap-1 ${notif.isRead ? 'bg-slate-50 opacity-75' : 'bg-white border-l-4 border-indigo-500'}`}>
-                  <span className={`font-medium text-sm ${notif.isRead ? 'text-gray-500' : 'text-gray-900'}`}>{notif.title}</span>
-                  <span className={`text-sm line-clamp-2 ${notif.isRead ? 'text-gray-400' : 'text-gray-600'}`}>{notif.message}</span>
-                  <span className={`text-xs mt-1 ${notif.isRead ? 'text-gray-400' : 'text-indigo-400 font-medium'}`}>{new Date(notif.createdAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              {notif.type === 'GroupInvite' && !notif.isRead ? (
+                <div className="px-4 py-3 flex flex-col gap-1 bg-white border-l-4 border-indigo-500">
+                  <span className="font-medium text-sm text-gray-900">{notif.title}</span>
+                  <span className="text-sm line-clamp-2 text-gray-600">{notif.message}</span>
+                  <span className="text-xs mt-1 text-indigo-400 font-medium">{new Date(notif.createdAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   <div className="flex gap-2 mt-1">
                     <button
                       disabled={processingId === notif.id}
@@ -82,7 +82,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
                           await acceptGroupInvite(notif.id, notif.relatedEntityId!);
                           navigate(`/groups/${notif.relatedEntityId}`);
                           setShowNotifications(false);
-                        } catch (err) {
+                        } catch {
                           setInviteError('Kunne ikke acceptere invitation. Prøv igen.');
                         } finally {
                           setProcessingId(null);
@@ -100,7 +100,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
                         try {
                           await declineGroupInvite(notif.id, notif.relatedEntityId!);
                           setShowNotifications(false);
-                        } catch (err) {
+                        } catch {
                           setInviteError('Kunne ikke afvise invitation. Prøv igen.');
                         } finally {
                           setProcessingId(null);
