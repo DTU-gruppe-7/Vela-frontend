@@ -13,6 +13,7 @@ export const RecipeCarousel = ({ recipes }: Props) => {
     //Laver "SLOT_COUNT" synlige pladser i karrusellen
     useEffect(() => {
         if (recipes.length === 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSlotIndices([]);
             return;
         }

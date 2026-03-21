@@ -38,8 +38,8 @@ export default function InviteGroupModal({ isOpen, onClose, groupName, groupId }
                 onClose();
             }, 2500);
 
-            } catch (err: any) {
-                const serverErrorMessage = err.response?.data?.message;
+            } catch (err: unknown) {
+                const serverErrorMessage = err instanceof Error ? err.message : null;
 
                 setError(serverErrorMessage);
             } finally {
