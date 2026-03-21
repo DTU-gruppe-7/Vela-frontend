@@ -25,7 +25,7 @@ export const GroupsWidget = () => {
     }, []);
 
     return (
-        <section className="h-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="h-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-800">
                     <FiUsers/>

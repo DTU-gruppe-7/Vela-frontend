@@ -31,11 +31,11 @@ export const ShoppingListWidget = () => {
   const checkedCount = shoppingList?.items?.filter((i) => i.isBought).length ?? 0;
 
   return (
-    <section className="h-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="h-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-800">
           <FiShoppingCart />
-          <h2 className="text-sm font-semibold">Din indkøbsliste</h2>
+          <h2 className="text-sm font-semibold">Din Indkøbsliste</h2>
         </div>
         <button
           type="button"

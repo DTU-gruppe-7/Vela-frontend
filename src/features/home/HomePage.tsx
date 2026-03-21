@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { MostLikedRecipesWidget } from './MostLikedWidget'
 import { GroupsWidget } from './GroupsWidget'
 import { ShoppingListWidget } from './ShoppingListWidget'
+import { CurrentRecipeWidget } from './CurrentRecipeWidget'
 
 const Placeholder = ({label }: { label: string}) => (
     <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white text-slate-400">
@@ -39,12 +40,12 @@ const navigate = useNavigate();
         <div className="grid flex-1 grid-cols-3 gap-4">
             <GroupsWidget />
             <ShoppingListWidget/>
-            <Placeholder label="Tredje spot"/>
+            <CurrentRecipeWidget/>
         </div>
         <div className="">
             <MostLikedRecipesWidget
             recipes={mostLikedRecipes}
-            onRecipeClick={(id) => navigate('/recipes/' + {id})}
+            onRecipeClick={(id) => navigate('/recipes/' + id)}
             />
         </div>
     </div>
