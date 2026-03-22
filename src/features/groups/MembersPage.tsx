@@ -202,7 +202,7 @@ const MembersPage: React.FC = () => {
                 )}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-visible">
                 {group.members.map((member) => {
                     const menuItems = getMenuItems(member);
                     const isMe = member.userId === currentUser?.userId;
