@@ -203,7 +203,10 @@ const MembersPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-visible">
-                {group.members.map((member) => {
+                {[...group.members].sort((a, b) => {
+                    const order: Record<GroupRole, number> = { owner: 0, administrator: 1, member: 2 };
+                    return order[a.role] - order[b.role];
+                }).map((member) => {
                     const menuItems = getMenuItems(member);
                     const isMe = member.userId === currentUser?.userId;
 
