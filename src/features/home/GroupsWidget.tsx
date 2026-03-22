@@ -25,7 +25,17 @@ export const GroupsWidget = () => {
     }, []);
 
     return (
-        <section className="h-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <>
+        <style>{`
+            .hide-scrollbar {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+        `}</style>
+        <section className="flex h-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-800">
                     <FiUsers/>
@@ -41,11 +51,11 @@ export const GroupsWidget = () => {
             </div>
 
             {loading ? (
-                <div className="flex h-[220px] items-center justify-center text-slate-500">
+                <div className="flex flex-1 items-center justify-center text-slate-500">
                     <FiLoader className="animate-spin"/>
                 </div>
             ) : groups.length > 0 ? (
-                <div className="h-[222px] space-y-2 overflow-y-auto pr-1">
+                <div className="hide-scrollbar flex-1 space-y-2 overflow-y-auto pr-1">
                     {groups.map((group) => (
                         <button
                         key={group.id}
@@ -62,7 +72,7 @@ export const GroupsWidget = () => {
                     ))}
                 </div>
             ) : (
-                <div className="flex h-[222px] flex-col items-center justify-center text-center">
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
                     <p className="mb-3 text-sm text-slate-600">Du er ikke med i nogen grupper endnu.</p>
                     <button
                         type="button"
@@ -75,5 +85,6 @@ export const GroupsWidget = () => {
             )
             }
         </section>
+        </>
     );
 };

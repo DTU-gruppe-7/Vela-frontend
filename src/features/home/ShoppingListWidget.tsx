@@ -31,7 +31,17 @@ export const ShoppingListWidget = () => {
   const checkedCount = shoppingList?.items?.filter((i) => i.isBought).length ?? 0;
 
   return (
-    <section className="h-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <>
+    <style>{`
+      .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    `}</style>
+    <section className="flex h-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-800">
           <FiShoppingCart />
@@ -47,11 +57,11 @@ export const ShoppingListWidget = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-[222px] items-center justify-center text-slate-500">
+        <div className="flex flex-1 items-center justify-center text-slate-500">
           <FiLoader className="animate-spin" />
         </div>
       ) : error ? (
-        <div className="flex h-[222px] flex-col items-center justify-center text-center">
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
           <p className="mb-3 text-sm text-red-500">{error}</p>
           <button
             type="button"
@@ -62,7 +72,7 @@ export const ShoppingListWidget = () => {
           </button>
         </div>
       ) : !shoppingList || shoppingList.items.length === 0 ? (
-        <div className="flex h-[222px] flex-col items-center justify-center text-center">
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
           <p className="mb-3 text-sm text-slate-600">Din liste er tom lige nu.</p>
           <button
             type="button"
@@ -73,7 +83,7 @@ export const ShoppingListWidget = () => {
           </button>
         </div>
       ) : (
-        <div className="h-[222px] overflow-y-auto pr-1">
+        <div className="hide-scrollbar flex-1 overflow-y-auto pr-1">
           <div className="mb-2 text-xs text-slate-500">
             {uncheckedItems.length} mangler · {checkedCount} købt
           </div>
@@ -104,5 +114,6 @@ export const ShoppingListWidget = () => {
         </div>
       )}
     </section>
+    </>
   );
 }

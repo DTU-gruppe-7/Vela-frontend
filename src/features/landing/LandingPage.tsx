@@ -3,6 +3,7 @@ import { useEffect, useState} from 'react'
 import { recipeApi } from '../../api/recipeApi'
 import type { RecipeSummary } from '../../types/Recipe'
 import { RecipeCarousel } from './RecipeCarousel'
+import { HowItWorks } from './HowItWorks'
 
 export const LandingPage = () => {
 
@@ -26,8 +27,18 @@ export const LandingPage = () => {
     }, []);
 
     return (
-        <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
-        <div className="w-full lg:w-2/3 max-w-6xl p-6 space-y-6 lg:overflow-y-auto">
+        <>
+        <style>{`
+            .hide-scrollbar {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+        `}</style>
+        <div className="flex min-h-screen flex-col-reverse lg:flex-row lg:h-screen lg:overflow-hidden">
+        <div className="hide-scrollbar w-full lg:w-2/3 max-w-6xl p-6 space-y-6 lg:overflow-y-auto">
   {/* Welcome Section */}
   <section className="relative overflow-hidden rounded-3xl border border-white/50 bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 p-8 shadow-lg">
     {/* Decorative blobs */}
@@ -50,6 +61,9 @@ export const LandingPage = () => {
     </div>
   </section>
 
+        {/* How It Works Slideshow */}
+      <HowItWorks />
+
   {/* Carousel Section */}
   <section>
     {loading && <p>Indlæser opskrifter...</p>}
@@ -59,11 +73,12 @@ export const LandingPage = () => {
 </div>
         
         {/* Højre side med Auth komponent */}
-        <div className="w-full lg:w-1/3 items-center justify-center bg-white">
-            <div className="w-full max-w-md p-8">
+        <div className="flex w-full items-start justify-center bg-white lg:w-1/3 lg:items-center">
+          <div className="w-full p-8 lg:p-10">
                 <Outlet />
             </div>
         </div>
         </div>
+        </>
     );
 };

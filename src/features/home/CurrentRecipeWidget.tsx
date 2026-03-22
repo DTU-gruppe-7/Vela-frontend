@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCalendar, FiArrowRight } from 'react-icons/fi';
+import RecipeCard from '../../components/ui/RecipeCard';
 import { mealplanApi } from '../../api/mealplanApi';
 import { recipeApi } from '../../api/recipeApi';
 import type { MealPlanEntry } from '../../types/MealPlan';
@@ -62,7 +63,17 @@ function getLocalDateKey(date = new Date()): string {
             }, [loading, entry]);
 
         return (
-              <section className="h-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <>
+              <style>{`
+                .hide-scrollbar {
+                  scrollbar-width: none;
+                  -ms-overflow-style: none;
+                }
+                .hide-scrollbar::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              <section className="flex h-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-800">
                     <FiCalendar />
@@ -80,32 +91,25 @@ function getLocalDateKey(date = new Date()): string {
                 <p className="mb-3 text-xs text-slate-500">{subtitle}</p>
 
                 {loading ? (
-                <div className="h-[222px] animate-pulse rounded-xl bg-slate-100" />
+                <div className="flex flex-1 items-center justify-center rounded-xl bg-slate-100" />
                 ) : recipe ? (
                 <button
                     type="button"
                     onClick={() => navigate('/mealplan')}
-                    className="h-[222px] w-full overflow-hidden rounded-xl border border-slate-200 text-left hover:bg-slate-50 transition"
+                    className="flex-1 w-full text-left"
                 >
-                    {recipe.thumbnailUrl ? (
-                    <img src={recipe.thumbnailUrl} alt={recipe.name} className="h-28 w-full object-cover" />
-                    ) : (
-                    <div className="h-28 w-full bg-slate-100" />
-                    )}
-                    <div className="p-3">
-                    <p className="line-clamp-2 text-sm font-semibold text-slate-800">{recipe.name}</p>
-                    <p className="mt-1 text-xs text-slate-500">{recipe.category || 'Ingen kategori'}</p>
-                    </div>
+                    <RecipeCard recipe={recipe} compact />
                 </button>
                 ) : (
                 <button
                     type="button"
                     onClick={() => navigate('/mealplan')}
-                    className="flex h-[222px] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 text-left"
+                    className="flex flex-1 w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
                 >
                     <span className="text-sm text-slate-500">Klik for at ændre i din madplan</span>
                 </button>
                 )}
-            </section>            
+            </section>
+            </>            
   );
 };
