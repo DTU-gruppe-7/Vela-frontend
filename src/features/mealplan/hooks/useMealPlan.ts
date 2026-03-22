@@ -92,14 +92,14 @@ export function useMealPlan(
           // Hvis planen er null, betyder det at backenden ikke har oprettet den endnu
         setError('Ingen madplan fundet.');
         }
-      } catch (err) {
+      } catch {
         setError('Kunne ikke indlæse madplan');
       } finally {
         setLoading(false);
       }
     };
     loadMealPlan();
-  }, [weekInfo.weekNumber, groupId]);
+  }, [weekInfo, groupId]);
 
   const addRecipe = useCallback(async (day: typeof DAYS[number], recipe: RecipeSummary) => {
     if (!mealPlanId) return;
@@ -140,7 +140,7 @@ export function useMealPlan(
       }));
       setError('Kunne ikke gemme');
     }
-  }, [mealPlanId, weekInfo, recipeApi, mealPlan]);
+  }, [mealPlanId, weekInfo]);
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;

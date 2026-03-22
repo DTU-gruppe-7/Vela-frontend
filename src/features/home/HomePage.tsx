@@ -23,7 +23,7 @@ const navigate = useNavigate();
                 setMostLikedError(null);*/
                 const data = await recipeApi.getMostLikedRecipes(25);
                 setMostLikedRecipes(data);
-            } catch (err) {
+            } catch {
                 /*setMostLikedError('Kunne ikke hente populære opskrifter');*/
             } finally {
                 /*setLoadingMostLiked(false);*/

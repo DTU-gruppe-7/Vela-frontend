@@ -65,7 +65,7 @@ export function useShoppingList(id: string | undefined) {
                 : prev
             );
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
 
     const toogleItem = useCallback(async (itemId: string) => {
         if (!shoppingList || !id || !itemId) return;

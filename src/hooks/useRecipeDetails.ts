@@ -40,7 +40,7 @@ export function useRecipeDetails(recipeId: string | null) {
       // Hvis det er et objekt med sections, flatter vi det
       if (typeof parsed === 'object' && !Array.isArray(parsed)) {
         const flattened: string[] = [];
-        Object.entries(parsed).forEach(([section, steps]: [string, any]) => {
+        Object.entries(parsed).forEach(([section, steps]: [string, unknown]) => {
           flattened.push(`**${section}**`);
           if (Array.isArray(steps)) {
             flattened.push(...steps);

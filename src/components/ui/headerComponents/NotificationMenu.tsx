@@ -30,14 +30,14 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
   const { markAllAsRead } = useNotificationStore();
   const [loadingAll, setLoadingAll] = useState(false);
   const [errorAll, setErrorAll] = useState<string | null>(null);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const markableUnreadCount = notifications.filter(n => !n.isRead && !n.type.toLowerCase().includes('group')).length;
 
   const handleMarkAllAsRead = async () => {
     setLoadingAll(true);
     setErrorAll(null);
     try {
       await markAllAsRead();
-    } catch (err) {
+    } catch {
       setErrorAll('Kunne ikke markere alle som læst. Prøv igen.');
     } finally {
       setLoadingAll(false);
@@ -48,7 +48,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
     <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 border border-gray-100 max-h-96 overflow-y-auto z-50">
       <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
         <h3 className="font-semibold text-gray-800">Notifikationer</h3>
-        {unreadCount > 0 && (
+        {markableUnreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
             disabled={loadingAll}
@@ -82,7 +82,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
                           await acceptGroupInvite(notif.id, notif.relatedEntityId!);
                           navigate(`/groups/${notif.relatedEntityId}`);
                           setShowNotifications(false);
-                        } catch (err) {
+                        } catch {
                           setInviteError('Kunne ikke acceptere invitation. Prøv igen.');
                         } finally {
                           setProcessingId(null);
@@ -100,7 +100,7 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
                         try {
                           await declineGroupInvite(notif.id, notif.relatedEntityId!);
                           setShowNotifications(false);
-                        } catch (err) {
+                        } catch {
                           setInviteError('Kunne ikke afvise invitation. Prøv igen.');
                         } finally {
                           setProcessingId(null);

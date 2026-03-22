@@ -5,6 +5,18 @@ import { notificationApi } from '../api/notificationApi';
 import { groupApi } from '../api/groupApi';
 import { useAuthStore } from './authStore'; // For at hente JWT token
 
+// Sort notifications: unread first, then by date (newest first)
+const sortNotifications = (notifications: Notification[]): Notification[] => {
+  return [...notifications].sort((a, b) => {
+    // Unread first (false comes before true)
+    if (a.isRead !== b.isRead) {
+      return a.isRead ? 1 : -1;
+    }
+    // Then by date, newest first
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+};
+
 interface NotificationState {
     notifications: Notification[];
     unreadCount: number;
@@ -50,10 +62,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         try {
             const data = await notificationApi.getNotifications();
 
-            const unread = data.filter(n => !n.isRead);
+            const sortedData = sortNotifications(data);
+            const unread = sortedData.filter(n => !n.isRead);
 
             set({
-                notifications: data,
+                notifications: sortedData,
                 unreadCount: unread.length,
                 isLoading: false
             });
@@ -72,7 +85,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         if (!token) return;
 
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`${BACKEND_URL}/hubs/notifications`, {
+            .withUrl(`${BACKEND_URL}/api/hubs/notifications`, {
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()
@@ -82,8 +95,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         set({ connection: newConnection });
 
         // Definer hvad der skal ske, når vi modtager begivenheden "ReceiveNotification"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newConnection.on('ReceiveNotification', (notification: any) => {
-            // SignalR sender ofte camelCase eller PascalCase afhængig af dine backend settings.
+            // SignalR sender PascalCase fra C# backend
             // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
                 id: notification.payload?.notificationId || crypto.randomUUID(),
@@ -95,11 +109,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 createdAt: notification.timestamp || new Date().toISOString()
             };
 
-            // Tilføj den nye notifikation i toppen af listen og opdater tælleren
+            // Tilføj den nye notifikation og sorter listen
             set((state) => {
                 if (state.notifications.some(n => n.id === newNotif.id)) return state;
+                const updatedNotifications = sortNotifications([newNotif, ...state.notifications]);
                 return {
-                    notifications: [newNotif, ...state.notifications],
+                    notifications: updatedNotifications,
                     unreadCount: state.unreadCount + 1,
                     dropdownVisible: true,
                     latestNotification: newNotif
@@ -140,9 +155,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 const updatedList = state.notifications.map(n =>
                     n.id === id ? { ...n, isRead: true } : n
                 );
+                const sortedList = sortNotifications(updatedList);
                 return {
-                    notifications: updatedList,
-                    unreadCount: updatedList.filter(n => !n.isRead).length
+                    notifications: sortedList,
+                    unreadCount: sortedList.filter(n => !n.isRead).length
                 };
             });
             await notificationApi.markAsRead(id);
@@ -153,16 +169,28 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     markAllAsRead: async () => {
         try {
+            // Filter out GroupInvites - they should not be marked as read via "Mark all"
+            const markableNotifications = get().notifications.filter(
+                n => !n.isRead && !n.type.toLowerCase().includes('group')
+            );
+            
+            if (markableNotifications.length === 0) return;
+            
             set((state) => {
-                const updatedList = state.notifications.map(n => ({ ...n, isRead: true }));
+                const updatedList = state.notifications.map(n => 
+                    !n.isRead && !n.type.toLowerCase().includes('group')
+                        ? { ...n, isRead: true }
+                        : n
+                );
+                const sortedList = sortNotifications(updatedList);
                 return {
-                    notifications: updatedList,
-                    unreadCount: 0
+                    notifications: sortedList,
+                    unreadCount: sortedList.filter(n => !n.isRead).length
                 };
             });
-            // Optionally call API for each notification
-            const unread = get().notifications.filter(n => !n.isRead);
-            await Promise.all(unread.map(n => notificationApi.markAsRead(n.id)));
+            
+            // Only call API for markable notifications (excluding GroupInvites)
+            await Promise.all(markableNotifications.map(n => notificationApi.markAsRead(n.id)));
         } catch (error) {
             console.error('Kunne ikke markere alle som læst', error);
         }

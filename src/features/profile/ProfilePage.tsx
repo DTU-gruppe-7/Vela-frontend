@@ -51,7 +51,7 @@ export default function ProfilePage() {
             
             setMessage({ type: 'success', text: 'Profil og allergier er opdateret!' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch (err) {
+        } catch {
             setMessage({ type: 'error', text: 'Der skete en fejl. Prøv igen.' });
         } finally {
             setIsSaving(false);
