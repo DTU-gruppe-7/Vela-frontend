@@ -105,20 +105,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             // SignalR sender PascalCase fra C# backend
             // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
-                id: notification.Id || notification.id ||
-                    notification.Payload?.NotificationId ||
-                    notification.payload?.notificationId ||
-                    crypto.randomUUID(),
-                title: notification.Title || notification.title || '',
-                message: notification.Message || notification.message || '',
-                type: notification.Type || notification.type || '',
-                relatedEntityId: notification.Payload?.RelatedEntityId ||
-                    notification.payload?.relatedEntityId ||
-                    notification.RelatedEntityId ||
-                    notification.relatedEntityId ||
-                    null,
-                isRead: notification.IsRead ?? notification.isRead ?? false,
-                createdAt: notification.CreatedAt || notification.createdAt || new Date().toISOString()
+                id: notification.payload?.notificationId || crypto.randomUUID(),
+                title: notification.title ?? '',
+                message: notification.message ?? '',
+                type: String(notification.type ?? ''),
+                relatedEntityId: notification.payload?.relatedEntityId || null,
+                isRead: false,
+                createdAt: notification.timestamp || new Date().toISOString()
             };
 
             // Tilføj den nye notifikation og sorter listen

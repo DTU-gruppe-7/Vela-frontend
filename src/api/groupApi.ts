@@ -30,12 +30,12 @@ export const groupApi = {
     await axiosClient.delete(`/Group/${id}/members/${userId}`);
   },
 
-  getMatches: async (id: string): Promise<Match> => {
-    const response = await axiosClient.get<Match>(`/Group/${id}/matches`);
+  getMatches: async (id: string): Promise<Match[]> => {
+    const response = await axiosClient.get<Match[]>(`/Group/${id}/matches`);
     return response.data;
   },
 
-  /* --- INVITATIONS --- */
+    /* --- INVITATIONS --- */
 
   
   sendInvite: async (id: string, email: string): Promise<void> => {

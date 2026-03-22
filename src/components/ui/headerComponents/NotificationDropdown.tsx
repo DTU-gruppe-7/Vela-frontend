@@ -24,8 +24,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
   if (!visible || !notification) return null;
 
-  const isGroupInvite = notification.type.toLowerCase().includes('group');
-  const isUnreadGroupInvite = isGroupInvite && !notification.isRead;
+  const isGroupInvite = String(notification.type ?? '').toLowerCase().includes('groupinvite');
 
   const handleAccept = async () => {
     setLoading(true);

@@ -67,11 +67,11 @@ const NotificationMenu: React.FC<NotificationMenuProps> = ({
         <ul className="divide-y divide-gray-100">
           {notifications.map((notif) => (
             <li key={notif.id}>
-              {notif.type === 'GroupInvite' && !notif.isRead ? (
-                <div className="px-4 py-3 flex flex-col gap-1 bg-white border-l-4 border-indigo-500">
-                  <span className="font-medium text-sm text-gray-900">{notif.title}</span>
-                  <span className="text-sm line-clamp-2 text-gray-600">{notif.message}</span>
-                  <span className="text-xs mt-1 text-indigo-400 font-medium">{new Date(notif.createdAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              {String(notif.type ?? '').toLowerCase().includes('groupinvite') ? (
+                <div className={`px-4 py-3 flex flex-col gap-1 ${notif.isRead ? 'bg-slate-50 opacity-75' : 'bg-white border-l-4 border-indigo-500'}`}>
+                  <span className={`font-medium text-sm ${notif.isRead ? 'text-gray-500' : 'text-gray-900'}`}>{notif.title}</span>
+                  <span className={`text-sm line-clamp-2 ${notif.isRead ? 'text-gray-400' : 'text-gray-600'}`}>{notif.message}</span>
+                  <span className={`text-xs mt-1 ${notif.isRead ? 'text-gray-400' : 'text-indigo-400 font-medium'}`}>{new Date(notif.createdAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   <div className="flex gap-2 mt-1">
                     <button
                       disabled={processingId === notif.id}
