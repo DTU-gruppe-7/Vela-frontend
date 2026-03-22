@@ -1,9 +1,12 @@
 import type {Match} from "./Match.ts";
 
+export type GroupRole = 'owner' | 'administrator' | 'member';
+
 export interface GroupMember {
     userId: string;
     groupId: string;
-    role: 'admin' | 'member';
+    role: GroupRole;
+    joinedAt: string;
 }
 
 export interface Group {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
-import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader } from 'react-icons/fi';
+import { FiCalendar, FiShoppingCart, FiHeart, FiUsers, FiChevronLeft, FiLoader } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { type Group } from '../../../types/Group';
 
@@ -34,6 +34,7 @@ const GroupDetailLayout: React.FC = () => {
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
         { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
         { label: 'Liked Recipes', path: 'liked-recipes', icon: <FiHeart /> },
+        { label: 'Medlemmer', path: 'members', icon: <FiUsers /> },
     ];
 
     return (

@@ -1,4 +1,5 @@
 export interface AuthResponse {
+    userId: string;
     token: string;
     refreshToken: string;
     email: string;
@@ -22,6 +23,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthUser {
+    userId: string;
     email: string;
     firstName: string;
     lastName: string;

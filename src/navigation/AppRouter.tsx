@@ -24,6 +24,7 @@ import RecipePage from '../features/recipes/RecipePage';
 import ShoppingListDetailPage from '../features/shoppingList/ShoppingListDetailPage';
 import MealPlanPage from '../features/mealplan/MealPlanPage';
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
+import MembersPage from '../features/groups/MembersPage';
 import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
 
 
@@ -46,6 +47,7 @@ function AppRouter() {
                         <Route path="mealplan" element={<MealPlanPage />} />
                         <Route path="shoppinglist" element={<ShoppingListDetailPage />} />
                         <Route path="liked-recipes" element={<RecipePage />} />
+                        <Route path="members" element={<MembersPage />} />
                     </Route>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/recipes" element={<RecipePage />} />
