@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { shoppingListApi } from "../../../api/shoppingListApi.ts";
 import type { ShoppingList, ShoppingListItem, AddShoppingListItem } from "../../../types/ShoppingList.ts";
 
-export function useShoppingList(id: string | undefined) {
+export function useShoppingList(groupId?: string) {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchShoppingList = useCallback(async () => {
-        if (!id) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await shoppingListApi.getShoppingList(id);
-            // Sikr at items altid er et array
+            const data = await shoppingListApi.getShoppingList(groupId);
             setShoppingList({ ...data, items: data.items ?? [] });
         } catch (err) {
             console.error('Error loading the list: ', err);
@@ -21,15 +19,11 @@ export function useShoppingList(id: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [id]);
+    }, [groupId]);
 
     useEffect(() => {
-        if (!id) {
-            setLoading(true);
-            return;
-        }
         fetchShoppingList();
-    }, [fetchShoppingList, id]);
+    }, [fetchShoppingList, groupId]);
 
     const addItem = useCallback(async (item: AddShoppingListItem) => {
         if (!shoppingList) return;
@@ -68,7 +62,7 @@ export function useShoppingList(id: string | undefined) {
     }, [shoppingList]);
 
     const toogleItem = useCallback(async (itemId: string) => {
-        if (!shoppingList || !id || !itemId) return;
+        if (!shoppingList || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const item = items.find(i => i.id === itemId);
@@ -83,7 +77,7 @@ export function useShoppingList(id: string | undefined) {
         );
 
         try {
-            await shoppingListApi.updateItem(id, itemId, updatedItem);
+            await shoppingListApi.updateItem(shoppingList.id, itemId, updatedItem);
         } catch (err) {
             console.error('Error updating an item: ', err);
             setError('Kunne ikke opdatere varen.');
@@ -92,10 +86,10 @@ export function useShoppingList(id: string | undefined) {
                 : prev
             );
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
 
     const removeItem = useCallback(async (itemId: string) => {
-        if (!shoppingList || !id || !itemId) return;
+        if (!shoppingList || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const removedItem = items.find(i => i.id === itemId);
@@ -106,7 +100,7 @@ export function useShoppingList(id: string | undefined) {
         );
 
         try {
-            await shoppingListApi.removeItem(id, itemId);
+            await shoppingListApi.removeItem(shoppingList.id, itemId);
         } catch (err) {
             console.error('Error removing the item', err);
             setError('Kunne ikke fjerne varen.');
@@ -117,7 +111,7 @@ export function useShoppingList(id: string | undefined) {
                 );
             }
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
 
     return {
         shoppingList,

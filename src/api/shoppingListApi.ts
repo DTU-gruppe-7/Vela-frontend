@@ -2,45 +2,17 @@ import axiosClient from './axiosClient';
 import type {
   ShoppingList,
   ShoppingListItem,
-  ShoppingListCreate,
   AddShoppingListItem
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
-  /** Fetch the personal shopping list (no groupId) */
-  getPersonalShoppingList: async (): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(`/shoppingList`);
+  /**
+   * Hent indkøbsliste. Hvis groupId er angivet, hentes gruppens, ellers den personlige.
+   */
+  getShoppingList: async (groupId?: string): Promise<ShoppingList> => {
+    const url = groupId ? `/shoppingList?groupId=${groupId}` : '/shoppingList';
+    const response = await axiosClient.get<ShoppingList>(url);
     return response.data;
-  },
-
-  /** Fetch the shopping list for a specific group */
-  getGroupShoppingList: async (groupId: string): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(
-        `/shoppingList`,
-        { params: { groupId } },
-    );
-    return response.data;
-  },
-
-  getShoppingList: async (id: string): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(
-        `/shoppingList/${id}`,
-    );
-    return response.data;
-  },
-
-  createShoppingList: async(data: ShoppingListCreate): Promise<ShoppingList> => {
-    const response = await axiosClient.post<ShoppingList>(
-        `/shoppingList`,
-        data,
-    );
-    return response.data;
-  },
-
-  deleteShoppingList: async (id: string): Promise<void> => {
-    await axiosClient.delete(
-        `/shoppingList/${id}`
-    )
   },
 
   /** Add a new item to the shoppingList list */
@@ -75,19 +47,11 @@ export const shoppingListApi = {
 
   /** Generér indkøbsliste fra en madplan */
   generateShoppingList: async (
-      mealPlanId: string,
-      existingListId?: string,
-      groupId?: string
+      mealPlanId: string
   ): Promise<ShoppingList> => {
     try {
-      const params: Record<string, string> = {};
-      if (existingListId) params.existingListId = existingListId;
-      if (groupId) params.groupId = groupId;
-
       const response = await axiosClient.post<ShoppingList>(
-          `/shoppingList/from-mealplan/${mealPlanId}`,
-          null,
-          { params }
+          `/shoppingList/from-mealplan/${mealPlanId}`
       );
       return response.data;
     } catch (error) {
