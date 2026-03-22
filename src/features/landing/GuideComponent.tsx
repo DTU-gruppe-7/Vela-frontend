@@ -2,32 +2,32 @@ import { useState, useEffect } from 'react';
 
 const slides = [
   {
-    title: 'Swipe Recipes',
-    description: 'Browse through delicious recipes and swipe right on the ones you love',
+    title: 'Swipe Opskrifter',
+    description: 'Udforsk et hav af lækre opskrifter og swipe på den du kan lide',
     icon: '👆',
     color: 'from-blue-100 to-blue-50',
   },
   {
-    title: 'Match with Group',
-    description: 'Your matches sync with group members who also liked the same recipes',
+    title: 'Match Opskrifter Med Gruppen',
+    description: 'Dine likede opskrifter matcher med gruppemedlemmernes',
     icon: '👥',
     color: 'from-purple-100 to-purple-50',
   },
   {
-    title: 'Create Mealplan',
-    description: 'Build your weekly mealplan from recipes everyone in the group enjoys',
+    title: 'Lav En Madplan',
+    description: 'Byg en ugentlig madplan for hele husstanden',
     icon: '📅',
     color: 'from-green-100 to-green-50',
   },
   {
-    title: 'Enjoy Together',
-    description: 'Share the cooking experience with your group and create memories',
+    title: 'Nyd Maden Sammen',
+    description: 'Spis efter alles smag',
     icon: '🍽️',
     color: 'from-rose-100 to-rose-50',
   },
 ];
 
-export const HowItWorks = () => {
+export const Guide = () => {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {

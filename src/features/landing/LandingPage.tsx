@@ -3,7 +3,7 @@ import { useEffect, useState} from 'react'
 import { recipeApi } from '../../api/recipeApi'
 import type { RecipeSummary } from '../../types/Recipe'
 import { RecipeCarousel } from './RecipeCarousel'
-import { HowItWorks } from './HowItWorks'
+import { Guide } from './GuideComponent'
 
 export const LandingPage = () => {
 
@@ -62,7 +62,7 @@ export const LandingPage = () => {
   </section>
 
         {/* How It Works Slideshow */}
-      <HowItWorks />
+      <Guide />
 
   {/* Carousel Section */}
   <section>
