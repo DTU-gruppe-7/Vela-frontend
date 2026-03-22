@@ -67,7 +67,7 @@ const Header: React.FC = () => {
 
     // 3. Naviger baseret på typen af notifikation
     if (notif.relatedEntityId) {
-      const typeLower = notif.type.toLowerCase();
+      const typeLower = String(notif.type ?? '').toLowerCase();
 
       // Hvis typen indeholder ordet "group" (f.eks. "GroupInvite")
       if (typeLower.includes('group')) {

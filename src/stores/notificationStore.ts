@@ -87,9 +87,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
                 id: notification.payload?.notificationId || crypto.randomUUID(),
-                title: notification.title,
-                message: notification.message,
-                type: notification.type,
+                title: notification.title ?? '',
+                message: notification.message ?? '',
+                type: String(notification.type ?? ''),
                 relatedEntityId: notification.payload?.relatedEntityId || null,
                 isRead: false,
                 createdAt: notification.timestamp || new Date().toISOString()
