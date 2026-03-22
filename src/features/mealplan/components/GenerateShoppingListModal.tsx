@@ -29,7 +29,7 @@ export function GenerateShoppingListModal({
                 setSubmitting(false);
                 return;
             }
-            await shoppingListApi.generateShoppingList(mealPlanId, shoppingList.id);
+            await shoppingListApi.generateShoppingList(mealPlanId);
 
             onClose();
         } catch {
