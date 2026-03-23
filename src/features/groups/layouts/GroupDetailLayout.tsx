@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
-import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader } from 'react-icons/fi';
+import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader, FiSettings } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { type Group } from '../../../types/Group';
 
@@ -29,11 +29,12 @@ const GroupDetailLayout: React.FC = () => {
     }, [groupId]);
 
     const groupName = group?.name || (isLoading ? "Henter..." : "Ukendt Gruppe");
-
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
         { label: 'Indkøbsliste', path: 'shoppinglist', icon: <FiShoppingCart /> },
         { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
+        { label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> },
+
     ];
 
     return (
