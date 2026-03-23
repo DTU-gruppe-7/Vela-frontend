@@ -8,7 +8,7 @@ interface Props{
 
 const GRID_SIZE = 25;
 
-export const build5x5Grid = (recipes: RecipeSummary[]): (RecipeSummary | null)[] => {
+const build5x5Grid = (recipes: RecipeSummary[]): (RecipeSummary | null)[] => {
     return Array.from({ length: GRID_SIZE }, (_, index) => recipes[index] ?? null);
 }
 

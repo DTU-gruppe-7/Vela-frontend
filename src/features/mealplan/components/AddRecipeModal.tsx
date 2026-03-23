@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { Modal } from '../../../components/ui/Modal';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { useLikedRecipes } from '../hooks/useLikedRecipes';
+import { groupApi } from '../../../api/groupApi';
 import { DAYS } from '../../../utils/weekUtils';
 
 interface AddRecipeModalProps {
@@ -23,14 +25,29 @@ export function AddRecipeModal({
   onSelect,
 }: AddRecipeModalProps) {
 
+  const { groupId } = useParams<{ groupId: string }>();
   const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
+  const [groupMatchIds, setGroupMatchIds] = useState<Set<string>>(new Set());
 
-  // Hent likede opskrifter fra backend via hooket
+  // Hent likede opskrifter fra backend via hooket (til individuel brug)
   const { likedRecipes } = useLikedRecipes();
   const favoriteIds = useMemo(() => new Set(likedRecipes.map((r) => r.id)), [likedRecipes]);
 
   // Find ud af hvilke opskrifter der allerede er på madplanen for denne dag
   const addedIds = useMemo(() => new Set(addedRecipes.map((r) => r.id)), [addedRecipes]);
+
+  // Hent gruppens matches, hvis vi er i en gruppe-kontekst
+  useEffect(() => {
+    if (groupId && isOpen) {
+      groupApi.getMatches(groupId)
+        .then(matches => {
+          if (matches) {
+            setGroupMatchIds(new Set(matches.map(m => m.recipeId)));
+          }
+        })
+        .catch(err => console.error("Fejl ved hentning af gruppens matches til modal:", err));
+    }
+  }, [groupId, isOpen]);
 
   // Opskrifter der kan vælges (dem der ikke allerede er tilføjet)
   const selectableRecipes = useMemo(() =>
@@ -38,14 +55,19 @@ export function AddRecipeModal({
     [availableRecipes, addedIds]
   );
 
-  // Filtrering baseret på knapperne "Alle" eller "Likede"
+  // Filtrering baseret på knapperne "Alle" eller "Likede/Fælles"
   const filteredRecipes = useMemo(() => {
     if (filterMode === 'liked') {
-      // Vi tjekker mod favoriteIds sættet
-      return selectableRecipes.filter((r) => favoriteIds.has(r.id));
+      if (groupId) {
+        // Vi tjekker mod gruppens matches
+        return selectableRecipes.filter((r) => groupMatchIds.has(r.id));
+      } else {
+        // Vi tjekker mod personlige likes
+        return selectableRecipes.filter((r) => favoriteIds.has(r.id));
+      }
     }
     return selectableRecipes;
-  }, [filterMode, selectableRecipes, favoriteIds]);
+  }, [filterMode, selectableRecipes, favoriteIds, groupId, groupMatchIds]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Tilføj opskrift – ${day}`}>
@@ -66,7 +88,7 @@ export function AddRecipeModal({
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
         >
-          Likede
+          {groupId ? 'Fælles Matches' : 'Likede'}
         </button>
       </div>
 
@@ -87,7 +109,7 @@ export function AddRecipeModal({
           <div className="text-center py-12">
             <p className="text-slate-400 text-sm">
               {filterMode === 'liked'
-                ? 'Du har ingen favoritter blandt de tilgængelige opskrifter.'
+                ? (groupId ? 'Gruppen har ingen fælles opskrifter at tilføje.' : 'Du har ingen favoritter blandt de tilgængelige opskrifter.')
                 : 'Ingen flere opskrifter at tilføje.'}
             </p>
           </div>

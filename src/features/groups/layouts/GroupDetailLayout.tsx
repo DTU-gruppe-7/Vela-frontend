@@ -31,15 +31,16 @@ const GroupDetailLayout: React.FC = () => {
     const groupName = group?.name || (isLoading ? "Henter..." : "Ukendt Gruppe");
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
-        { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
-        { label: 'Liked Recipes', path: 'liked-recipes', icon: <FiHeart /> },
+        { label: 'Indkøbsliste', path: 'shoppinglist', icon: <FiShoppingCart /> },
+        { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
         { label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> },
+
     ];
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 flex">
-            {/* Sidebar - Fast i venstre side og korrekt højde under headeren */}
-            <aside className="fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white z-40 flex flex-col">
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 flex items-start">
+            {/* Sidebar - Sticky, stopper naturligt ved footeren */}
+            <aside className="sticky top-16 w-64 h-[calc(100vh-4rem)] bg-white z-40 flex flex-col flex-shrink-0 self-start">
                 <div className="p-6 flex-1">
                     <p className="text-[10px] uppercase font-bold text-slate-300 tracking-[0.2em] mb-10 px-2">Menu</p>
                     
@@ -86,7 +87,7 @@ const GroupDetailLayout: React.FC = () => {
             </aside>
 
             {/* Main Content Area - Sømløs baggrund uden luft mod venstremenu */}
-            <main className="flex-1 ml-64 min-h-[calc(100vh-4rem)] bg-slate-50">
+            <main className="flex-1 min-h-[calc(100vh-4rem)] bg-slate-50">
                 <div className="pt-6 md:pt-8 pb-0 w-full">
                     {/* Header */}
                     <div className="flex items-center gap-5 md:gap-6 mb-8 md:mb-10 px-6 md:px-10 xl:px-14">

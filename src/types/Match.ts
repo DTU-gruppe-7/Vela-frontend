@@ -1,5 +1,5 @@
 export interface Match {
     groupId: string;
-    recipeID: string;
-    MatchedAt: string;
+    recipeId: string;
+    matchedAt: string;
 }
