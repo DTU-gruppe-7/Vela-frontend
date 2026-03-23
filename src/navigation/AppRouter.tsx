@@ -24,6 +24,7 @@ import RecipePage from '../features/recipes/RecipePage';
 import ShoppingListPage from '../features/shoppingList/ShoppingListPage.tsx';
 import MealPlanPage from '../features/mealplan/MealPlanPage';
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
+import MembersPage from '../features/groups/MembersPage';
 import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
 import GroupManagePage from '../features/groups/GroupManagePage';
 import GroupMatchPage from '../features/groups/GroupMatchPage';
@@ -46,6 +47,7 @@ function AppRouter() {
                     <Route path="/groups/:groupId" element={<GroupDetailLayout />}>
                         <Route index element={<Navigate to="mealplan" replace />} />
                         <Route path="mealplan" element={<MealPlanPage />} />
+                        <Route path="members" element={<MembersPage />} />
                         <Route path="shoppinglist" element={<ShoppingListPage />} />
                         <Route path="manage" element={<GroupManagePage />} />
                         <Route path="liked-recipes" element={<GroupMatchPage />} />

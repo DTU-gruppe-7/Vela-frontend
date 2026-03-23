@@ -29,6 +29,18 @@ export const groupApi = {
   removeMember: async (id: string, userId: string): Promise<void> => {
     await axiosClient.delete(`/Group/${id}/members/${userId}`);
   },
+    
+  changeRole: async (id: string, userId: string, newRole: 'administrator' | 'member'): Promise<void> => {
+    await axiosClient.patch(`/Group/${id}/members/${userId}/role`, { newRole });
+  },
+
+  leaveGroup: async (id: string): Promise<void> => {
+    await axiosClient.post(`/Group/${id}/leave`);
+  },
+
+  transferOwnership: async (id: string, newOwnerUserId: string): Promise<void> => {
+    await axiosClient.patch(`/Group/${id}/transfer-ownership`, { newOwnerUserId });
+  },
 
   getMatches: async (id: string): Promise<Match[]> => {
     const response = await axiosClient.get<Match[]>(`/Group/${id}/matches`);

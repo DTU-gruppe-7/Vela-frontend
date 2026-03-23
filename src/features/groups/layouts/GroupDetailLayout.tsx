@@ -31,10 +31,10 @@ const GroupDetailLayout: React.FC = () => {
     const groupName = group?.name || (isLoading ? "Henter..." : "Ukendt Gruppe");
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
-        { label: 'Indkøbsliste', path: 'shoppinglist', icon: <FiShoppingCart /> },
+        { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
+        { label: 'Medlemmer', path: 'members', icon: <FiUsers /> },
         { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
         { label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> },
-
     ];
 
     return (
