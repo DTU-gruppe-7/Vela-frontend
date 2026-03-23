@@ -21,6 +21,7 @@ interface NotificationState {
     notifications: Notification[];
     unreadCount: number;
     connection: signalR.HubConnection | null;
+    isConnecting: boolean;
     isLoading: boolean;
     error: string | null;
     // Dropdown state
@@ -46,6 +47,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
     unreadCount: 0,
     connection: null,
+    isConnecting: false,
     isLoading: false,
     error: null,
     dropdownVisible: false,
@@ -77,12 +79,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     },
 
     connectToSignalR: () => {
-        // Hvis der allerede er en forbindelse, gør ingenting
-        if (get().connection) return;
+        // Hvis der allerede er en forbindelse ELLER vi er i gang med at oprette forbindelse, gør ingenting
+        if (get().connection || get().isConnecting) return;
 
         // Hent token fra authStore for at autentificere mod SignalR Hubben
         const token = useAuthStore.getState().token;
         if (!token) return;
+
+        // Sæt flag for at forhindre concurrent connection attempts
+        set({ isConnecting: true });
 
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${BACKEND_URL}/api/hubs/notifications`, {
@@ -100,20 +105,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             // SignalR sender PascalCase fra C# backend
             // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
-                id: notification.Id || notification.id || 
-                    notification.Payload?.NotificationId || 
-                    notification.payload?.notificationId || 
-                    crypto.randomUUID(),
-                title: notification.Title || notification.title || '',
-                message: notification.Message || notification.message || '',
-                type: notification.Type || notification.type || '',
-                relatedEntityId: notification.Payload?.RelatedEntityId || 
-                    notification.payload?.relatedEntityId || 
-                    notification.RelatedEntityId || 
-                    notification.relatedEntityId || 
-                    null,
-                isRead: notification.IsRead ?? notification.isRead ?? false,
-                createdAt: notification.CreatedAt || notification.createdAt || new Date().toISOString()
+                id: notification.payload?.notificationId || crypto.randomUUID(),
+                title: notification.title ?? '',
+                message: notification.message ?? '',
+                type: String(notification.type ?? ''),
+                relatedEntityId: notification.payload?.relatedEntityId || null,
+                isRead: false,
+                createdAt: notification.timestamp || new Date().toISOString()
             };
 
             // Tilføj den nye notifikation og sorter listen
@@ -131,8 +129,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
         // Start forbindelsen
         newConnection.start()
-            .then(() => console.log('SignalR Connected to Notifications Hub'))
+            .then(() => {
+                console.log('SignalR Connected to Notifications Hub');
+                set({ isConnecting: false });
+            })
             .catch(err => {
+                set({ isConnecting: false });
                 if (err instanceof Error && err.message.includes('stopped')) return;
                 console.error('SignalR Connection Error: ', err);
             });
@@ -142,7 +144,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const { connection } = get();
         if (connection) {
             connection.stop();
-            set({ connection: null });
+            set({ connection: null, isConnecting: false });
         }
     },
 

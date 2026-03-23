@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { MealPlanEntry } from '../../types/MealPlan';
 import RecipeCard from '../../components/ui/RecipeCard';
 import { ServingsControl } from '../../components/ui/ServingsControl';
@@ -19,7 +19,7 @@ export default function MealPlanPage() {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
-  const weekInfo = getWeekInfo(selectedWeek);
+  const weekInfo = useMemo(() => getWeekInfo(selectedWeek), [selectedWeek]);
   const { weekNumber, dateRange } = weekInfo;
   const { 
     mealPlan, 

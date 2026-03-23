@@ -27,11 +27,6 @@ function MainLayout({ children }: Props) {
             // Luk forbindelsen hvis brugeren logger ud
             disconnectSignalR();
         }
-
-        // Cleanup: Luk forbindelsen, hvis komponenten fjernes fra skærmen
-        return () => {
-            disconnectSignalR();
-        };
     }, [isAuthenticated, fetchNotifications, connectToSignalR, disconnectSignalR]);
 
     return (

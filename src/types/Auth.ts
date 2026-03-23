@@ -2,6 +2,7 @@ export interface AuthResponse {
     userId: string;
     token: string;
     refreshToken: string;
+    userId: string;
     email: string;
     firstName: string;
     lastName: string;

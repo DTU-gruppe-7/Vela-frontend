@@ -21,11 +21,13 @@ import SwipePage from '../features/swipe/SwipePage';
 import GroupPage from '../features/groups/GroupPage';
 import ProfilePage from '../features/profile/ProfilePage';
 import RecipePage from '../features/recipes/RecipePage';
-import ShoppingListDetailPage from '../features/shoppingList/ShoppingListDetailPage';
+import ShoppingListPage from '../features/shoppingList/ShoppingListPage.tsx';
 import MealPlanPage from '../features/mealplan/MealPlanPage';
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
 import MembersPage from '../features/groups/MembersPage';
 import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
+import GroupManagePage from '../features/groups/GroupManagePage';
+import GroupMatchPage from '../features/groups/GroupMatchPage';
 
 
 function AppRouter() {
@@ -45,14 +47,15 @@ function AppRouter() {
                     <Route path="/groups/:groupId" element={<GroupDetailLayout />}>
                         <Route index element={<Navigate to="mealplan" replace />} />
                         <Route path="mealplan" element={<MealPlanPage />} />
-                        <Route path="shoppinglist" element={<ShoppingListDetailPage />} />
-                        <Route path="liked-recipes" element={<RecipePage />} />
                         <Route path="members" element={<MembersPage />} />
+                        <Route path="shoppinglist" element={<ShoppingListPage />} />
+                        <Route path="manage" element={<GroupManagePage />} />
+                        <Route path="liked-recipes" element={<GroupMatchPage />} />
                     </Route>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/recipes" element={<RecipePage />} />
                     <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-                    <Route path="/shoppinglist" element={<ShoppingListDetailPage />} />
+                    <Route path="/shoppinglist" element={<ShoppingListPage />} />
                     <Route path="/mealplan" element={<MealPlanPage />} />
                 </Route>
             </Route>
