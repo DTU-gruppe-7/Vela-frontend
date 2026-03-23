@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { FiPlus, FiShoppingCart, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import type { ShoppingListItem } from '../../types/ShoppingList';
-import { usePersonalShoppingList } from './hooks/usePersonalShoppingList';
+import { useShoppingList } from './hooks/useShoppingList';
 import ShoppingItem from './ShoppingItem';
 import type { AddShoppingListItem } from '../../types/ShoppingList';
 
-function ShoppingListDetailPage() {
+function ShoppingListPage() {
+    const { groupId } = useParams<{ groupId: string }>();
     const {
-        personalListId,
         shoppingList,
         loading,
         error,
         addItem,
         toogleItem,
         removeItem,
-    } = usePersonalShoppingList();
+    } = useShoppingList(groupId);
 
     // Form state for nyt item
     const [newItemName, setNewItemName] = useState('');
@@ -213,17 +214,6 @@ function ShoppingListDetailPage() {
                     </div>
                 )}
 
-                {/* Ingen personlig liste fundet */}
-                {!loading && !personalListId && !error && (
-                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                        <FiShoppingCart className="text-5xl mb-4" />
-                        <p className="text-lg font-medium">Ingen indkøbsliste fundet</p>
-                        <p className="text-sm mt-1">
-                            Du har endnu ikke en personlig indkøbsliste.
-                        </p>
-                    </div>
-                )}
-
                 {/* Empty state */}
                 {!loading && shoppingList && (shoppingList.items?.length ?? 0) === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -239,4 +229,4 @@ function ShoppingListDetailPage() {
     );
 }
 
-export default ShoppingListDetailPage;
+export default ShoppingListPage;

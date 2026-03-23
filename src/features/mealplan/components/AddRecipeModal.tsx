@@ -96,13 +96,13 @@ export function AddRecipeModal({
         {filteredRecipes.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {filteredRecipes.map((recipe) => (
-              <button
+              <div
                 key={recipe.id}
                 onClick={() => onSelect(recipe)}
-                className="group text-left focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-2xl transition-transform hover:scale-[1.02]"
+                className="group text-left focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-2xl transition-transform hover:scale-[1.02] cursor-pointer"
               >
                 <RecipeCard recipe={recipe} compact />
-              </button>
+              </div>
             ))}
           </div>
         ) : (
