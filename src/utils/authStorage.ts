@@ -7,6 +7,7 @@ const USER_KEY = 'user';
 // ─── Mapper ───────────────────────────────────────────────────────
 export function userFromResponse(res: AuthResponse): AuthUser {
     return {
+        id: res.userId,
         email: res.email,
         firstName: res.firstName,
         lastName: res.lastName,
