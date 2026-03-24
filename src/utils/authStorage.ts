@@ -6,8 +6,11 @@ const USER_KEY = 'user';
 
 // ─── Mapper ───────────────────────────────────────────────────────
 export function userFromResponse(res: AuthResponse): AuthUser {
+    const resolvedId = res.userId || res.id || '';
+
     return {
-        userId: res.userId,
+        id: res.id || resolvedId,
+        userId: resolvedId,
         email: res.email,
         firstName: res.firstName,
         lastName: res.lastName,
@@ -41,7 +44,24 @@ export function loadSession(): { token: string; user: AuthUser } | null {
         const token = localStorage.getItem(TOKEN_KEY);
         const raw = localStorage.getItem(USER_KEY);
         if (token && raw) {
-            const user: AuthUser = JSON.parse(raw);
+            const persistedUser = JSON.parse(raw) as Partial<AuthUser>;
+            const resolvedUserId = persistedUser.userId || persistedUser.id;
+
+            if (!resolvedUserId || !persistedUser.email || !persistedUser.firstName || !persistedUser.lastName) {
+                clearSession();
+                return null;
+            }
+
+            const user: AuthUser = {
+                userId: resolvedUserId,
+                id: persistedUser.id || resolvedUserId,
+                email: persistedUser.email,
+                firstName: persistedUser.firstName,
+                lastName: persistedUser.lastName,
+                profilePictureUrl: persistedUser.profilePictureUrl,
+                dateOfBirth: persistedUser.dateOfBirth,
+            };
+
             return { token, user };
         }
     } catch (error) {

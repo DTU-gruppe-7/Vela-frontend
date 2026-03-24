@@ -4,6 +4,7 @@ import { FiMoreVertical, FiUserMinus, FiShield, FiUser, FiLogOut, FiKey } from '
 import { groupApi } from '../../api/groupApi';
 import { useAuthStore } from '../../stores/authStore';
 import type { Group, GroupMember, GroupRole } from '../../types/Group';
+import { getDisplayInitials, getGroupMemberDisplayName } from '../../utils/groupMemberDisplay';
 
 const roleLabelMap: Record<GroupRole, string> = {
     owner: 'Owner',
@@ -26,6 +27,9 @@ const MembersPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const currentUserIdentifiers = [currentUser?.id, currentUser?.userId, currentUser?.email]
+        .filter((identifier): identifier is string => Boolean(identifier))
+        .map((identifier) => identifier.toLowerCase());
 
     const fetchGroup = async () => {
         if (!groupId) return;
@@ -55,7 +59,7 @@ const MembersPage: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    const currentMember = group?.members.find((m) => m.userId === currentUser?.userId);
+    const currentMember = group?.members.find((m) => currentUserIdentifiers.includes(m.userId.toLowerCase()));
     const myRole = currentMember?.role;
 
     const handleRemoveMember = async (userId: string) => {
@@ -111,7 +115,7 @@ const MembersPage: React.FC = () => {
         const items: { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean }[] = [];
 
         // Don't show menu for yourself
-        if (member.userId === currentUser?.userId) return items;
+        if (currentUserIdentifiers.includes(member.userId.toLowerCase())) return items;
 
         if (myRole === 'owner') {
             // Owner can remove anyone except themselves
@@ -208,7 +212,8 @@ const MembersPage: React.FC = () => {
                     return order[a.role] - order[b.role];
                 }).map((member) => {
                     const menuItems = getMenuItems(member);
-                    const isMe = member.userId === currentUser?.userId;
+                    const isMe = currentUserIdentifiers.includes(member.userId.toLowerCase());
+                    const displayName = getGroupMemberDisplayName(member);
 
                     return (
                         <div
@@ -218,13 +223,16 @@ const MembersPage: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 {/* Avatar */}
                                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-sm font-bold text-orange-700 ring-1 ring-orange-200">
-                                    {member.userId.substring(0, 2).toUpperCase()}
+                                    {getDisplayInitials(displayName)}
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-slate-800">
-                                        {member.userId}
+                                        {displayName}
                                         {isMe && <span className="ml-2 text-xs text-slate-400">(dig)</span>}
                                     </p>
+                                    {member.email && (
+                                        <p className="text-xs text-slate-500 break-all mt-0.5">{member.email}</p>
+                                    )}
                                 </div>
                             </div>
 
