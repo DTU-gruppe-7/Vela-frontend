@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { recipeApi } from '../../api/recipeApi'
 import type { RecipeSummary } from '../../types/Recipe'
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { MostLikedRecipesWidget } from './MostLikedWidget'
+import { GroupsWidget } from './GroupsWidget'
+import { ShoppingListWidget } from './ShoppingListWidget'
+import { CurrentRecipeWidget } from './CurrentRecipeWidget'
 
 const Placeholder = ({label }: { label: string}) => (
     <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white text-slate-400">
@@ -35,16 +38,17 @@ const navigate = useNavigate();
 
     return(<div className="flex flex-col gap-4 bg-slate-100 p-4">
         <div className="grid flex-1 grid-cols-3 gap-4">
-            {/*three panels goes in here*/}
-            <Placeholder label="Første spot"/>
-            <Placeholder label="Andet Spot"/>
-            <Placeholder label="Tredje spot"/>
+            <GroupsWidget />
+            <ShoppingListWidget/>
+            <CurrentRecipeWidget/>
         </div>
-        <div className="">
-            {/*bottom panel goes in here*/}
+        <div className="space-y-3">
+            <div className="flex items-center justify-center">
+                <h2 className="text-xl font-bold text-slate-800">Populære Opskrifter</h2>
+            </div>
             <MostLikedRecipesWidget
             recipes={mostLikedRecipes}
-            onRecipeClick={(id) => navigate('/recipes/$' + {id})}
+            onRecipeClick={(id) => navigate('/recipes/' + id)}
             />
         </div>
     </div>
