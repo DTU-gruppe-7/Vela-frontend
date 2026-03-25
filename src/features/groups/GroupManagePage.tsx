@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import type { Group } from '../../types/Group';
 import InviteGroupModal from './modal/GroupInviteModal';
 import { canManageGroup, getCurrentUserGroupRole } from '../../utils/groupAccess';
+import { getCurrentUserDisplayName, getGroupMemberDisplayName } from '../../utils/groupMemberDisplay';
 
 export default function GroupManagePage() {
     const { groupId } = useParams<{ groupId: string }>();
@@ -17,9 +18,14 @@ export default function GroupManagePage() {
     const [isRemoving, setIsRemoving] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    const userIdentifiers = useMemo(
+        () => [user?.id, user?.userId, user?.email],
+        [user?.id, user?.userId, user?.email]
+    );
+
     const currentRole = useMemo(
-        () => getCurrentUserGroupRole(group, user?.id, user?.email),
-        [group, user?.id, user?.email]
+        () => getCurrentUserGroupRole(group, ...userIdentifiers),
+        [group, userIdentifiers]
     );
 
     const hasManageAccess = canManageGroup(currentRole);
@@ -124,12 +130,14 @@ export default function GroupManagePage() {
                 ) : (
                     <ul>
                         {group.members.map((member) => {
-                            const userReference = user?.id ?? user?.email ?? '';
-                            const isSelf = member.userId.toLowerCase() === userReference.toLowerCase();
+                            const normalizedUserIdentifiers = userIdentifiers
+                                .filter((identifier): identifier is string => Boolean(identifier))
+                                .map((identifier) => identifier.toLowerCase());
+                            const isSelf = normalizedUserIdentifiers.includes(member.userId.toLowerCase());
                             const roleLabel = member.role === 'member' ? 'Medlem' : member.role;
-                            const memberFullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim();
-                            const selfFullName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
-                            const displayName = memberFullName || (isSelf ? selfFullName : '') || 'Ukendt navn';
+                            const displayName = isSelf
+                                ? getCurrentUserDisplayName(user)
+                                : getGroupMemberDisplayName(member);
 
                             return (
                                 <li
@@ -138,6 +146,9 @@ export default function GroupManagePage() {
                                 >
                                     <div>
                                         <p className="font-semibold text-slate-800 break-all">{displayName}</p>
+                                        {member.email && (
+                                            <p className="text-xs text-slate-500 mt-0.5 break-all">{member.email}</p>
+                                        )}
                                         <p className="text-xs uppercase tracking-wide text-slate-500 mt-1">Rolle: {roleLabel}</p>
                                     </div>
 

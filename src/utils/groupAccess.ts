@@ -5,7 +5,7 @@ export type GroupRole = 'owner' | 'admin' | 'administrator' | 'member';
 function normalizeRole(role: string | undefined | null): GroupRole | null {
     if (!role) return null;
 
-    const value = role.toLowerCase();
+    const value = role.trim().toLowerCase();
 
     if (value === 'owner') return 'owner';
     if (value === 'admin') return 'admin';
@@ -13,6 +13,10 @@ function normalizeRole(role: string | undefined | null): GroupRole | null {
     if (value === 'member') return 'member';
 
     return null;
+}
+
+function hasAnyIdMatch(candidate: string | undefined, identifiers: Array<string | undefined>): boolean {
+    return identifiers.some((identifier) => idsMatch(candidate, identifier));
 }
 
 export function canManageGroup(role: GroupRole | null): boolean {
@@ -26,21 +30,18 @@ function idsMatch(left: string | undefined, right: string | undefined): boolean 
 
 export function getCurrentUserGroupRole(
     group: Group | null,
-    userId: string | undefined,
-    userEmail?: string | undefined
+    ...identifiers: Array<string | undefined>
 ): GroupRole | null {
     if (!group) return null;
 
     const explicitRole = normalizeRole(group.currentUserRole);
     if (explicitRole) return explicitRole;
 
-    if (idsMatch(group.ownerId, userId) || idsMatch(group.ownerId, userEmail)) {
+    if (hasAnyIdMatch(group.ownerId, identifiers)) {
         return 'owner';
     }
 
-    const membership = group.members.find(
-        (member) => idsMatch(member.userId, userId) || idsMatch(member.userId, userEmail)
-    );
+    const membership = group.members.find((member) => hasAnyIdMatch(member.userId, identifiers));
 
     return normalizeRole(membership?.role);
 }
