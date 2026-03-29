@@ -66,6 +66,9 @@ export const LandingPage = () => {
 
   {/* Carousel Section */}
   <section>
+    <h2 className="mb-3 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+      Mest populære opskrifter
+    </h2>
     {loading && <p>Indlæser opskrifter...</p>}
     {error && <p className="text-red-500">{error}</p>}
     {!loading && !error && <RecipeCarousel recipes={recipes} />}
