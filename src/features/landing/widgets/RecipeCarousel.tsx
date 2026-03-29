@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import RecipeCard from '../../components/ui/RecipeCard';
-import type {RecipeSummary } from '../../types/Recipe'
+import RecipeCard from '../../../components/ui/RecipeCard';
+import type {RecipeSummary } from '../../../types/Recipe'
 
 interface Props {
     recipes: RecipeSummary[];

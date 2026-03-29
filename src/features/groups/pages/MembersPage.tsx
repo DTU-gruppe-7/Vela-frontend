@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiMoreVertical, FiUserMinus, FiShield, FiUser, FiLogOut, FiKey } from 'react-icons/fi';
-import { groupApi } from '../../api/groupApi';
-import { useAuthStore } from '../../stores/authStore';
-import type { Group, GroupMember, GroupRole } from '../../types/Group';
-import { getDisplayInitials, getGroupMemberDisplayName } from '../../utils/groupMemberDisplay';
+import { groupApi } from '../../../api/groupApi';
+import { useAuthStore } from '../../../stores/authStore';
+import type { Group, GroupMember, GroupRole } from '../../../types/Group';
+import { getDisplayInitials, getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 const roleLabelMap: Record<GroupRole, string> = {
     owner: 'Owner',

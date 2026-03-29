@@ -9,25 +9,25 @@ import GuestRoute from './GuestRoute';
 import MainLayout from '../components/layout/MainLayout';
 
 // LandingPage
-import { LandingPage } from '../features/landing/LandingPage';
+import { LandingPage } from '../features/landing/pages/LandingPage';
 
 // Auth pages (no header/footer)
-import LoginPage from '../features/auth/LoginPage';
-import RegisterPage from '../features/auth/RegisterPage';
+import LoginPage from '../features/auth/pages/LoginPage';
+import RegisterPage from '../features/auth/pages/RegisterPage';
 
 // App pages (with header/footer)
-import {HomePage} from '../features/home/HomePage';
-import SwipePage from '../features/swipe/SwipePage';
-import GroupPage from '../features/groups/GroupPage';
-import ProfilePage from '../features/profile/ProfilePage';
-import RecipePage from '../features/recipes/RecipePage';
-import ShoppingListPage from '../features/shoppingList/ShoppingListPage.tsx';
-import MealPlanPage from '../features/mealplan/MealPlanPage';
+import { HomePage } from '../features/home/pages/HomePage';
+import SwipePage from '../features/swipe/pages/SwipePage';
+import GroupPage from '../features/groups/pages/GroupPage';
+import ProfilePage from '../features/profile/pages/ProfilePage';
+import RecipePage from '../features/recipes/pages/RecipePage';
+import ShoppingListPage from '../features/shoppingList/pages/ShoppingListPage';
+import MealPlanPage from '../features/mealplan/pages/MealPlanPage';
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
-import MembersPage from '../features/groups/MembersPage';
-import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
-import GroupManagePage from '../features/groups/GroupManagePage';
-import GroupMatchPage from '../features/groups/GroupMatchPage';
+import MembersPage from '../features/groups/pages/MembersPage';
+import RecipeDetailPage from '../features/recipes/pages/RecipeDetailPage';
+import GroupManagePage from '../features/groups/pages/GroupManagePage';
+import GroupMatchPage from '../features/groups/pages/GroupMatchPage';
 
 
 function AppRouter() {

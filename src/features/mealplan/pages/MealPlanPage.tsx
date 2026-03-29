@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import type { MealPlanEntry } from '../../types/MealPlan';
-import RecipeCard from '../../components/ui/RecipeCard';
-import { ServingsControl } from '../../components/ui/ServingsControl';
-import { AddRecipeButton } from '../../components/ui/AddRecipeButton';
-import { AddRecipeModal } from './components/AddRecipeModal';
-import { GenerateShoppingListModal } from './components/GenerateShoppingListModal';
-import { getWeekInfo, DAYS } from '../../utils/weekUtils';
-import { useMealPlan } from './hooks/useMealPlan';
-import { recipeApi } from '../../api/recipeApi';
+import type { MealPlanEntry } from '../../../types/MealPlan';
+import RecipeCard from '../../../components/ui/RecipeCard';
+import { ServingsControl } from '../../../components/ui/ServingsControl';
+import { AddRecipeButton } from '../../../components/ui/AddRecipeButton';
+import { AddRecipeModal } from '../components/AddRecipeModal';
+import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
+import { getWeekInfo, DAYS } from '../../../utils/weekUtils';
+import { useMealPlan } from '../hooks/useMealPlan';
+import { recipeApi } from '../../../api/recipeApi';
 import { useParams } from 'react-router-dom';
 
 const VISIBLE_COLUMNS = 4;

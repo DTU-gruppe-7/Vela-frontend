@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom'
 import { useEffect, useState} from 'react'
-import { recipeApi } from '../../api/recipeApi'
-import type { RecipeSummary } from '../../types/Recipe'
-import { RecipeCarousel } from './RecipeCarousel'
-import { Guide } from './GuideComponent'
+import { recipeApi } from '../../../api/recipeApi'
+import type { RecipeSummary } from '../../../types/Recipe'
+import { RecipeCarousel } from '../widgets/RecipeCarousel'
+import { Guide } from '../widgets/GuideComponent'
 
 export const LandingPage = () => {
 

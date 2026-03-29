@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { groupApi} from "../../api/groupApi";
-import { recipeApi } from "../../api/recipeApi";
-import type { RecipeSummary } from "../../types/Recipe";
+import { groupApi} from "../../../api/groupApi";
+import { recipeApi } from "../../../api/recipeApi";
+import type { RecipeSummary } from "../../../types/Recipe";
 import { FiLoader, FiSearch } from 'react-icons/fi';
-import { useLikedRecipes } from '../mealplan/hooks/useLikedRecipes';
-import RecipeCard from "../../components/ui/RecipeCard";
+import { useLikedRecipes } from '../../mealplan/hooks/useLikedRecipes';
+import RecipeCard from "../../../components/ui/RecipeCard";
 
 const GroupMatchPage: React.FC = () => {
     const { groupId } = useParams();

@@ -1,11 +1,11 @@
 // src/features/auth/RegisterPage.tsx
 import { type FormEvent, useState } from 'react';
-import velaLogo from '../../assets/vela-logo.svg';
+import velaLogo from '../../../assets/vela-logo.svg';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import FormField from "../../components/ui/FormField.tsx";
+import { useAuth } from '../../../hooks/useAuth';
+import Card from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
+import FormField from "../../../components/ui/FormField.tsx";
 
 // Returnér dagens dato som YYYY-MM-DD (bruges til max-dato)
 function todayISO(): string {

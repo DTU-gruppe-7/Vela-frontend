@@ -1,5 +1,5 @@
 import { FiMoreVertical, FiUserPlus, FiUsers } from 'react-icons/fi';
-import { type Group } from '../../types/Group';
+import { type Group } from '../../../types/Group';
 
 interface GroupCardProps {
     group: Group;

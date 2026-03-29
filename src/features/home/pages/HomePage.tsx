@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react'
-import { recipeApi } from '../../api/recipeApi'
-import type { RecipeSummary } from '../../types/Recipe'
+import { recipeApi } from '../../../api/recipeApi'
+import type { RecipeSummary } from '../../../types/Recipe'
 import { useNavigate } from 'react-router-dom'
-import { MostLikedRecipesWidget } from './MostLikedWidget'
-import { GroupsWidget } from './GroupsWidget'
-import { ShoppingListWidget } from './ShoppingListWidget'
-import { CurrentRecipeWidget } from './CurrentRecipeWidget'
-
-const Placeholder = ({label }: { label: string}) => (
-    <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white text-slate-400">
-        <span className="text-sm font-medium">{label}</span>
-    </div>
-)
+import { MostLikedRecipesWidget } from '../widgets/MostLikedWidget'
+import { GroupsWidget } from '../widgets/GroupsWidget'
+import { ShoppingListWidget } from '../widgets/ShoppingListWidget'
+import { CurrentRecipeWidget } from '../widgets/CurrentRecipeWidget'
 
 export const HomePage = () => {
 const [mostLikedRecipes, setMostLikedRecipes] = useState<RecipeSummary[]>([]);

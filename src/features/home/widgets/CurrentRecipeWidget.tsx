@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar, FiArrowRight } from 'react-icons/fi';
-import RecipeCard from '../../components/ui/RecipeCard';
-import { mealplanApi } from '../../api/mealplanApi';
-import { recipeApi } from '../../api/recipeApi';
-import type { MealPlanEntry } from '../../types/MealPlan';
-import type { RecipeSummary } from '../../types/Recipe';
+import { FiCalendar } from 'react-icons/fi';
+import RecipeCard from '../../../components/ui/RecipeCard';
+import { mealplanApi } from '../../../api/mealplanApi';
+import { recipeApi } from '../../../api/recipeApi';
+import type { MealPlanEntry } from '../../../types/MealPlan';
+import type { RecipeSummary } from '../../../types/Recipe';
 
 function getLocalDateKey(date = new Date()): string {
     const y = date.getFullYear();

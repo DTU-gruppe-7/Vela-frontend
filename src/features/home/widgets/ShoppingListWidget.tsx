@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiShoppingCart, FiLoader, FiArrowRight, FiCheck } from 'react-icons/fi'
-import { shoppingListApi } from '../../api/shoppingListApi'
-import type { ShoppingList } from '../../types/ShoppingList'
+import { shoppingListApi } from '../../../api/shoppingListApi'
+import type { ShoppingList } from '../../../types/ShoppingList'
 
 export const ShoppingListWidget = () => {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
@@ -13,7 +13,7 @@ export const ShoppingListWidget = () => {
     useEffect(() => {
         const fetchPersonalList=async () => {
             try {
-                const data = await shoppingListApi.getPersonalShoppingList();
+          const data = await shoppingListApi.getShoppingList();
                 setShoppingList(data);
             } catch(err) {
                 setError('Kunne ikke hente din indkøbsliste');

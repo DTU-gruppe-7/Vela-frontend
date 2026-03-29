@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { FiUserMinus, FiUserPlus, FiUsers, FiAlertTriangle, FiLoader } from 'react-icons/fi';
-import { groupApi } from '../../api/groupApi';
-import { useAuth } from '../../hooks/useAuth';
-import type { Group } from '../../types/Group';
-import InviteGroupModal from './modal/GroupInviteModal';
-import { canManageGroup, getCurrentUserGroupRole } from '../../utils/groupAccess';
-import { getCurrentUserDisplayName, getGroupMemberDisplayName } from '../../utils/groupMemberDisplay';
+import { groupApi } from '../../../api/groupApi';
+import { useAuth } from '../../../hooks/useAuth';
+import type { Group } from '../../../types/Group';
+import InviteGroupModal from '../modals/GroupInviteModal';
+import { canManageGroup, getCurrentUserGroupRole } from '../../../utils/groupAccess';
+import { getCurrentUserDisplayName, getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 export default function GroupManagePage() {
     const { groupId } = useParams<{ groupId: string }>();

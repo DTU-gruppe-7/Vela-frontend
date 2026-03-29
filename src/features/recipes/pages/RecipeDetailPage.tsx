@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRecipeDetails } from '../../hooks/useRecipeDetails';
+import { useRecipeDetails } from '../../../hooks/useRecipeDetails';
 import { useParams, useNavigate } from 'react-router-dom';
 
 /**

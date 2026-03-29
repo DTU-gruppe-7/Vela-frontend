@@ -7,6 +7,9 @@ export interface GroupMember {
     groupId: string;
     role: GroupRole;
     joinedAt: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
 }
 
 export interface Group {
@@ -15,6 +18,8 @@ export interface Group {
     status: string;
     members: GroupMember[];
     matches: Match[];
+    ownerId?: string;
+    currentUserRole?: GroupRole;
 }
 
 export interface CreateGroupRequest {
