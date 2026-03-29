@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { FiPlus, FiShoppingCart, FiArrowUp, FiArrowDown } from 'react-icons/fi';
-import type { ShoppingListItem } from '../../types/ShoppingList';
-import { useShoppingList } from './hooks/useShoppingList';
-import ShoppingItem from './ShoppingItem';
-import type { AddShoppingListItem } from '../../types/ShoppingList';
+import type { ShoppingListItem } from '../../../types/ShoppingList';
+import { useShoppingList } from '../hooks/useShoppingList';
+import ShoppingItem from '../components/ShoppingItem';
+import type { AddShoppingListItem } from '../../../types/ShoppingList';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();

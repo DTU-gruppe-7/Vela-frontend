@@ -4,8 +4,8 @@ import {
     useTransform,
     type PanInfo,
 } from "framer-motion";
-import RecipeCard from "../../components/ui/RecipeCard";
-import type { RecipeSummary } from "../../types/Recipe";
+import RecipeCard from "../../../components/ui/RecipeCard";
+import type { RecipeSummary } from "../../../types/Recipe";
 
 /* ─── Konstanter ─── */
 const SWIPE_THRESHOLD = 120;

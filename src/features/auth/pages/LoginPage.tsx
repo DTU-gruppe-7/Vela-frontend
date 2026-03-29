@@ -1,10 +1,10 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import FormField from "../../components/ui/FormField.tsx";
-import velaLogo from '../../assets/vela-logo.svg';
+import { useAuth } from '../../../hooks/useAuth';
+import Card from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
+import FormField from "../../../components/ui/FormField.tsx";
+import velaLogo from '../../../assets/vela-logo.svg';
 
 function LoginPage() {
     const { login, isLoading } = useAuth();

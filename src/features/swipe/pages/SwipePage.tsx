@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useRecipeQueue } from "../../hooks/useRecipeQueue";
-import { recipeApi } from "../../api/recipeApi";
-import CategoryFilter from "../../components/ui/CategoryFilter";
-import SwipeCard from "./SwipeCard";
+import { useRecipeQueue } from "../../../hooks/useRecipeQueue";
+import { recipeApi } from "../../../api/recipeApi";
+import CategoryFilter from "../../../components/ui/CategoryFilter";
+import SwipeCard from "../components/SwipeCard";
 
 function SwipePage() {
 

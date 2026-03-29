@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { recipeApi } from '../../api/recipeApi';
-import type { RecipeSummary } from '../../types/Recipe';
+import { recipeApi } from '../../../api/recipeApi';
+import type { RecipeSummary } from '../../../types/Recipe';
 import { FiSearch, FiSliders } from 'react-icons/fi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
-import RecipeCard from '../../components/ui/RecipeCard';
-import CategoryFilter from '../../components/ui/CategoryFilter';
+import RecipeCard from '../../../components/ui/RecipeCard';
+import CategoryFilter from '../../../components/ui/CategoryFilter';
 import { useNavigate } from 'react-router-dom';
-import { useLikedRecipes } from '../mealplan/hooks/useLikedRecipes';
+import { useLikedRecipes } from '../../mealplan/hooks/useLikedRecipes';
 
 function RecipePage() {
     const [allRecipes, setAllRecipes] = useState<RecipeSummary[]>([]);

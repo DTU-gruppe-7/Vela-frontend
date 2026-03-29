@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import {useNavigate} from 'react-router-dom'
 import {FiUsers, FiArrowRight, FiLoader } from 'react-icons/fi'
-import {groupApi} from '../../api/groupApi'
-import type {Group} from '../../types/Group'
+import {groupApi} from '../../../api/groupApi'
+import type {Group} from '../../../types/Group'
 
 export const GroupsWidget = () => {
     const [groups, setGroups] = useState<Group[]>([]);

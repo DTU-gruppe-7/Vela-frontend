@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../../hooks/useAuth';
 import { FiUser, FiMail, FiSave, FiArrowLeft, FiHeart } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import { getAllergensFromStorage, saveAllergensToStorage } from '../../utils/allergenStorage';
-import { ALL_ALLERGENS, ALLERGEN_LABELS, type Allergen } from '../../types/User';
+import { getAllergensFromStorage, saveAllergensToStorage } from '../../../utils/allergenStorage';
+import { ALL_ALLERGENS, ALLERGEN_LABELS, type Allergen } from '../../../types/User';
 
 export default function ProfilePage() {
     const { user } = useAuth();

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiUsers, FiLoader } from 'react-icons/fi';
-import { type Group } from '../../types/Group';
-import GroupCard from './GroupCard';
-import CreateGroupModal from './modal/CreateGroupModal';
-import InviteGroupModal from './modal/GroupInviteModal';
-import { groupApi } from '../../api/groupApi';
+import { type Group } from '../../../types/Group';
+import GroupCard from '../widgets/GroupCard';
+import CreateGroupModal from '../modals/CreateGroupModal';
+import InviteGroupModal from '../modals/GroupInviteModal';
+import { groupApi } from '../../../api/groupApi';
 
 export default function GroupPage() {
     const [groups, setGroups] = useState<Group[]>([]);

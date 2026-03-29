@@ -1,5 +1,5 @@
 import { FiCheck, FiTrash2 } from 'react-icons/fi';
-import type { ShoppingListItem } from '../../types/ShoppingList';
+import type { ShoppingListItem } from '../../../types/ShoppingList';
 
 interface ShoppingItemProps {
     item: ShoppingListItem;
