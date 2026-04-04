@@ -16,7 +16,7 @@ function LoginPage() {
     const [error, setError] = useState<string | null>(null);
 
     // Redirect til den side brugeren prøvede at besøge (sat af ProtectedRoute)
-    const from = (location.state as { from?: Location })?.from?.pathname || '/swipe';
+    const from = (location.state as { from?: Location })?.from?.pathname || '/';
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

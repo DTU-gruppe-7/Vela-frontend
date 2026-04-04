@@ -24,7 +24,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
                         onClick={() => onRecipeClick?.(recipe.id)}
                         className="h-full w-full cursor-pointer"
                     >
-                        <RecipeCard recipe={recipe} compact />
+                        <RecipeCard recipe={recipe} compact showKeywords={false} showTime={false} showCategory={false} />
                     </div>
                 ) : (
                     <div
