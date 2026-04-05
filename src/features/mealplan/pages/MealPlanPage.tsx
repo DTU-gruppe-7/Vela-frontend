@@ -198,6 +198,7 @@ function DayColumn({
                   key={entry.id}
                   recipe={entry.recipe!}
                   compact
+                  showKeywords={false}
                   onRemove={() => onRemoveRecipe(day, entry.id)}
                   topRightContent={
                     <ServingsControl
