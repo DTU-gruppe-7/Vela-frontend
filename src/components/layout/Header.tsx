@@ -21,7 +21,21 @@ const Header: React.FC = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
 
-  const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
+  // Determine active page - handle subpaths like /groups/123 and /recipes/123
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path.startsWith('/swipe')) return 'swipe';
+    if (path.startsWith('/groups')) return 'groups';
+    if (path.startsWith('/mealplan')) return 'mealplan';
+    if (path.startsWith('/shoppinglist')) return 'shoppinglist';
+    if (path.startsWith('/recipes')) return 'recipes';
+    if (path.startsWith('/profile')) return 'profile';
+    
+    return 'home';
+  };
+
+  const activePage = getActivePage();
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
