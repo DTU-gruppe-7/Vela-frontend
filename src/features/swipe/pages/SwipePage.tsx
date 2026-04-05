@@ -26,11 +26,8 @@ function SwipePage() {
                 .map((preferredCategory) => allCategories.find((category) => category.toLowerCase() === preferredCategory))
                 .filter((category): category is string => Boolean(category));
 
-            const remaining = allCategories.filter(
-                (category) => !preferred.some((selected) => selected.toLowerCase() === category.toLowerCase())
-            );
 
-            setCategories([...preferred, ...remaining]);
+            setCategories([...preferred]);
         }).catch((error) => {
             console.error("Failed to fetch categories:", error);
         });
@@ -72,7 +69,7 @@ function SwipePage() {
                     />
                 </div>
                 
-                <div className="relative w-full max-w-[380px] h-[520px]">
+                <div className="relative w-full max-w-[380px] h-[430px]">
 
                 <AnimatePresence mode="popLayout" custom={lastDir}>
                     {queue.slice(0, 3).map((recipeSummary, index) => (
@@ -87,7 +84,7 @@ function SwipePage() {
                 </AnimatePresence>
             </div>
 
-            <div className="flex items-center gap-10 mt-10 z-20">
+            <div className="flex items-center gap-10 -mt-10 z-20">
                 {/* Dislike – venstre */}
                 <button
                     type="button"
