@@ -31,7 +31,7 @@ function ShoppingItem({ item, onToggle, onRemove }: ShoppingItemProps) {
             {/* Item info */}
             <div className="flex-1 min-w-0">
                 <span
-                    className={`text-sm font-medium transition-all duration-200 ${
+                    className={`text-sm font-medium transition-all duration-200 capitalize ${
                         item.isBought
                             ? 'line-through text-gray-400'
                             : 'text-gray-800'

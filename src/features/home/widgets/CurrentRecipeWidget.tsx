@@ -98,7 +98,7 @@ function getLocalDateKey(date = new Date()): string {
                     onClick={() => navigate('/mealplan')}
                     className="flex-1 w-full text-left"
                 >
-                    <RecipeCard recipe={recipe} compact />
+                    <RecipeCard recipe={recipe} compact showKeywords={false} showTime={false} showCategory={false} />
                 </button>
                 ) : (
                 <button

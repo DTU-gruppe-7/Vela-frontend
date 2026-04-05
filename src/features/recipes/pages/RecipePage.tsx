@@ -203,20 +203,6 @@ function RecipePage() {
                     activeCategory={activeCategory}
                     onCategoryChange={setActiveCategory}
                 >
-                    <button
-                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                        className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full border transition-all duration-200 whitespace-nowrap ${showFavoritesOnly
-                                ? 'bg-red-50 text-red-500 border-red-300'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-400'
-                            }`}
-                    >
-                        {showFavoritesOnly ? (
-                            <FaHeart className="text-red-500" />
-                        ) : (
-                            <FaRegHeart />
-                        )}
-                        Favoritter
-                    </button>
                 </CategoryFilter>
 
                 {/* Page size selector + Liked Recipes button */}
