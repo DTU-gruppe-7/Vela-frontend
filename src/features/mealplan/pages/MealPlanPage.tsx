@@ -9,6 +9,8 @@ import { getWeekInfo, DAYS } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
+import { groupApi } from '../../../api/groupApi';
+import type { Group } from '../../../types/Group';
 import { useParams } from 'react-router-dom';
 
 const VISIBLE_COLUMNS = 4;
@@ -18,6 +20,8 @@ export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
   const isPersonalView = !groupId;
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
@@ -39,6 +43,12 @@ export default function MealPlanPage() {
     weekInfo,
     groupId,
   );
+
+  useEffect(() => {
+    if (isPersonalView) {
+      groupApi.getGroups().then(setGroups).catch(console.error);
+    }
+  }, [isPersonalView]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
@@ -77,10 +87,31 @@ export default function MealPlanPage() {
 
     return (
         <div className="p-4 sm:p-6 w-full  mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
+                    
+                    {isPersonalView && (
+                      <div className="relative ml-0 sm:ml-4">
+                        <select
+                            value={activeFilter}
+                            onChange={(e) => setActiveFilter(e.target.value)}
+                            className="appearance-none bg-white border border-slate-200 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+                        >
+                            <option value="all">Vis: Alle</option>
+                            <option value="Personlig">Vis: Personlig</option>
+                            {groups.map(g => (
+                                <option key={g.id} value={g.name}>Vis: {g.name}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                      </div>
+                    )}
+                </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap xl:flex-nowrap">
                     {/* Generér indkøbsliste-knap */}
                     <button
                         onClick={() => setShowShoppingListModal(true)}
@@ -135,19 +166,29 @@ export default function MealPlanPage() {
                         transform: `translateX(-${translateX}%)`,
                     }}
                 >
-                    {DAYS.map((day, index) => (
-                        <div key={day} style={{ width: `${100 / DAYS.length}%` }} className="flex-shrink-0">
-                            <DayColumn
-                                day={day}
-                                date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
-                                entries={mealPlan[day] || []}
-                                onRemoveRecipe={removeRecipe}
-                                onUpdateServings={updateServings}
-                                onAddClick={() => setSelectedDay(day)}
-                                isPersonalView={isPersonalView}
-                            />
-                        </div>
-                    ))}
+                    {DAYS.map((day, index) => {
+                        const dayEntries = mealPlan[day] || [];
+                        const visibleEntries = dayEntries.filter(entry => {
+                            if (!isPersonalView) return true;
+                            if (activeFilter === 'all') return true;
+                            const sourceName = entry.source === 'group' ? (entry.sourceGroupName || 'Gruppe') : 'Personlig';
+                            return sourceName === activeFilter;
+                        });
+
+                        return (
+                            <div key={day} style={{ width: `${100 / DAYS.length}%` }} className="flex-shrink-0">
+                                <DayColumn
+                                    day={day}
+                                    date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
+                                    entries={visibleEntries}
+                                    onRemoveRecipe={removeRecipe}
+                                    onUpdateServings={updateServings}
+                                    onAddClick={() => setSelectedDay(day)}
+                                    isPersonalView={isPersonalView}
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Navigationspile */}
