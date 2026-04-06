@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { ServingsControl } from '../../../components/ui/ServingsControl';
@@ -7,19 +7,28 @@ import { AddRecipeModal } from '../components/AddRecipeModal';
 import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
 import { getWeekInfo, DAYS } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
+import { groupApi } from '../../../api/groupApi';
+import type { Group } from '../../../types/Group';
 import { useParams } from 'react-router-dom';
 
 const VISIBLE_COLUMNS = 4;
+const MOBILE_BREAKPOINT = 1024;
 
 export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
+  const isPersonalView = !groupId;
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
   const weekInfo = useMemo(() => getWeekInfo(selectedWeek), [selectedWeek]);
+    const visibleColumns = isMobile ? 1 : VISIBLE_COLUMNS;
   const { weekNumber, dateRange } = weekInfo;
   const { 
     mealPlan, 
@@ -35,15 +44,74 @@ export default function MealPlanPage() {
     groupId,
   );
 
+  useEffect(() => {
+    if (isPersonalView) {
+      groupApi.getGroups().then(setGroups).catch(console.error);
+    }
+  }, [isPersonalView]);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+
+        const handleScreenChange = (event: MediaQueryListEvent) => {
+            setIsMobile(event.matches);
+        };
+
+        setIsMobile(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handleScreenChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleScreenChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        const maxOffset = Math.max(0, DAYS.length - visibleColumns);
+        setWeekOffset((offset) => Math.min(offset, maxOffset));
+    }, [visibleColumns]);
+
 
     const canGoBack = weekOffset > 0;
-    const canGoForward = weekOffset * VISIBLE_COLUMNS < DAYS.length - VISIBLE_COLUMNS;
-    const translateX = Math.min(weekOffset * VISIBLE_COLUMNS, DAYS.length - VISIBLE_COLUMNS) / DAYS.length * 100;
+    const canGoForward = weekOffset < DAYS.length - visibleColumns;
+    const translateX = Math.min(weekOffset, DAYS.length - visibleColumns) / DAYS.length * 100;
+
+    const swipeHandlers = useSwipe({
+        onSwipeLeft: () => {
+            if (canGoForward) setWeekOffset(o => o + 1);
+        },
+        onSwipeRight: () => {
+            if (canGoBack) setWeekOffset(o => o - 1);
+        },
+        threshold: 50
+    });
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
+                    
+                    {isPersonalView && (
+                      <div className="relative ml-0 sm:ml-4">
+                        <select
+                            value={activeFilter}
+                            onChange={(e) => setActiveFilter(e.target.value)}
+                            className="appearance-none bg-white border border-slate-200 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+                        >
+                            <option value="all">Vis: Alle</option>
+                            <option value="Personlig">Vis: Personlig</option>
+                            {groups.map(g => (
+                                <option key={g.id} value={g.name}>Vis: {g.name}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                      </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-4 flex-wrap xl:flex-nowrap">
                     {/* Generér indkøbsliste-knap */}
                     <button
                         onClick={() => setShowShoppingListModal(true)}
@@ -87,31 +155,45 @@ export default function MealPlanPage() {
             )}
 
             {/* Horisontal uge-oversigt */}
-            <div className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white">
+            <div 
+                className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white"
+                {...swipeHandlers}
+            >
                 <div
                     className="flex divide-x-2 divide-slate-200 transition-transform duration-500 ease-out"
                     style={{
-                        width: `${(DAYS.length / VISIBLE_COLUMNS) * 100}%`,
+                        width: `${(DAYS.length / visibleColumns) * 100}%`,
                         transform: `translateX(-${translateX}%)`,
                     }}
                 >
-                    {DAYS.map((day, index) => (
-                        <div key={day} style={{ width: `${100 / DAYS.length}%` }} className="flex-shrink-0">
-                            <DayColumn
-                                day={day}
-                                date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
-                                entries={mealPlan[day] || []}
-                                onRemoveRecipe={removeRecipe}
-                                onUpdateServings={updateServings}
-                                onAddClick={() => setSelectedDay(day)}
-                            />
-                        </div>
-                    ))}
+                    {DAYS.map((day, index) => {
+                        const dayEntries = mealPlan[day] || [];
+                        const visibleEntries = dayEntries.filter(entry => {
+                            if (!isPersonalView) return true;
+                            if (activeFilter === 'all') return true;
+                            const sourceName = entry.source === 'group' ? (entry.sourceGroupName || 'Gruppe') : 'Personlig';
+                            return sourceName === activeFilter;
+                        });
+
+                        return (
+                            <div key={day} style={{ width: `${100 / DAYS.length}%` }} className="flex-shrink-0">
+                                <DayColumn
+                                    day={day}
+                                    date={new Date(weekInfo.monday.getTime() + index * 24 * 60 * 60 * 1000)}
+                                    entries={visibleEntries}
+                                    onRemoveRecipe={removeRecipe}
+                                    onUpdateServings={updateServings}
+                                    onAddClick={() => setSelectedDay(day)}
+                                    isPersonalView={isPersonalView}
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Navigationspile */}
                 {canGoBack && (
-                    <div className="absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
+                    <div className="absolute left-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-transparent rounded-l-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o - 1)}
@@ -125,7 +207,7 @@ export default function MealPlanPage() {
                 )}
 
                 {canGoForward && (
-                    <div className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
+                    <div className="absolute right-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-l from-white/70 to-transparent rounded-r-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o + 1)}
@@ -170,6 +252,7 @@ function DayColumn({
                        day,
                        date,
                        entries,
+                       isPersonalView,
                        onRemoveRecipe,
                        onUpdateServings,
                        onAddClick,
@@ -177,6 +260,7 @@ function DayColumn({
     day: string;
     date: Date;
     entries: MealPlanEntry[];
+    isPersonalView: boolean;
     onRemoveRecipe: (day: string, recipeId: string) => void;
     onUpdateServings: (entryId: string, newServings: number) => void;
     onAddClick: () => void;
@@ -193,21 +277,47 @@ function DayColumn({
         {entries.length > 0 ? (
           <>
             <div className="flex flex-col gap-4">
-              {entries.filter(e => e.recipe).map((entry) => (
-                <RecipeCard
-                  key={entry.id}
-                  recipe={entry.recipe!}
-                  compact
-                  showKeywords={false}
-                  onRemove={() => onRemoveRecipe(day, entry.id)}
-                  topRightContent={
-                    <ServingsControl
-                      value={entry.servings}
-                      onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+{entries.filter(e => e.recipe).map((entry) => {
+                // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
+                const isEditable = !isPersonalView || entry.source !== 'group';
+                return (
+                  <div key={entry.id} className="relative">
+                    <RecipeCard
+                      recipe={entry.recipe!}
+                      compact
+                      showKeywords={false}
+                      onRemove={isEditable ? () => onRemoveRecipe(day, entry.id) : undefined}
+                      topRightContent={
+                        isEditable ? (
+                          <ServingsControl
+                            value={entry.servings}
+                            onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+                          />
+                        ) : (
+                           <span className="text-xs text-slate-400 flex items-center gap-1 font-semibold">
+                            👥 {entry.servings}
+                          </span>
+                        )
+                      }
                     />
-                  }
-                />
-              ))}
+                    {/* 4d: Badge renderingen (Visuel bekræftelse på oprindelsen) */}
+                    {isPersonalView && (
+                      <div className="mt-1 flex items-center gap-1.5 px-1 pb-2">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full shadow-sm ${
+                            entry.source === 'group' ? 'bg-indigo-400' : 'bg-emerald-400'
+                          }`}
+                        />
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+                          {entry.source === 'group'
+                            ? entry.sourceGroupName || 'Gruppe'
+                            : 'Personlig'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <AddRecipeButton className="mt-4" onClick={onAddClick} />
                     </>
