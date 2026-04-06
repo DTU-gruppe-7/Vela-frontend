@@ -15,6 +15,20 @@ export const mealplanApi = {
     }
   },
 
+  //  API-kald til personlig + grupperet madplan (aggregated)
+  
+  getAggregatedMealPlan: async (): Promise<MealPlanEntry[]> => {
+    try {
+      const response = await axiosClient.get<MealPlanEntry[]>('/MealPlan/aggregated');
+      return response.data;
+    } catch (error) {
+      console.error('Fejl ved hentning af aggregerede madplaner:', error);
+      throw error;
+    }
+  },
+
+
+
   // Tilføj en opskrift til en madplan
   addEntry: async (
     mealplanId: string,
@@ -63,4 +77,5 @@ export const mealplanApi = {
       throw error;
     }
   }
+  
 };

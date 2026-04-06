@@ -15,6 +15,7 @@ const VISIBLE_COLUMNS = 4;
 export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
+  const isPersonalView = !groupId;
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
@@ -106,6 +107,7 @@ export default function MealPlanPage() {
                                 onRemoveRecipe={removeRecipe}
                                 onUpdateServings={updateServings}
                                 onAddClick={() => setSelectedDay(day)}
+                                isPersonalView={isPersonalView}
                             />
                         </div>
                     ))}
@@ -172,6 +174,7 @@ function DayColumn({
                        day,
                        date,
                        entries,
+                       isPersonalView,
                        onRemoveRecipe,
                        onUpdateServings,
                        onAddClick,
@@ -179,6 +182,7 @@ function DayColumn({
     day: string;
     date: Date;
     entries: MealPlanEntry[];
+    isPersonalView: boolean;
     onRemoveRecipe: (day: string, recipeId: string) => void;
     onUpdateServings: (entryId: string, newServings: number) => void;
     onAddClick: () => void;
@@ -195,20 +199,47 @@ function DayColumn({
         {entries.length > 0 ? (
           <>
             <div className="flex flex-col gap-4">
-              {entries.filter(e => e.recipe).map((entry) => (
-                <RecipeCard
-                  key={entry.id}
-                  recipe={entry.recipe!}
-                  compact
-                  onRemove={() => onRemoveRecipe(day, entry.id)}
-                  topRightContent={
-                    <ServingsControl
-                      value={entry.servings}
-                      onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+              {entries.filter(e => e.recipe).map((entry) => {
+                // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
+                const isEditable = !isPersonalView || entry.source !== 'group';
+
+                return (
+                  <div key={entry.id} className="relative">
+                    <RecipeCard
+                      recipe={entry.recipe!}
+                      compact
+                      onRemove={isEditable ? () => onRemoveRecipe(day, entry.id) : undefined}
+                      topRightContent={
+                        isEditable ? (
+                          <ServingsControl
+                            value={entry.servings}
+                            onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+                          />
+                        ) : (
+                           <span className="text-xs text-slate-400 flex items-center gap-1 font-semibold">
+                            👥 {entry.servings}
+                          </span>
+                        )
+                      }
                     />
-                  }
-                />
-              ))}
+                    {/* 4d: Badge renderingen (Visuel bekræftelse på oprindelsen) */}
+                    {isPersonalView && (
+                      <div className="mt-1 flex items-center gap-1.5 px-1 pb-2">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full shadow-sm ${
+                            entry.source === 'group' ? 'bg-indigo-400' : 'bg-emerald-400'
+                          }`}
+                        />
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+                          {entry.source === 'group'
+                            ? entry.sourceGroupName || 'Gruppe'
+                            : 'Personlig'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <AddRecipeButton className="mt-4" onClick={onAddClick} />
                     </>

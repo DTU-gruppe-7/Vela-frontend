@@ -83,14 +83,29 @@ export function useMealPlan(
     const loadMealPlan = async () => {
       setLoading(true);
       try {
-        const plan = await mealplanApi.getMealPlan(groupId);
-        
-        if (plan) {
-          setMealPlanId(plan.id);
-          setMealPlan(convertEntriesToMealPlanData(plan.entries, weekInfo));
+         // --- GRUPPE-KONTEKST: Hent kun den pågældende gruppes madplan ---
+        if (groupId) {
+          const plan = await mealplanApi.getMealPlan(groupId);
+          if (plan) {
+            setMealPlanId(plan.id);
+            setMealPlan(convertEntriesToMealPlanData(plan.entries, weekInfo));
+          } else {
+            // Hvis planen er null, betyder det at backenden ikke har oprettet den endnu
+            setError('Ingen madplan fundet.');
+          }
         } else {
-          // Hvis planen er null, betyder det at backenden ikke har oprettet den endnu
-        setError('Ingen madplan fundet.');
+           // --- PERSONLIG KONTEKST: Brug 2-kald metoden ---
+          // 1. Hent personlig madplan blot for at gemme MealPlanID så vi kan f.eks gemme og slette
+          const personalPlan = await mealplanApi.getMealPlan();
+          if (personalPlan) {
+            setMealPlanId(personalPlan.id);
+          // 2. Hent de samlede entries og konvertér dem direkte til state
+            const aggregatedEntries = await mealplanApi.getAggregatedMealPlan();
+            setMealPlan(convertEntriesToMealPlanData(aggregatedEntries, weekInfo));
+          }
+          else {
+            setError('Ingen madplan fundet.');
+          }
         }
       } catch {
         setError('Kunne ikke indlæse madplan');
