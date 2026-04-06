@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { ServingsControl } from '../../../components/ui/ServingsControl';
@@ -7,16 +7,32 @@ import { AddRecipeModal } from '../components/AddRecipeModal';
 import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
 import { getWeekInfo, DAYS } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
 import { useParams } from 'react-router-dom';
-
-const VISIBLE_COLUMNS = 4;
 
 export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
   const isPersonalView = !groupId;
   const [weekOffset, setWeekOffset] = useState(0);
+  const [visibleColumns, setVisibleColumns] = useState(7);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 1024px)');
+        
+        const handleResize = (e: MediaQueryListEvent | MediaQueryList) => {
+            setVisibleColumns(e.matches ? 1 : 7);
+            // Nulstil offset når vi skifter view for at undgå at scrolle uden for grid
+            setWeekOffset(0);
+        };
+        
+        handleResize(mediaQuery);
+        mediaQuery.addEventListener('change', handleResize);
+        
+        return () => mediaQuery.removeEventListener('change', handleResize);
+    }, []);
+
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
@@ -38,11 +54,21 @@ export default function MealPlanPage() {
 
 
     const canGoBack = weekOffset > 0;
-    const canGoForward = weekOffset * VISIBLE_COLUMNS < DAYS.length - VISIBLE_COLUMNS;
-    const translateX = Math.min(weekOffset * VISIBLE_COLUMNS, DAYS.length - VISIBLE_COLUMNS) / DAYS.length * 100;
+    const canGoForward = weekOffset * visibleColumns < DAYS.length - visibleColumns;
+    const translateX = Math.min(weekOffset * visibleColumns, DAYS.length - visibleColumns) / DAYS.length * 100;
+
+    const swipeHandlers = useSwipe({
+        onSwipeLeft: () => {
+            if (canGoForward) setWeekOffset(o => o + 1);
+        },
+        onSwipeRight: () => {
+            if (canGoBack) setWeekOffset(o => o - 1);
+        },
+        threshold: 50
+    });
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-6 w-full mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
 
@@ -90,11 +116,14 @@ export default function MealPlanPage() {
             )}
 
             {/* Horisontal uge-oversigt */}
-            <div className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white">
+            <div 
+                className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white w-full"
+                {...swipeHandlers}
+            >
                 <div
                     className="flex divide-x-2 divide-slate-200 transition-transform duration-500 ease-out"
                     style={{
-                        width: `${(DAYS.length / VISIBLE_COLUMNS) * 100}%`,
+                        width: `${(DAYS.length / visibleColumns) * 100}%`,
                         transform: `translateX(-${translateX}%)`,
                     }}
                 >
