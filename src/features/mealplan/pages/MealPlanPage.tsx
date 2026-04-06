@@ -86,7 +86,7 @@ export default function MealPlanPage() {
     });
 
     return (
-        <div className="p-4 sm:p-6 w-full  mx-auto">
+        <div className="p-6 max-w-7xl  mx-auto">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
                     <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
@@ -286,6 +286,7 @@ function DayColumn({
                     <RecipeCard
                       recipe={entry.recipe!}
                       compact
+                      showKeywords={false}
                       onRemove={isEditable ? () => onRemoveRecipe(day, entry.id) : undefined}
                       topRightContent={
                         isEditable ? (
