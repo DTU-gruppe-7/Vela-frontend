@@ -96,13 +96,6 @@ function ShoppingListPage() {
     return (
         <div className="min-h-screen bg-slate-50">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
-                    <h1 className="text-3xl font-semibold text-gray-900">
-                        {shoppingList?.name || 'Indkøbsliste'}
-                    </h1>
-                </div>
-
                 {/* Error state */}
                 {error && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

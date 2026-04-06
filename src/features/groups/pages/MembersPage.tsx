@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiMoreVertical, FiUserMinus, FiShield, FiUser, FiLogOut, FiKey } from 'react-icons/fi';
+import { FiMoreVertical, FiUserMinus, FiShield, FiUser, FiLogOut, FiKey, FiUserPlus } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { useAuthStore } from '../../../stores/authStore';
 import type { Group, GroupMember, GroupRole } from '../../../types/Group';
 import { getDisplayInitials, getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
+import GroupInviteModal from '../modals/GroupInviteModal';
 
 const roleLabelMap: Record<GroupRole, string> = {
     owner: 'Owner',
@@ -26,6 +27,7 @@ const MembersPage: React.FC = () => {
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentUserIdentifiers = [currentUser?.id, currentUser?.userId, currentUser?.email]
         .filter((identifier): identifier is string => Boolean(identifier))
@@ -194,16 +196,28 @@ const MembersPage: React.FC = () => {
                 <h2 className="text-xl font-bold text-slate-800">
                     Medlemmer <span className="text-slate-400 font-normal text-base">({group.members.length})</span>
                 </h2>
-                {/* Leave group button for non-owners */}
-                {myRole && myRole !== 'owner' && (
-                    <button
-                        onClick={handleLeaveGroup}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
-                    >
-                        <FiLogOut />
-                        Forlad gruppe
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {/* Invite button - visible to owner and administrator */}
+                    {myRole && (myRole === 'owner' || myRole === 'administrator') && (
+                        <button
+                            onClick={() => setIsInviteModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-xl hover:bg-orange-700 transition-colors"
+                        >
+                            <FiUserPlus />
+                            Inviter medlemmer
+                        </button>
+                    )}
+                    {/* Leave group button for non-owners */}
+                    {myRole && myRole !== 'owner' && (
+                        <button
+                            onClick={handleLeaveGroup}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
+                        >
+                            <FiLogOut />
+                            Forlad gruppe
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-visible">
@@ -277,6 +291,13 @@ const MembersPage: React.FC = () => {
                     );
                 })}
             </div>
+
+            <GroupInviteModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                groupName={group.name}
+                groupId={groupId || ''}
+            />
         </div>
     );
 };

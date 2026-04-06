@@ -25,6 +25,9 @@ interface RecipeCardProps {
     onCategoryClick?: (category: string) => void;
     onKeywordClick?: (keyword: string) => void;
     topRightContent?: React.ReactNode;
+    showKeywords?: boolean;
+    showTime?: boolean;
+    showCategory?: boolean;
 }
 
 function RecipeCard({
@@ -36,10 +39,21 @@ function RecipeCard({
     onCategoryClick,
     onKeywordClick,
     topRightContent,
+    showKeywords = true,
+    showTime = true,
+    showCategory = true,
 }: RecipeCardProps) {
     const keywords: string[] = recipe.keywordsJson
         ? JSON.parse(recipe.keywordsJson)
         : [];
+
+    // Check if there's any content to show in the card body
+    const hasCardContent = 
+        (showCategory && recipe.category) ||
+        (showKeywords && keywords.length > 0) ||
+        (showTime && (recipe.workTime || recipe.totalTime)) ||
+        onToggleFavorite ||
+        topRightContent;
 
     return (
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group">
@@ -70,12 +84,13 @@ function RecipeCard({
                 )}
             </div>
 
-            {/* Card body */}
+            {/* Card body - only render if there's content to show */}
+            {hasCardContent && (
             <div className={compact ? 'p-2 space-y-1' : 'p-4 space-y-3'}>
                 {/* Category & favorite */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        {recipe.category && (
+                        {showCategory && recipe.category && (
                             <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); onCategoryClick?.(recipe.category); }}
@@ -101,7 +116,7 @@ function RecipeCard({
                 </div>
 
                 {/* Keywords */}
-                {keywords.length > 0 && (
+                {showKeywords && keywords.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                         {keywords.map((kw) => (
                             <button
@@ -117,7 +132,7 @@ function RecipeCard({
                 )}
 
                 {/* Time info */}
-                {(recipe.workTime || recipe.totalTime) && (
+                {showTime && (recipe.workTime || recipe.totalTime) && (
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                         {recipe.workTime && (
                             <span className="flex items-center gap-1">
@@ -134,6 +149,7 @@ function RecipeCard({
                     </div>
                 )}
             </div>
+            )}
         </div>
     );
 }

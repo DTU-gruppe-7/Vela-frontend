@@ -86,7 +86,7 @@ export default function MealPlanPage() {
     });
 
     return (
-        <div className="p-6 max-w-7xl  mx-auto">
+        <div className="p-6 max-w-7xl mx-auto">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
                     <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
@@ -277,10 +277,9 @@ function DayColumn({
         {entries.length > 0 ? (
           <>
             <div className="flex flex-col gap-4">
-              {entries.filter(e => e.recipe).map((entry) => {
+{entries.filter(e => e.recipe).map((entry) => {
                 // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
                 const isEditable = !isPersonalView || entry.source !== 'group';
-
                 return (
                   <div key={entry.id} className="relative">
                     <RecipeCard
