@@ -11,32 +11,20 @@ import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
 import { useParams } from 'react-router-dom';
 
+const VISIBLE_COLUMNS = 4;
+const MOBILE_BREAKPOINT = 1024;
+
 export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
   const isPersonalView = !groupId;
   const [weekOffset, setWeekOffset] = useState(0);
-  const [visibleColumns, setVisibleColumns] = useState(7);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 1024px)');
-        
-        const handleResize = (e: MediaQueryListEvent | MediaQueryList) => {
-            setVisibleColumns(e.matches ? 1 : 7);
-            // Nulstil offset når vi skifter view for at undgå at scrolle uden for grid
-            setWeekOffset(0);
-        };
-        
-        handleResize(mediaQuery);
-        mediaQuery.addEventListener('change', handleResize);
-        
-        return () => mediaQuery.removeEventListener('change', handleResize);
-    }, []);
-
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
   const weekInfo = useMemo(() => getWeekInfo(selectedWeek), [selectedWeek]);
+    const visibleColumns = isMobile ? 1 : VISIBLE_COLUMNS;
   const { weekNumber, dateRange } = weekInfo;
   const { 
     mealPlan, 
@@ -52,10 +40,30 @@ export default function MealPlanPage() {
     groupId,
   );
 
+    useEffect(() => {
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+
+        const handleScreenChange = (event: MediaQueryListEvent) => {
+            setIsMobile(event.matches);
+        };
+
+        setIsMobile(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handleScreenChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleScreenChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        const maxOffset = Math.max(0, DAYS.length - visibleColumns);
+        setWeekOffset((offset) => Math.min(offset, maxOffset));
+    }, [visibleColumns]);
+
 
     const canGoBack = weekOffset > 0;
-    const canGoForward = weekOffset * visibleColumns < DAYS.length - visibleColumns;
-    const translateX = Math.min(weekOffset * visibleColumns, DAYS.length - visibleColumns) / DAYS.length * 100;
+    const canGoForward = weekOffset < DAYS.length - visibleColumns;
+    const translateX = Math.min(weekOffset, DAYS.length - visibleColumns) / DAYS.length * 100;
 
     const swipeHandlers = useSwipe({
         onSwipeLeft: () => {
@@ -68,7 +76,7 @@ export default function MealPlanPage() {
     });
 
     return (
-        <div className="p-4 sm:p-6 w-full mx-auto">
+        <div className="p-4 sm:p-6 w-full  mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
 
@@ -117,7 +125,7 @@ export default function MealPlanPage() {
 
             {/* Horisontal uge-oversigt */}
             <div 
-                className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white w-full"
+                className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white"
                 {...swipeHandlers}
             >
                 <div
@@ -144,7 +152,7 @@ export default function MealPlanPage() {
 
                 {/* Navigationspile */}
                 {canGoBack && (
-                    <div className="absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
+                    <div className="absolute left-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-transparent rounded-l-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o - 1)}
@@ -158,7 +166,7 @@ export default function MealPlanPage() {
                 )}
 
                 {canGoForward && (
-                    <div className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center pointer-events-none">
+                    <div className="absolute right-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-l from-white/70 to-transparent rounded-r-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o + 1)}
