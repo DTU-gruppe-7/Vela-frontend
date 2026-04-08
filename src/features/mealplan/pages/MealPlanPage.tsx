@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { ServingsControl } from '../../../components/ui/ServingsControl';
@@ -7,10 +7,11 @@ import { AddRecipeModal } from '../components/AddRecipeModal';
 import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
 import { getWeekInfo, DAYS } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
+import { usePersonalGroups } from '../hooks/usePersonalGroups';
+import { useWeekOffset } from '../hooks/useWeekOffset';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
-import { groupApi } from '../../../api/groupApi';
-import type { Group } from '../../../types/Group';
 import { useParams } from 'react-router-dom';
 import { getSourceDotColor } from '../utils/sourceDotColor';
 
@@ -21,15 +22,15 @@ export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
   const isPersonalView = !groupId;
-  const [groups, setGroups] = useState<Group[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [selectedDay, setSelectedDay] = useState<typeof DAYS[number] | null>(null);
-  const [showShoppingListModal, setShowShoppingListModal] = useState(false);
-    const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
+  const [showShoppingListModal, setShowShoppingListModal] = useState(false);   
+  const groups = usePersonalGroups(isPersonalView);
+  const isMobile = useIsMobile(MOBILE_BREAKPOINT);
   const weekInfo = useMemo(() => getWeekInfo(selectedWeek), [selectedWeek]);
-    const visibleColumns = isMobile ? 1 : VISIBLE_COLUMNS;
+  const visibleColumns = isMobile ? 1 : VISIBLE_COLUMNS;
+  const { setWeekOffset, canGoBack, canGoForward, translateX } = useWeekOffset(DAYS.length, visibleColumns);
   const { weekNumber, dateRange } = weekInfo;
   const { 
     mealPlan, 
@@ -44,37 +45,6 @@ export default function MealPlanPage() {
     weekInfo,
     groupId,
   );
-
-  useEffect(() => {
-    if (isPersonalView) {
-      groupApi.getGroups().then(setGroups).catch(console.error);
-    }
-  }, [isPersonalView]);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-
-        const handleScreenChange = (event: MediaQueryListEvent) => {
-            setIsMobile(event.matches);
-        };
-
-        setIsMobile(mediaQuery.matches);
-        mediaQuery.addEventListener('change', handleScreenChange);
-
-        return () => {
-            mediaQuery.removeEventListener('change', handleScreenChange);
-        };
-    }, []);
-
-    useEffect(() => {
-        const maxOffset = Math.max(0, DAYS.length - visibleColumns);
-        setWeekOffset((offset) => Math.min(offset, maxOffset));
-    }, [visibleColumns]);
-
-
-    const canGoBack = weekOffset > 0;
-    const canGoForward = weekOffset < DAYS.length - visibleColumns;
-    const translateX = Math.min(weekOffset, DAYS.length - visibleColumns) / DAYS.length * 100;
 
     const swipeHandlers = useSwipe({
         onSwipeLeft: () => {
