@@ -146,4 +146,6 @@ vite.config.ts.timestamp-*
 AGENTS.md
 CLAUDE.md
 .github/.DS_Store
-.DS_Store
+# OpenCode Agents
+.opencode/
+
