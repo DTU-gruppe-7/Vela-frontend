@@ -6,17 +6,17 @@ interface Props{
     onRecipeClick?: (id: string) => void
 }
 
-const GRID_SIZE = 25;
+const GRID_SIZE = 24;
 
-const build5x5Grid = (recipes: RecipeSummary[]): (RecipeSummary | null)[] => {
+const build24Grid = (recipes: RecipeSummary[]): (RecipeSummary | null)[] => {
     return Array.from({ length: GRID_SIZE }, (_, index) => recipes[index] ?? null);
 }
 
 export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
-    const gridItems = build5x5Grid(recipes);
+    const gridItems = build24Grid(recipes);
 
     return (
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
             {gridItems.map((recipe, index) =>
                 recipe ? (
                     <div
