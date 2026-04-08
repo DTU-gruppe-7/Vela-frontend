@@ -10,19 +10,15 @@ export const ShoppingListWidget = () => {
 
     useEffect(() => {
         refetch();
-    }, [location.pathname]);
+    }, [location.pathname, refetch]);
 
-    const uncheckedItems = useMemo(
-        () => shoppingList?.items?.filter((i) => !i.isBought) ?? [],
-        [shoppingList]
-    );
-
-    const checkedCount = shoppingList?.items?.filter((i) => i.isBought).length ?? 0;
+    const { uncheckedItems, checkedCount } = useMemo(() => ({
+        uncheckedItems: shoppingList?.items?.filter((i) => !i.isBought) ?? [],
+        checkedCount: shoppingList?.items?.filter((i) => i.isBought).length ?? 0,
+    }), [shoppingList]);
 
     const subtitle = loading
         ? 'Henter din indkøbsliste...'
-        : error
-        ? ''
         : shoppingList && shoppingList.items.length > 0
         ? `${uncheckedItems.length} mangler · ${checkedCount} købt`
         : 'Din liste er tom';
@@ -43,7 +39,7 @@ export const ShoppingListWidget = () => {
                 </button>
             </div>
 
-            <p className="mb-3 text-xs text-slate-500">{subtitle}</p>
+            {!error && <p className="mb-3 text-xs text-slate-500">{subtitle}</p>}
 
             {loading ? (
                 <div className="flex flex-1 items-center justify-center text-slate-500">

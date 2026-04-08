@@ -42,9 +42,11 @@ export const GroupsWidget = () => {
                 </button>
             </div>
 
-            <p className="mb-3 text-xs text-slate-500">
-                {loading ? 'Henter dine grupper...' : error ? '' : `${groups.length} gruppe${groups.length !== 1 ? 'r' : ''}`}
-            </p>
+            {!error && (
+                <p className="mb-3 text-xs text-slate-500">
+                    {loading ? 'Henter dine grupper...' : `${groups.length} gruppe${groups.length !== 1 ? 'r' : ''}`}
+                </p>
+            )}
 
             {loading ? (
                 <div className="flex flex-1 items-center justify-center text-slate-500">
