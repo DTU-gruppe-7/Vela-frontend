@@ -9,9 +9,12 @@ interface Props {
     children?: ReactNode;
 }
 
+const PAGE_PADDING = "p-6 md:p-12";
+
 function MainLayout({ children }: Props) {
     const location = useLocation();
     const isGroupDetailRoute = /^\/groups\/[^/]+/.test(location.pathname);
+    const isHomePage = location.pathname === '/';
 
     // Hent auth-status og notification actions
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -32,7 +35,7 @@ function MainLayout({ children }: Props) {
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
             <Header />
-            <main className={isGroupDetailRoute ? "flex-1 p-0" : "flex-1 p-6 md:p-12 pt-24 pb-28"}>
+            <main className={isGroupDetailRoute ? "flex-1 p-0" : isHomePage ? `flex-1 ${PAGE_PADDING} pb-28` : `flex-1 ${PAGE_PADDING} pt-24 pb-28`}>
                 {children ?? <Outlet />}
             </main>
             <Footer />

@@ -31,7 +31,7 @@ const navigate = useNavigate();
     }, [])
 
     return(<div className="flex flex-col gap-4 bg-slate-100 p-4">
-        <div className="grid flex-1 grid-cols-3 gap-4">
+        <div className="grid flex-1 grid-cols-1 sm:grid-cols-3 gap-4">
             <GroupsWidget />
             <ShoppingListWidget/>
             <CurrentRecipeWidget/>

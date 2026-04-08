@@ -29,7 +29,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
                 ) : (
                     <div
                         key={'empty-' + index}
-                        className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
+                        className="hidden sm:block rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
                         />
                     )
                 )}
