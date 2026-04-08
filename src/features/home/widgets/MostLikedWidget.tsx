@@ -14,6 +14,8 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const animationRef = useRef<number>(0);
     const offsetRef = useRef(0);
     const isPausedRef = useRef(false);
+    const currentSpeedRef = useRef(SCROLL_SPEED);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Duplicate recipes for seamless looping
     const loopedRecipes = [...recipes, ...recipes];
@@ -29,9 +31,12 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
         };
 
         const step = () => {
-            if (!isPausedRef.current && track) {
+            const targetSpeed = isPausedRef.current ? 0 : SCROLL_SPEED;
+            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.05;
+
+            if (currentSpeedRef.current > 0.01) {
                 const halfWidth = track.scrollWidth / 2;
-                offsetRef.current = clampOffset(offsetRef.current + SCROLL_SPEED, halfWidth);
+                offsetRef.current = clampOffset(offsetRef.current + currentSpeedRef.current, halfWidth);
                 track.style.transform = `translateX(-${offsetRef.current}px)`;
             }
             animationRef.current = requestAnimationFrame(step);
@@ -51,14 +56,23 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
         return () => {
             cancelAnimationFrame(animationRef.current);
             track.parentElement?.removeEventListener('wheel', onWheel);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, []);
 
     return (
         <div
             className="w-full overflow-hidden cursor-grab"
-            onMouseEnter={() => { isPausedRef.current = true; }}
-            onMouseLeave={() => { isPausedRef.current = false; }}
+            onMouseEnter={() => {
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                isPausedRef.current = true;
+            }}
+            onMouseLeave={() => {
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                timeoutRef.current = setTimeout(() => {
+                    isPausedRef.current = false;
+                }, 600);
+            }}
         >
             <div ref={trackRef} className="flex gap-2" style={{ willChange: 'transform' }}>
                 {loopedRecipes.map((recipe, index) => (
