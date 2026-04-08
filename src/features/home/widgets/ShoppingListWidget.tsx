@@ -1,28 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { FiShoppingCart, FiLoader, FiArrowRight, FiCheck } from 'react-icons/fi'
-import { shoppingListApi } from '../../../api/shoppingListApi'
-import type { ShoppingList } from '../../../types/ShoppingList'
+import { useShoppingList } from '../../shoppingList/hooks/useShoppingList'
 
 export const ShoppingListWidget = () => {
-    const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { shoppingList, loading, error, refetch } = useShoppingList();
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
-        const fetchPersonalList=async () => {
-            try {
-          const data = await shoppingListApi.getShoppingList();
-                setShoppingList(data);
-            } catch(err) {
-                setError('Kunne ikke hente din indkøbsliste');
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchPersonalList();
-    }, [])
+        refetch();
+    }, [location.pathname])
     const uncheckedItems = useMemo(
     () => shoppingList?.items?.filter((i) => !i.isBought) ?? [],
     [shoppingList]
@@ -63,13 +51,22 @@ export const ShoppingListWidget = () => {
       ) : error ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <p className="mb-3 text-sm text-red-500">{error}</p>
-          <button
-            type="button"
-            onClick={() => navigate('/shoppinglist')}
-            className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700"
-          >
-            Gå til indkøbsliste
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={refetch}
+              className="rounded-lg border border-orange-600 px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50"
+            >
+              Prøv igen
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/shoppinglist')}
+              className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700"
+            >
+              Gå til indkøbsliste
+            </button>
+          </div>
         </div>
       ) : !shoppingList || shoppingList.items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
