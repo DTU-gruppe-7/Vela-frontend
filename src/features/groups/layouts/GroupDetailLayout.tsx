@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
-import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader, FiSettings, FiUsers } from 'react-icons/fi';
+import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiSettings, FiUsers } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { type Group } from '../../../types/Group';
 

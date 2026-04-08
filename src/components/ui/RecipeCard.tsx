@@ -58,7 +58,7 @@ function RecipeCard({
     return (
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group">
             {/* Image with title overlay */}
-            <div className={`relative overflow-hidden ${compact ? 'h-32' : 'h-56'}`}>
+            <div className={`relative overflow-hidden ${compact ? 'h-48 sm:h-32' : 'h-56'}`}>
                 {recipe.thumbnailUrl ? (
                     <img
                         src={recipe.thumbnailUrl}

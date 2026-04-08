@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCalendar } from 'react-icons/fi';
+import { FiCalendar, FiLoader } from 'react-icons/fi';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { mealplanApi } from '../../../api/mealplanApi';
 import { recipeApi } from '../../../api/recipeApi';
-import type { MealPlanEntry } from '../../../types/MealPlan';
 import type { RecipeSummary } from '../../../types/Recipe';
 
 function getLocalDateKey(date = new Date()): string {
@@ -12,29 +11,26 @@ function getLocalDateKey(date = new Date()): string {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + d;
-    }
+}
 
-    export const CurrentRecipeWidget = () => {
-        const [entry, setEntry] = useState<MealPlanEntry | null>(null);
-        const [recipe, setRecipe] = useState<RecipeSummary | null>(null);
-        const [loading, setLoading] = useState(true);
-        const navigate = useNavigate();
+export const CurrentRecipeWidget = () => {
+    const [recipe, setRecipe] = useState<RecipeSummary | null>(null);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-        useEffect(() => {
-            const loadTodayRecipe = async () => {
+    useEffect(() => {
+        const loadTodayRecipe = async () => {
             try {
                 const plan = await mealplanApi.getMealPlan();
                 const today = getLocalDateKey();
 
                 const todayEntry =
-                plan?.entries.find((e) => {
-                    const dateOnly = e.date?.split('T')[0];
-                    const isToday = dateOnly === today;
-                    const isDinner = !e.mealType || e.mealType.toLowerCase() === 'dinner';
-                    return isToday && isDinner;
+                    plan?.entries.find((e) => {
+                        const dateOnly = e.date?.split('T')[0];
+                        const isToday = dateOnly === today;
+                        const isDinner = !e.mealType || e.mealType.toLowerCase() === 'dinner';
+                        return isToday && isDinner;
                     }) ?? null;
-
-                setEntry(todayEntry);
 
                 if (todayEntry?.recipe) {
                     setRecipe(todayEntry.recipe);
@@ -46,35 +42,24 @@ function getLocalDateKey(date = new Date()): string {
                 }
             } catch (err) {
                 console.error('Kunne ikke loade dagens ret', err);
-                setEntry(null);
                 setRecipe(null);
             } finally {
                 setLoading(false);
-                }
-            };
+            }
+        };
 
-            loadTodayRecipe();
-            }, []);
+        loadTodayRecipe();
+    }, []);
 
-        const subtitle = useMemo(() => {
-            if (loading) return 'Finder dagens planlagte ret...';
-            if (!entry) return 'Ingen opskrift planlagt til i dag';
-            return 'Dagens ret fra din madplan';
-            }, [loading, entry]);
+    const subtitle = useMemo(() => {
+        if (loading) return 'Finder dagens planlagte ret...';
+        if (!recipe) return 'Ingen opskrift planlagt til i dag';
+        return 'Dagens ret fra din madplan';
+    }, [loading, recipe]);
 
-        return (
-              <>
-              <style>{`
-                .hide-scrollbar {
-                  scrollbar-width: none;
-                  -ms-overflow-style: none;
-                }
-                .hide-scrollbar::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-              <section className="flex h-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="mb-3 flex items-center justify-between">
+    return (
+        <section className="flex h-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-800">
                     <FiCalendar />
                     <h2 className="text-sm font-semibold">Dagens opskrift</h2>
@@ -86,13 +71,15 @@ function getLocalDateKey(date = new Date()): string {
                 >
                     Se madplan
                 </button>
+            </div>
+
+            {subtitle && <p className="mb-3 text-xs text-slate-500">{subtitle}</p>}
+
+            {loading ? (
+                <div className="flex flex-1 items-center justify-center text-slate-500">
+                    <FiLoader className="animate-spin" />
                 </div>
-
-                <p className="mb-3 text-xs text-slate-500">{subtitle}</p>
-
-                {loading ? (
-                <div className="flex flex-1 items-center justify-center rounded-xl bg-slate-100" />
-                ) : recipe ? (
+            ) : recipe ? (
                 <button
                     type="button"
                     onClick={() => navigate('/mealplan')}
@@ -100,16 +87,18 @@ function getLocalDateKey(date = new Date()): string {
                 >
                     <RecipeCard recipe={recipe} compact showKeywords={false} showTime={false} showCategory={false} />
                 </button>
-                ) : (
-                <button
-                    type="button"
-                    onClick={() => navigate('/mealplan')}
-                    className="flex flex-1 w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
-                >
-                    <span className="text-sm text-slate-500">Klik for at ændre i din madplan</span>
-                </button>
-                )}
-            </section>
-            </>            
-  );
+            ) : (
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
+                    <p className="mb-3 text-sm text-slate-600">Ingen ret planlagt til i dag.</p>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/mealplan')}
+                        className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                    >
+                        Gå til madplan
+                    </button>
+                </div>
+            )}
+        </section>
+    );
 };
