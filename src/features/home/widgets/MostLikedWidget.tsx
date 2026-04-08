@@ -16,7 +16,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const gridItems = build5x5Grid(recipes);
 
     return (
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
             {gridItems.map((recipe, index) =>
                 recipe ? (
                     <div
@@ -29,7 +29,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
                 ) : (
                     <div
                         key={'empty-' + index}
-                        className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
+                        className="hidden sm:block rounded-xl border-2 border-dashed border-slate-200 bg-slate-50"
                         />
                     )
                 )}
