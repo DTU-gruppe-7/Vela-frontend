@@ -39,7 +39,7 @@ function RecipeCard({
     onCategoryClick,
     onKeywordClick,
     topRightContent,
-    showKeywords = true,
+    showKeywords = false,
     showTime = true,
     showCategory = true,
 }: RecipeCardProps) {
