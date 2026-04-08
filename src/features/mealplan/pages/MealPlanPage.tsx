@@ -12,6 +12,7 @@ import { recipeApi } from '../../../api/recipeApi';
 import { groupApi } from '../../../api/groupApi';
 import type { Group } from '../../../types/Group';
 import { useParams } from 'react-router-dom';
+import { getSourceDotColor } from '../utils/sourceDotColor';
 
 const VISIBLE_COLUMNS = 4;
 const MOBILE_BREAKPOINT = 1024;
@@ -305,7 +306,7 @@ function DayColumn({
                       <div className="mt-1 flex items-center gap-1.5 px-1 pb-2">
                         <span
                           className={`inline-block w-2 h-2 rounded-full shadow-sm ${
-                            entry.source === 'group' ? 'bg-indigo-400' : 'bg-emerald-400'
+                                                        getSourceDotColor(entry)
                           }`}
                         />
                         <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
