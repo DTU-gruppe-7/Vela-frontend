@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRecipeDetails } from '../../../hooks/useRecipeDetails';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -24,6 +24,51 @@ export const RecipeDetailPage: React.FC = () => {
 
   // 2. Brug ID'et fra URL'en til at hente data
   const { recipe, loading, error, instructions } = useRecipeDetails(id || null);
+
+  // Gruppér ingredienser efter sektion (fx. "Dej", "Fyld")
+  const groupedIngredients = useMemo(() => {
+    if (!recipe?.ingredients) return [];
+    
+    const groups: { [key: string]: typeof recipe.ingredients } = {};
+    recipe.ingredients.forEach(ing => {
+      const section = ing.section || 'Main';
+      if (!groups[section]) groups[section] = [];
+      groups[section].push(ing);
+    });
+    
+    const result = Object.entries(groups).map(([sectionName, ingredients]) => ({
+      sectionName: sectionName === 'Main' ? null : sectionName,
+      ingredients
+    }));
+
+    // Sortér resultatet, så det matcher rækkefølgen i fremgangsmåden
+    if (instructions && instructions.length > 0) {
+      const getOrderIndex = (sectionName: string | null) => {
+        if (!sectionName) return -1;
+        const name = sectionName.toLowerCase();
+        
+        const idx = instructions.findIndex((s: any) => {
+           if (!s.sectionName) return false;
+           const sName = s.sectionName.toLowerCase();
+           return sName.includes(name) || name.includes(sName);
+        });
+        
+        return idx !== -1 ? idx : 999;
+      };
+      
+      result.sort((a, b) => {
+        const isMainA = !a.sectionName || a.sectionName.toLowerCase() === 'ingredienser';
+        const isMainB = !b.sectionName || b.sectionName.toLowerCase() === 'ingredienser';
+        
+        if (isMainA && !isMainB) return -1;
+        if (!isMainA && isMainB) return 1;
+
+        return getOrderIndex(a.sectionName) - getOrderIndex(b.sectionName);
+      });
+    }
+
+    return result;
+  }, [recipe, instructions]);
 
   if (loading) return (
     <div className="flex justify-center items-center min-h-screen">
@@ -67,13 +112,25 @@ export const RecipeDetailPage: React.FC = () => {
               )}
               
               <h3 className="text-xl font-bold mb-4 text-emerald-700 uppercase tracking-widest text-sm">Ingredienser</h3>
-              <ul className="space-y-3 border-l-2 border-emerald-100 pl-6">
-                {recipe.ingredients?.map((ing, idx) => (
-                  <li key={idx} className="text-gray-700 text-lg">
-                    <span className="font-bold text-emerald-600">{ing.quantity} {ing.unit}</span> {ing.ingredientName}
-                  </li>
+              <div className="space-y-6">
+                {groupedIngredients.map((group, groupIdx) => (
+                  <div key={groupIdx} className="space-y-3">
+                    {group.sectionName && (
+                      <h4 className="text-md font-semibold text-emerald-800">{group.sectionName}</h4>
+                    )}
+                    <ul className="space-y-3 border-l-2 border-emerald-100 pl-6">
+                      {group.ingredients.map((ing, idx) => (
+                        <li key={idx} className="text-gray-700 text-lg">
+                          <span className="font-bold text-emerald-600">
+                            {ing.quantity > 0 ? ing.quantity : ''} {ing.unit}
+                          </span>{' '}
+                          {ing.ingredientName}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
             {/* Højre side: Info og Fremgangsmåde */}
@@ -95,16 +152,25 @@ export const RecipeDetailPage: React.FC = () => {
               </div>
 
               <h3 className="text-xl font-bold mb-6 text-emerald-700 uppercase tracking-widest text-sm">Fremgangsmåde</h3>
-              <ol className="space-y-8">
-                {instructions?.map((step: string, idx: number) => (
-                  <li key={idx} className="flex gap-6">
-                    <span className="flex-shrink-0 w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm">
-                      {idx + 1}
-                    </span>
-                    <p className="text-gray-700 leading-relaxed text-lg pt-1">{step}</p>
-                  </li>
+              <div className="space-y-10">
+                {instructions?.map((section, sectionIdx) => (
+                  <div key={sectionIdx} className="space-y-6">
+                    {section.sectionName && (
+                      <h4 className="text-lg font-bold text-emerald-800">{section.sectionName}</h4>
+                    )}
+                    <ol className="space-y-8">
+                      {section.steps.map((step, idx) => (
+                        <li key={idx} className="flex gap-6">
+                          <span className="flex-shrink-0 w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm">
+                            {idx + 1}
+                          </span>
+                          <p className="text-gray-700 leading-relaxed text-lg pt-1">{step}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
           </div>
         </div>
