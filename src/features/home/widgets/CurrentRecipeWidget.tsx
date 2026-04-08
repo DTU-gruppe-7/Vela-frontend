@@ -117,23 +117,23 @@ export const CurrentRecipeWidget = () => {
                             </button>
                         ))}
                     </div>
-                    {hiddenLeft > 0 && (
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
-                            <div className="flex h-full items-center bg-gradient-to-r from-white/80 to-transparent pl-2 pr-6">
-                                <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
-                                    +{hiddenLeft}
-                                </span>
+                    {meals.length > 2 && (
+                        <>
+                            <div className={`pointer-events-none absolute inset-y-0 left-0 flex items-center transition-opacity duration-300 ${hiddenLeft > 0 ? 'opacity-100' : 'opacity-0'}`}>
+                                <div className="flex h-full items-center bg-gradient-to-r from-white/80 to-transparent pl-2 pr-6">
+                                    <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
+                                        +{hiddenLeft}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                    {meals.length > 2 && !atScrollEnd && (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-                            <div className="flex h-full items-center bg-gradient-to-l from-white/80 to-transparent pl-6 pr-2">
-                                <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
-                                    +{meals.length - 2 - hiddenLeft}
-                                </span>
+                            <div className={`pointer-events-none absolute inset-y-0 right-0 flex items-center transition-opacity duration-300 ${atScrollEnd ? 'opacity-0' : 'opacity-100'}`}>
+                                <div className="flex h-full items-center bg-gradient-to-l from-white/80 to-transparent pl-6 pr-2">
+                                    <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
+                                        +{meals.length - 2 - hiddenLeft}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
+                        </>
                     )}
                 </div>
             ) : (
