@@ -32,7 +32,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
 
         const step = () => {
             const targetSpeed = isPausedRef.current ? 0 : SCROLL_SPEED;
-            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.05;
+            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.15;
 
             if (currentSpeedRef.current > 0.01) {
                 const halfWidth = track.scrollWidth / 2;
