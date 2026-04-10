@@ -7,7 +7,7 @@ interface Props{
     onRecipeClick?: (id: string) => void
 }
 
-const SCROLL_SPEED = 0.5; // pixels per frame
+const SCROLL_SPEED = 30; // pixels per second
 
 export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const trackRef = useRef<HTMLDivElement>(null);
@@ -16,6 +16,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const isPausedRef = useRef(false);
     const currentSpeedRef = useRef(SCROLL_SPEED);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastTimeRef = useRef<number | null>(null);
 
     // Duplicate recipes for seamless looping
     const loopedRecipes = [...recipes, ...recipes];
@@ -30,14 +31,20 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
             return clamped;
         };
 
-        const step = () => {
-            const targetSpeed = isPausedRef.current ? 0 : SCROLL_SPEED;
-            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.15;
+        const step = (timestamp: number) => {
+            const delta = lastTimeRef.current !== null ? timestamp - lastTimeRef.current : 16.67;
+            lastTimeRef.current = timestamp;
 
-            if (currentSpeedRef.current > 0.01) {
+            const targetSpeed = isPausedRef.current ? 0 : SCROLL_SPEED;
+            const lerpFactor = isPausedRef.current
+                ? 1 - Math.pow(1 - 0.15, delta / 16.67)
+                : 1 - Math.pow(1 - 0.05, delta / 16.67);
+            currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * lerpFactor;
+
+            if (currentSpeedRef.current > 0.5) {
                 const halfWidth = track.scrollWidth / 2;
-                offsetRef.current = clampOffset(offsetRef.current + currentSpeedRef.current, halfWidth);
-                track.style.transform = `translateX(-${offsetRef.current}px)`;
+                offsetRef.current = clampOffset(offsetRef.current + currentSpeedRef.current * (delta / 1000), halfWidth);
+                track.style.transform = `translate3d(-${offsetRef.current}px, 0, 0)`;
             }
             animationRef.current = requestAnimationFrame(step);
         };
@@ -48,7 +55,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
             const halfWidth = track.scrollWidth / 2;
             const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
             offsetRef.current = clampOffset(offsetRef.current + delta * 0.5, halfWidth);
-            track.style.transform = `translateX(-${offsetRef.current}px)`;
+            track.style.transform = `translate3d(-${offsetRef.current}px, 0, 0)`;
         };
 
         track.parentElement?.addEventListener('wheel', onWheel, { passive: false });
