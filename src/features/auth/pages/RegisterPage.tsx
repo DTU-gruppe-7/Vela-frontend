@@ -39,6 +39,10 @@ function RegisterPage() {
 
         if (!dateOfBirth) {
             errors.dateOfBirth = 'Fødselsdato er påkrævet';
+        } else if (dateOfBirth > todayISO()) {
+            errors.dateOfBirth = 'Fødselsdato kan ikke være i fremtiden';
+        } else if (dateOfBirth < '1900-01-01') {
+            errors.dateOfBirth = 'Fødselsdato skal være efter 1. januar 1900';
         }
 
         setFieldErrors(errors);
@@ -54,8 +58,15 @@ function RegisterPage() {
         try {
             await register({ email, password, firstName, lastName, dateOfBirth });
             navigate('/swipe', { replace: true });
-        } catch {
-            setError('Kunne ikke oprette konto. Prøv igen.');
+        } catch (err: unknown) {
+            const message: string =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '';
+
+            if (message.toLowerCase().includes('date of birth')) {
+                setFieldErrors({ dateOfBirth: 'Fødselsdato må ikke være i fremtiden' });
+            } else {
+                setError('Kunne ikke oprette konto. Prøv igen.');
+            }
         }
     };
 
@@ -118,6 +129,7 @@ function RegisterPage() {
                         type="date"
                         value={dateOfBirth}
                         onChange={(e) => setDateOfBirth(e.target.value)}
+                        min="1900-01-01"
                         max={todayISO()}
                         required
                         error={fieldErrors.dateOfBirth}
