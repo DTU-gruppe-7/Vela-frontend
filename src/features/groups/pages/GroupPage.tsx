@@ -78,36 +78,7 @@ export default function GroupPage() {
 
             {/* Gruppe Oversigt (Listen) */}
             {groups.length > 0 ? (
-                // Vertikal liste med scroll
-                <div 
-                    className="overflow-y-auto flex flex-col gap-4 hover-scroll pr-4" 
-                    style={{ maxHeight: 'calc(100vh - 120px)', scrollbarGutter: 'stable' }}
-                >
-                    <style>{`
-                        .hover-scroll {
-                            scrollbar-width: none;
-                        }
-                        .hover-scroll::-webkit-scrollbar {
-                            width: 0px;
-                        }
-                        .hover-scroll:hover {
-                            scrollbar-width: auto;
-                        }
-                        .hover-scroll:hover::-webkit-scrollbar {
-                            width: 8px;
-                        }
-                        .hover-scroll::-webkit-scrollbar-track {
-                            background: transparent;
-                        }
-                        .hover-scroll::-webkit-scrollbar-thumb {
-                            background: rgb(148, 163, 184);
-                            border-radius: 4px;
-                            margin-right: 8px;
-                        }
-                        .hover-scroll::-webkit-scrollbar-thumb:hover {
-                            background: rgb(100, 116, 139);
-                        }
-                    `}</style>
+                <div className="flex flex-col gap-4">
                     {groups.map(group => (
                         <GroupCard 
                             key={group.id} 
