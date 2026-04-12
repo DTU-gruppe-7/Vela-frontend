@@ -27,6 +27,7 @@ export function AddRecipeModal({
 
   const { groupId } = useParams<{ groupId: string }>();
   const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [groupMatchIds, setGroupMatchIds] = useState<Set<string>>(new Set());
 
   // Hent likede opskrifter fra backend via hooket (til individuel brug)
@@ -55,19 +56,27 @@ export function AddRecipeModal({
     [availableRecipes, addedIds]
   );
 
-  // Filtrering baseret på knapperne "Alle" eller "Likede/Fælles"
+  // Filtrering baseret på knapperne "Alle" eller "Likede/Fælles" samt søgeord
   const filteredRecipes = useMemo(() => {
+    let recipes = selectableRecipes;
+
     if (filterMode === 'liked') {
       if (groupId) {
         // Vi tjekker mod gruppens matches
-        return selectableRecipes.filter((r) => groupMatchIds.has(r.id));
+        recipes = recipes.filter((r) => groupMatchIds.has(r.id));
       } else {
         // Vi tjekker mod personlige likes
-        return selectableRecipes.filter((r) => favoriteIds.has(r.id));
+        recipes = recipes.filter((r) => favoriteIds.has(r.id));
       }
     }
-    return selectableRecipes;
-  }, [filterMode, selectableRecipes, favoriteIds, groupId, groupMatchIds]);
+
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      recipes = recipes.filter((r) => r.name.toLowerCase().includes(lowerSearch));
+    }
+
+    return recipes;
+  }, [filterMode, selectableRecipes, favoriteIds, groupId, groupMatchIds, searchTerm]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Tilføj opskrift – ${day}`}>
@@ -90,6 +99,14 @@ export function AddRecipeModal({
         >
           {groupId ? 'Fælles Matches' : 'Likede'}
         </button>
+        <input
+          type="text"
+          placeholder="Søg efter opskrift..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 px-4 py-2 rounded-full border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          aria-label="Søg efter opskrift"
+        />
       </div>
 
       <div className="max-h-[60vh] overflow-y-auto pr-2">
