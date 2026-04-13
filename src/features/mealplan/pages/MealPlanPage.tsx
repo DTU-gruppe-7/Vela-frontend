@@ -2,11 +2,10 @@ import { useState, useMemo, useEffect } from 'react';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { ServingsControl } from '../../../components/ui/ServingsControl';
-import { AddRecipeButton } from '../../../components/ui/AddRecipeButton';
 import { Modal } from '../../../components/ui/Modal';
 import { AddRecipeModal } from '../components/AddRecipeModal';
 import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
-import { formatDateForApi, getPeriodInfo, type ViewMode } from '../../../utils/weekUtils';
+import { formatDateForApi, getPeriodInfo, type DayName, type ViewMode } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePersonalGroups } from '../hooks/usePersonalGroups';
 import { useShoppingList } from '../../shoppingList/hooks/useShoppingList';
@@ -36,7 +35,7 @@ export default function MealPlanPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('1week');
   const [periodOffset, setPeriodOffset] = useState(0);
   const [showViewModeDropdown, setShowViewModeDropdown] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<{ dateKey: string; dayLabel: string } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ dateKey: string; dayLabel: DayName } | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const [entryToRemoveFromShoppingList, setEntryToRemoveFromShoppingList] = useState<MealPlanEntry | null>(null);
   const [isRemovingFromShoppingList, setIsRemovingFromShoppingList] = useState(false);
@@ -62,7 +61,7 @@ export default function MealPlanPage() {
    }, [periodInfo]);
    const is1Day = viewMode === '1day';
    const visibleColumns = isMobile ? 1 : (is1Day ? 1 : VISIBLE_COLUMNS);
-   const { setWeekOffset, canGoBack, canGoForward, translateX } = useWeekOffset(periodInfo.days.length, visibleColumns, is1Day);
+   const { setWeekOffset, canGoBack, canGoForward, translateX } = useWeekOffset(periodInfo.days.length, visibleColumns);
   const { weekNumber, dateRange } = periodInfo;
 
   const {
@@ -184,7 +183,7 @@ export default function MealPlanPage() {
     }
   };
 
-  const candidateEntries = useMemo(() => {
+  const nonGeneratedEntries = useMemo(() => {
     const flattened = Object.values(mealPlan).flat();
 
     // Keep only entries that backend has not already added
@@ -193,6 +192,20 @@ export default function MealPlanPage() {
     // Deduplicate by entry id (safe guard)
     return Array.from(new Map(notGenerated.map((e) => [e.id, e])).values());
   }, [mealPlan]);
+
+  const candidateEntries = useMemo(() => {
+    if (!isPersonalView) return nonGeneratedEntries;
+
+    // Personal mealplan generation must not include group meal entries.
+    return nonGeneratedEntries.filter((entry) => entry.source !== 'group');
+  }, [isPersonalView, nonGeneratedEntries]);
+
+  const forcedExcludedEntryIds = useMemo(() => {
+    if (!isPersonalView) return [];
+    return nonGeneratedEntries
+      .filter((entry) => entry.source === 'group')
+      .map((entry) => entry.id);
+  }, [isPersonalView, nonGeneratedEntries]);
 
   const swipeHandlers = useSwipe({
     onSwipeLeft: () => {
@@ -360,6 +373,11 @@ export default function MealPlanPage() {
                                     isRemovingFromShoppingList={isRemovingFromShoppingList}
                                     onAddClick={() => setSelectedDay({ dateKey, dayLabel })}
                                     isPersonalView={isPersonalView}
+                                    showMobileDayNavigation={isMobile && !is1Day}
+                                    canGoBackDay={canGoBack}
+                                    canGoForwardDay={canGoForward}
+                                    onGoToPreviousDay={() => setWeekOffset((offset) => offset - 1)}
+                                    onGoToNextDay={() => setWeekOffset((offset) => offset + 1)}
                                 />
                             </div>
                         );
@@ -421,6 +439,7 @@ export default function MealPlanPage() {
                     startDate={formatDateForApi(periodInfo.startDate)}
                     endDate={formatDateForApi(periodInfo.endDate)}
                     candidateEntries={candidateEntries}
+                    forcedExcludedEntryIds={forcedExcludedEntryIds}
                     onGenerated={(generatedEntryIds) => {
                       markEntriesAsAddedToShoppingList(generatedEntryIds);
                     }}
@@ -508,8 +527,13 @@ function DayColumn({
                        onRequestRemoveFromShoppingList,
                        isRemovingFromShoppingList,
                        onAddClick,
+                       showMobileDayNavigation,
+                       canGoBackDay,
+                       canGoForwardDay,
+                       onGoToPreviousDay,
+                       onGoToNextDay,
                    }: {
-    day: string;
+    day: DayName;
     date: Date;
     dateKey: string;
     entries: MealPlanEntry[];
@@ -519,23 +543,50 @@ function DayColumn({
     onRequestRemoveFromShoppingList: (entry: MealPlanEntry) => void;
     isRemovingFromShoppingList: boolean;
     onAddClick: () => void;
+    showMobileDayNavigation: boolean;
+    canGoBackDay: boolean;
+    canGoForwardDay: boolean;
+    onGoToPreviousDay: () => void;
+    onGoToNextDay: () => void;
 }) {
     const dateStr = date.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' });
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+      <div className="px-4 py-3 border-b-2 border-slate-200 bg-linear-to-r from-slate-50 to-white flex items-center justify-between">
         <div>
-          <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
+          <span className="font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
           <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
         </div>
-        <button
-          onClick={onAddClick}
-          className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
-          title="Tilføj opskrift"
-        >
-          <span className="text-lg font-semibold">+</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {showMobileDayNavigation && canGoBackDay && (
+            <button
+              type="button"
+              onClick={onGoToPreviousDay}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-200"
+              aria-label="Vis forrige dag"
+            >
+              ‹
+            </button>
+          )}
+          {showMobileDayNavigation && canGoForwardDay && (
+            <button
+              type="button"
+              onClick={onGoToNextDay}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-200"
+              aria-label="Vis næste dag"
+            >
+              ›
+            </button>
+          )}
+          <button
+            onClick={onAddClick}
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
+            title="Tilføj opskrift"
+          >
+            <span className="text-lg font-semibold">+</span>
+          </button>
+        </div>
       </div>
       <div className="p-4 flex flex-col min-h-96 bg-white">
         {entries.length > 0 ? (

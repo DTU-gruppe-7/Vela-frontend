@@ -12,6 +12,7 @@ interface GenerateShoppingListModalProps {
     startDate: string;
     endDate: string;
     candidateEntries: MealPlanEntry[];
+    forcedExcludedEntryIds?: string[];
     onGenerated: (generatedEntryIds: string[]) => void;
 }
 
@@ -23,6 +24,7 @@ export function GenerateShoppingListModal({
     startDate,
     endDate,
     candidateEntries,
+    forcedExcludedEntryIds = [],
     onGenerated,
 }: GenerateShoppingListModalProps) {
     const { shoppingList, loading } = useShoppingList(groupId); // Kun én personlig liste
@@ -53,6 +55,7 @@ export function GenerateShoppingListModal({
         const generatedEntryIds = candidateEntries
             .filter((entry) => !excludedIdSet.has(entry.id))
             .map((entry) => entry.id);
+        const allExcludedEntryIds = Array.from(new Set([...forcedExcludedEntryIds, ...excludedEntryIds]));
 
         try {
             if (!shoppingList) {
@@ -65,7 +68,7 @@ export function GenerateShoppingListModal({
                 mealPlanId,
                 startDate,
                 endDate,
-                excludedMealPlanEntryIds: excludedEntryIds,
+                excludedMealPlanEntryIds: allExcludedEntryIds,
             });
 
             onGenerated(generatedEntryIds);
@@ -105,6 +108,11 @@ export function GenerateShoppingListModal({
                             ) : (
                                 <p className="text-slate-500">
                                     Der er ingen nye måltider i perioden at generere.
+                                </p>
+                            )}
+                            {groupId === undefined && candidateEntries.length === 0 && (
+                                <p className="text-slate-500">
+                                    Gruppemåltider kan kun genereres fra gruppens side.
                                 </p>
                             )}
                         </div>

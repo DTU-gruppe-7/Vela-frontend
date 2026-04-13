@@ -36,7 +36,7 @@ export const CurrentRecipeWidget = () => {
 
                 const todayEntries = plan?.entries.filter((e) => {
                     const dateOnly = e.date?.split('T')[0];
-                    return dateOnly === today;
+                    return dateOnly === todayKey;
                 }) ?? [];
 
                 const resolved = await Promise.all(
@@ -112,11 +112,11 @@ export const CurrentRecipeWidget = () => {
                                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-200 to-orange-400 text-4xl">
+                                    <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-orange-200 to-orange-400 text-4xl">
                                         🍽️
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                                 <p className="absolute bottom-3 left-3 right-3 text-left text-sm font-bold text-white drop-shadow-md">
                                     {recipe.name}
                                 </p>
@@ -126,14 +126,14 @@ export const CurrentRecipeWidget = () => {
                     {meals.length > 2 && (
                         <>
                             <div className={`pointer-events-none absolute inset-y-0 left-0 flex items-center transition-opacity duration-300 ${hiddenLeft > 0 ? 'opacity-100' : 'opacity-0'}`}>
-                                <div className="flex h-full items-center bg-gradient-to-r from-white/80 to-transparent pl-2 pr-6">
+                                <div className="flex h-full items-center bg-linear-to-r from-white/80 to-transparent pl-2 pr-6">
                                     <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
                                         +{hiddenLeft}
                                     </span>
                                 </div>
                             </div>
                             <div className={`pointer-events-none absolute inset-y-0 right-0 flex items-center transition-opacity duration-300 ${atScrollEnd ? 'opacity-0' : 'opacity-100'}`}>
-                                <div className="flex h-full items-center bg-gradient-to-l from-white/80 to-transparent pl-6 pr-2">
+                                <div className="flex h-full items-center bg-linear-to-l from-white/80 to-transparent pl-6 pr-2">
                                     <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow">
                                         +{meals.length - 2 - hiddenLeft}
                                     </span>

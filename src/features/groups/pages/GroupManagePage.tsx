@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiUserMinus, FiUserPlus, FiUsers, FiAlertTriangle, FiLoader, FiSave, FiTrash2 } from 'react-icons/fi';
+import { FiAlertTriangle, FiLoader, FiSave, FiTrash2 } from 'react-icons/fi';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { groupApi } from '../../../api/groupApi';
 import { useAuth } from '../../../hooks/useAuth';

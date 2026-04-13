@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiArrowDown, FiArrowUp, FiLoader, FiPlus, FiSearch, FiShoppingCart } from 'react-icons/fi';
+import { FiArrowDown, FiArrowUp, FiLoader, FiPlus, FiSearch, FiShoppingCart, FiTrash2 } from 'react-icons/fi';
 import type { IngredientSearchResult, ShoppingListItem, AddShoppingListItem } from '../../../types/ShoppingList';
 import { IngredientCategory } from '../../../types/ShoppingList';
 import { useShoppingList } from '../hooks/useShoppingList';
@@ -283,15 +283,21 @@ function ShoppingListPage() {
             setSelectedIngredient(null);
             setNewItemUnit('');
             setNewItemCategory(IngredientCategory.Other);
+        }
+    };
+
     const handleClearAll = async () => {
         if (!shoppingList?.id) return;
-        
+
+        const itemIds = (shoppingList.items ?? []).map((item) => item.id);
+        if (itemIds.length === 0) return;
+
         const confirmed = window.confirm('Er du sikker på at du vil slette hele din indkøbsliste? Dette kan ikke fortrydes.');
         
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearAll(shoppingList.id);
+            await shoppingListApi.clearAll(shoppingList.id, itemIds);
             await refetch();
         } catch (err) {
             console.error('Fejl ved sletning af indkøbsliste:', err);
@@ -301,13 +307,18 @@ function ShoppingListPage() {
 
     const handleDeleteChecked = async () => {
         if (!shoppingList?.id) return;
-        
+
+        const purchasedItemIds = (shoppingList.items ?? [])
+            .filter((item) => item.isBought)
+            .map((item) => item.id);
+        if (purchasedItemIds.length === 0) return;
+
         const confirmed = window.confirm('Er du sikker på at du vil slette alle dine købte varer? Dette kan ikke fortrydes.');
         
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearPurchased(shoppingList.id);
+            await shoppingListApi.clearPurchased(shoppingList.id, purchasedItemIds);
             await refetch();
         } catch (err) {
             console.error('Fejl ved sletning af købte varer:', err);

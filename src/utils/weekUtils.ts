@@ -2,6 +2,7 @@ export const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørda
 export const WORK_DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'] as const;
 
 export type ViewMode = '1day' | 'work' | '1week' | '2weeks';
+export type DayName = typeof DAYS[number];
 
 export interface PeriodInfo {
   weekNumber: number;
@@ -121,22 +122,4 @@ export function getPeriodInfo(viewMode: ViewMode, offset: number): PeriodInfo {
   const dateRange = formatDateRange(startDate, endDate);
 
   return { weekNumber, dateRange, startDate, endDate, days };
-}
-
-/**
- * @deprecated Brug getPeriodInfo i stedet
- * Beregner ugenummer og datointerval for en given ugeforskydning.
- * @param weekOffset - 0 = denne uge, -1 = forrige uge, +1 = næste uge osv.
- */
-export function getWeekInfo(weekOffset: number): { weekNumber: number; dateRange: string; monday: Date; sunday: Date } {
-  const today = new Date();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7) + weekOffset * 7);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  const weekNumber = getWeekNumber(monday);
-  const dateRange = formatDateRange(monday, sunday);
-
-  return { weekNumber, dateRange, monday, sunday };
 }
