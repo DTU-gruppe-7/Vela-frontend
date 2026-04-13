@@ -1,72 +1,35 @@
-import { useState, useEffect } from 'react';
-
-const slides = [
-  {
-    title: 'Swipe Opskrifter',
-    description: 'Udforsk et hav af lækre opskrifter og swipe på den du kan lide',
-    icon: '👆',
-    color: 'from-blue-100 to-blue-50',
-  },
-  {
-    title: 'Match Opskrifter Med Gruppen',
-    description: 'Dine likede opskrifter matcher med gruppemedlemmernes',
-    icon: '👥',
-    color: 'from-purple-100 to-purple-50',
-  },
-  {
-    title: 'Lav En Madplan',
-    description: 'Byg en ugentlig madplan for hele husstanden',
-    icon: '📅',
-    color: 'from-green-100 to-green-50',
-  },
-  {
-    title: 'Nyd Maden Sammen',
-    description: 'Spis efter alles smag',
-    icon: '🍽️',
-    color: 'from-rose-100 to-rose-50',
-  },
+const steps = [
+    { number: '01', title: 'Swipe opskrifter', description: 'Udforsk et hav af lækre opskrifter og swipe på dem du kan lide' },
+    { number: '02', title: 'Match med gruppen', description: 'Dine likes matcher automatisk med gruppemedlemmernes' },
+    { number: '03', title: 'Lav en madplan', description: 'Byg en ugentlig madplan for hele husstanden' },
+    { number: '04', title: 'Nyd maden sammen', description: 'Spis lækker mad efter alles smag' },
 ];
 
 export const Guide = () => {
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <section className="relative h-72 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-      <div className="absolute inset-0">
-        {slides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br ${slide.color} p-8 text-center transition-opacity duration-500 ease-in-out sm:p-10 ${
-              index === current ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <div className="mb-4 text-6xl">{slide.icon}</div>
-            <h3 className="mb-2 text-2xl font-bold text-slate-900">{slide.title}</h3>
-            <p className="max-w-md text-slate-700">{slide.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrent(index)}
-            className={`h-3 w-3 rounded-full transition-all ${
-              index === current ? 'scale-110 bg-slate-900' : 'bg-slate-500/70 hover:bg-slate-700'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
-    </section>
-  );
+    return (
+        <section>
+            <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-6">Sådan virker det</p>
+            <div className="flex items-start">
+                {steps.map((step, index) => (
+                    <div key={step.number} className="flex items-start flex-1 min-w-0">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center">
+                                    {index + 1}
+                                </span>
+                                <div className="h-px flex-1 bg-slate-200" />
+                                {index < steps.length - 1 && (
+                                    <svg className="flex-shrink-0 w-3 h-3 text-slate-300 -ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                )}
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 pr-4">{step.title}</h3>
+                            <p className="mt-1 text-xs text-slate-500 leading-relaxed pr-4">{step.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+    );
 };

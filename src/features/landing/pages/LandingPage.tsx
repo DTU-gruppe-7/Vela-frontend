@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import { recipeApi } from '../../../api/recipeApi'
 import type { RecipeSummary } from '../../../types/Recipe'
 import { RecipeCarousel } from '../widgets/RecipeCarousel'
@@ -7,9 +7,9 @@ import { Guide } from '../widgets/GuideComponent'
 
 export const LandingPage = () => {
 
-    const [recipes,setRecipes] = useState<RecipeSummary[]>([]);
+    const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error,setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadRecipes = async () => {
@@ -22,63 +22,61 @@ export const LandingPage = () => {
                 setLoading(false);
             }
         };
-
         loadRecipes();
     }, []);
 
     return (
         <>
-        <style>{`
-            .hide-scrollbar {
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-            .hide-scrollbar::-webkit-scrollbar {
-                display: none;
-            }
-        `}</style>
-        <div className="flex min-h-screen flex-col-reverse lg:flex-row lg:h-screen lg:overflow-hidden">
-        <div className="hide-scrollbar w-full lg:w-2/3 max-w-6xl p-6 space-y-6 lg:overflow-y-auto">
-  {/* Welcome Section */}
-  <section className="relative overflow-hidden rounded-3xl border border-white/50 bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 p-8 shadow-lg">
-    {/* Decorative blobs */}
-    <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-orange-300/30 blur-2xl" />
-    <div className="pointer-events-none absolute -bottom-12 -left-10 h-44 w-44 rounded-full bg-rose-300/25 blur-2xl" />
+            <style>{`
+                .hide-scrollbar {
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                }
+                .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+            `}</style>
+            <div className="flex min-h-screen flex-col-reverse lg:flex-row lg:h-screen lg:overflow-hidden bg-stone-50">
 
-    <div className="relative">
-      <p className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-semibold tracking-wide text-orange-700">
-        Velkommen til Vela
-      </p>
+                {/* Venstre side — indhold */}
+                <div className="hide-scrollbar w-full lg:w-2/3 lg:overflow-y-auto px-8 sm:px-12 py-14 space-y-14">
 
-      <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-        Udforsk opskrifter som hele din gruppe kan lide!
-      </h1>
+                    {/* Hero */}
+                    <section>
+                        <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-emerald-700">Vela</span>
+                        <h1 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                            Udforsk opskrifter<br />
+                            som hele din gruppe<br />
+                            kan lide
+                        </h1>
+                        <p className="mt-5 text-slate-500 text-base max-w-sm leading-relaxed">
+                            Swipe, match og planlæg måltider — sammen.
+                        </p>
+                    </section>
 
-      <p className="mt-3 max-w-2xl text-sm text-slate-700 sm:text-base">
-        Swipe, match, og planlæg måltider sammen.
-      </p>
+                    {/* How it works */}
+                    <Guide />
 
-    </div>
-  </section>
+                    {/* Populære opskrifter */}
+                    <section>
+                        <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-5">
+                            Populære opskrifter
+                        </p>
+                        {loading && <p className="text-slate-400 text-sm">Indlæser...</p>}
+                        {error && <p className="text-red-400 text-sm">{error}</p>}
+                        {!loading && !error && <RecipeCarousel recipes={recipes} />}
+                    </section>
 
-        {/* How It Works Slideshow */}
-      <Guide />
+                </div>
 
-  {/* Carousel Section */}
-  <section>
-    {loading && <p>Indlæser opskrifter...</p>}
-    {error && <p className="text-red-500">{error}</p>}
-    {!loading && !error && <RecipeCarousel recipes={recipes} />}
-  </section>
-</div>
-        
-        {/* Højre side med Auth komponent */}
-        <div className="flex w-full items-start justify-center bg-white lg:w-1/3 lg:items-center">
-          <div className="w-full p-8 lg:p-10">
-                <Outlet />
+                {/* Højre side — auth */}
+                <div className="flex w-full items-start justify-center bg-white border-l border-slate-200 lg:w-1/3 lg:items-center">
+                    <div className="w-full p-8 lg:p-10">
+                        <Outlet />
+                    </div>
+                </div>
+
             </div>
-        </div>
-        </div>
         </>
     );
 };
