@@ -22,6 +22,11 @@ export const groupApi = {
     return response.data;
   },
 
+  updateGroup: async (id: string, data: CreateGroupRequest): Promise<Group> => {
+    const response = await axiosClient.patch<Group>(`/Group/${id}`, data);
+    return response.data;
+  },
+
   deleteGroup: async (id: string): Promise<void> => {
     await axiosClient.delete(`/Group/${id}`);
   },
