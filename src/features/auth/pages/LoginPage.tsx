@@ -76,6 +76,16 @@ function LoginPage() {
                     </Button>
                 </form>
 
+                <div className="mt-3 text-center">
+                    <button
+                        type="button"
+                        onClick={() => alert('Funktion ikke implementeret endnu')}
+                        className="text-sm text-slate-400 hover:text-slate-500 underline"
+                    >
+                        Glemt adgangskode?
+                    </button>
+                </div>
+
                 {/* Footer */}
                 <p className="mt-6 text-center text-sm text-slate-500">
                     Har du ikke en konto?{' '}

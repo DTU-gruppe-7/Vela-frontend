@@ -524,9 +524,18 @@ function DayColumn({
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="px-4 py-3 border-b-2 border-slate-200 bg-linear-to-r from-slate-50 to-white">
-        <span className="text-xs font-semibold text-slate-700 tracking-wide uppercase">{day}</span>
-        <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
+      <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+        <div>
+          <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
+          <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
+        </div>
+        <button
+          onClick={onAddClick}
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
+          title="Tilføj opskrift"
+        >
+          <span className="text-lg font-semibold">+</span>
+        </button>
       </div>
       <div className="p-4 flex flex-col min-h-96 bg-white">
         {entries.length > 0 ? (
@@ -595,11 +604,9 @@ function DayColumn({
                 );
               })}
             </div>
-            <AddRecipeButton className="mt-4" onClick={onAddClick} />
                     </>
                 ) : (
                     <>
-                        <AddRecipeButton onClick={onAddClick} />
                         <p className="mt-3 text-xs text-slate-400 text-center">Ingen opskrift valgt</p>
                     </>
                 )}

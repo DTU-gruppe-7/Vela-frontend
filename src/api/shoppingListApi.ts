@@ -92,6 +92,14 @@ export const shoppingListApi = {
       throw error;
     }
   },
+    
+  clearAll: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clear`);
+  },
+
+  /** Clear all purchased items from shopping list */
+  clearPurchased: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clearPurchased`);
 
   /** Fjern varer tilføjet fra en madplan fra indkøbslisten */
   removeFromMealPlan: async (

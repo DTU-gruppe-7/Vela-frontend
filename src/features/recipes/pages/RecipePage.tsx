@@ -13,8 +13,8 @@ function RecipePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const pageSizeOptions = [10, 20, 50, 100];
+    const [pageSize, setPageSize] = useState(12);
+    const pageSizeOptions = [12, 24, 48, 100];
 
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('Alle');
@@ -254,26 +254,35 @@ function RecipePage() {
 
                 {/* Recipe grid */}
                 {!error && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         {loading
-                            ? Array.from({ length: 6 }).map((_, i) => (
+                            ? Array.from({ length: 8 }).map((_, i) => (
                                 <SkeletonCard key={i} />
                             ))
-                            : paginatedRecipes.map((recipe) => (
-                                <div
-                                    key={recipe.id}
-                                    onClick={() => navigate(`/recipes/${recipe.id}`)}
-                                    className="cursor-pointer"
-                                >
-                                    <RecipeCard
-                                        recipe={recipe}
-                                        isFavorite={favoriteIds.has(recipe.id)}
-                                        onToggleFavorite={() => toggleLike(recipe)}
-                                        onCategoryClick={setActiveCategory}
-                                        onKeywordClick={setActiveKeyword}
-                                    />
-                                </div>
-                            ))}
+                            : <>
+                                {paginatedRecipes.map((recipe) => (
+                                    <div
+                                        key={recipe.id}
+                                        onClick={() => navigate(`/recipes/${recipe.id}`)}
+                                        className="cursor-pointer"
+                                    >
+                                        <RecipeCard
+                                            recipe={recipe}
+                                            isFavorite={favoriteIds.has(recipe.id)}
+                                            onToggleFavorite={() => toggleLike(recipe)}
+                                            onCategoryClick={setActiveCategory}
+                                            onKeywordClick={setActiveKeyword}
+                                            showKeywords={false}
+                                        />
+                                    </div>
+                                ))}
+                                {paginatedRecipes.length > 0 && paginatedRecipes.length % 4 !== 0 && (
+                                    Array.from({ length: 4 - (paginatedRecipes.length % 4) }).map((_, i) => (
+                                        <div key={`empty-${i}`} className="hidden lg:block pointer-events-none" />
+                                    ))
+                                )}
+                            </>
+                        }
                     </div>
                 )}
 

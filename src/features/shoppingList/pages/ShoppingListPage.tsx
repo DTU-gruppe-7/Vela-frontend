@@ -92,6 +92,7 @@ function ShoppingListPage() {
         addItem,
         toogleItem,
         removeItem,
+        refetch,
     } = useShoppingList(groupId);
 
     // Form state for nyt item
@@ -282,6 +283,35 @@ function ShoppingListPage() {
             setSelectedIngredient(null);
             setNewItemUnit('');
             setNewItemCategory(IngredientCategory.Other);
+    const handleClearAll = async () => {
+        if (!shoppingList?.id) return;
+        
+        const confirmed = window.confirm('Er du sikker på at du vil slette hele din indkøbsliste? Dette kan ikke fortrydes.');
+        
+        if (!confirmed) return;
+
+        try {
+            await shoppingListApi.clearAll(shoppingList.id);
+            await refetch();
+        } catch (err) {
+            console.error('Fejl ved sletning af indkøbsliste:', err);
+            alert('Der skete en fejl ved sletning af indkøbslisten');
+        }
+    };
+
+    const handleDeleteChecked = async () => {
+        if (!shoppingList?.id) return;
+        
+        const confirmed = window.confirm('Er du sikker på at du vil slette alle dine købte varer? Dette kan ikke fortrydes.');
+        
+        if (!confirmed) return;
+
+        try {
+            await shoppingListApi.clearPurchased(shoppingList.id);
+            await refetch();
+        } catch (err) {
+            console.error('Fejl ved sletning af købte varer:', err);
+            alert('Der skete en fejl ved sletning af købte varer');
         }
     };
 
@@ -474,25 +504,47 @@ function ShoppingListPage() {
                 </div>
 
                 {/* Sortering */}
-                <div className="flex items-center gap-3 mb-4 px-1">
-                    <label className="text-sm text-gray-600 font-medium">Sorter efter:</label>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as SortOption)}
-                        className="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
-                    >
-                        <option value="name">Navn</option>
-                        <option value="updatedAt">Senest opdateret</option>
-                        <option value="createdAt">Tilføjet senest</option>
-                    </select>
-                    <button
-                        onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                        title={sortDirection === 'asc' ? 'Stigende' : 'Faldende'}
-                    >
-                        {sortDirection === 'asc' ? <FiArrowUp /> : <FiArrowDown />}
-                        {sortDirection === 'asc' ? 'A-Z' : 'Z-A'}
-                    </button>
+                <div className="flex items-center justify-between mb-4 px-1">
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600 font-medium">Sorter efter:</label>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as SortOption)}
+                            className="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+                        >
+                            <option value="name">Navn</option>
+                            <option value="updatedAt">Senest opdateret</option>
+                            <option value="createdAt">Tilføjet senest</option>
+                        </select>
+                        <button
+                            onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                            title={sortDirection === 'asc' ? 'Stigende' : 'Faldende'}
+                        >
+                            {sortDirection === 'asc' ? <FiArrowUp /> : <FiArrowDown />}
+                            {sortDirection === 'asc' ? 'A-Z' : 'Z-A'}
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleDeleteChecked}
+                            disabled={checkedItems.length === 0}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Slet alle købt varer"
+                        >
+                            <FiTrash2 />
+                            Slet købte
+                        </button>
+                        <button
+                            onClick={handleClearAll}
+                            disabled={!shoppingList?.items || shoppingList.items.length === 0}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Slet hele indkøbslisten"
+                        >
+                            <FiTrash2 />
+                            Slet alt
+                        </button>
+                    </div>
                 </div>
 
                 {/* Loading state */}

@@ -3,13 +3,19 @@ import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
 import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiSettings, FiUsers } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { type Group } from '../../../types/Group';
+import { useAuth } from '../../../hooks/useAuth';
+import { getCurrentUserGroupRole } from '../../../utils/groupAccess';
 
 const GroupDetailLayout: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
     const location = useLocation();
+    const { user } = useAuth();
 
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const currentRole = getCurrentUserGroupRole(group, user?.id, user?.userId, user?.email);
+    const isOwner = currentRole === 'owner';
 
     useEffect(() => {
         const fetchGroup = async () => {
@@ -34,7 +40,7 @@ const GroupDetailLayout: React.FC = () => {
         { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
         { label: 'Medlemmer', path: 'members', icon: <FiUsers /> },
         { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
-        { label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> },
+        ...(isOwner ? [{ label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> }] : []),
     ];
 
     return (
