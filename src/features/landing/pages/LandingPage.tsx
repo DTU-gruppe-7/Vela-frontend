@@ -4,6 +4,7 @@ import { recipeApi } from '../../../api/recipeApi'
 import type { RecipeSummary } from '../../../types/Recipe'
 import { RecipeCarousel } from '../widgets/RecipeCarousel'
 import { Guide } from '../widgets/GuideComponent'
+import velaLogo from '../../../assets/vela-logo.svg'
 
 export const LandingPage = () => {
 
@@ -42,16 +43,21 @@ export const LandingPage = () => {
                 <div className="hide-scrollbar w-full lg:w-2/3 lg:overflow-y-auto px-8 sm:px-12 py-14 space-y-14">
 
                     {/* Hero */}
-                    <section>
-                        <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-emerald-700">Vela</span>
-                        <h1 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
-                            Udforsk opskrifter<br />
-                            som hele din gruppe<br />
-                            kan lide
-                        </h1>
-                        <p className="mt-5 text-slate-500 text-base max-w-sm leading-relaxed">
-                            Swipe, match og planlæg måltider — sammen.
-                        </p>
+                    <section className="flex items-center gap-8">
+                        <div className="flex-1">
+                            <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-emerald-700">Vela</span>
+                            <h1 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                                Udforsk opskrifter<br />
+                                som hele din gruppe<br />
+                                kan lide
+                            </h1>
+                            <p className="mt-5 text-slate-500 text-base max-w-sm leading-relaxed">
+                                Swipe, match og planlæg måltider — sammen.
+                            </p>
+                        </div>
+                        <div className="flex-shrink-0 w-40 sm:w-56">
+                            <img src={velaLogo} alt="Vela logo" className="w-full h-auto" />
+                        </div>
                     </section>
 
                     {/* How it works */}
