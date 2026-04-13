@@ -3,7 +3,8 @@ import axios from 'axios';
 import type {
   ShoppingList,
   ShoppingListItem,
-  AddShoppingListItem
+  AddShoppingListItem,
+  IngredientSearchResult,
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
@@ -13,6 +14,23 @@ export const shoppingListApi = {
   getShoppingList: async (groupId?: string): Promise<ShoppingList> => {
     const url = groupId ? `/shoppingList?groupId=${groupId}` : '/shoppingList';
     const response = await axiosClient.get<ShoppingList>(url);
+    return response.data;
+  },
+
+  /** Search ingredients for autocomplete */
+  searchIngredients: async (
+    query: string,
+    limit = 10,
+  ): Promise<IngredientSearchResult[]> => {
+    const response = await axiosClient.get<IngredientSearchResult[]>(
+      '/Ingredients/search',
+      {
+        params: {
+          query,
+          limit,
+        },
+      },
+    );
     return response.data;
   },
 
