@@ -16,6 +16,7 @@ function ShoppingListPage() {
         addItem,
         toogleItem,
         removeItem,
+        refetch,
     } = useShoppingList(groupId);
 
     // Form state for nyt item
@@ -70,8 +71,7 @@ function ShoppingListPage() {
 
         try {
             await shoppingListApi.clearAll(shoppingList.id);
-            // Refresh the shopping list
-            window.location.reload();
+            await refetch();
         } catch (err) {
             console.error('Fejl ved sletning af indkøbsliste:', err);
             alert('Der skete en fejl ved sletning af indkøbslisten');
@@ -87,11 +87,10 @@ function ShoppingListPage() {
 
         try {
             await shoppingListApi.clearPurchased(shoppingList.id);
-            // Refresh the shopping list
-            window.location.reload();
+            await refetch();
         } catch (err) {
-            console.error('Fejl ved sletning af købt varer:', err);
-            alert('Der skete en fejl ved sletning af købt varer');
+            console.error('Fejl ved sletning af købte varer:', err);
+            alert('Der skete en fejl ved sletning af købte varer');
         }
     };
 
@@ -200,12 +199,12 @@ function ShoppingListPage() {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleDeleteChecked}
-                            disabled={!shoppingList?.items || shoppingList.items.filter(i => i.isBought).length === 0}
+                            disabled={checkedItems.length === 0}
                             className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Slet alle købt varer"
                         >
                             <FiTrash2 />
-                            Slet købt
+                            Slet købte
                         </button>
                         <button
                             onClick={handleClearAll}

@@ -76,7 +76,6 @@ export default function GroupManagePage() {
             setSuccessMessage(null);
             const updatedGroup = await groupApi.updateGroup(groupId, {
                 name: trimmedName,
-                description: group?.description,
             });
             setGroup(updatedGroup);
             setGroupName(updatedGroup.name);
