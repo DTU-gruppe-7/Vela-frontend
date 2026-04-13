@@ -45,8 +45,7 @@ export const LandingPage = () => {
                     {/* Hero */}
                     <section className="flex items-center gap-8">
                         <div className="flex-1">
-                            <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-emerald-700">Vela</span>
-                            <h1 className="mt-3 text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
                                 Udforsk opskrifter<br />
                                 som hele din gruppe<br />
                                 kan lide
