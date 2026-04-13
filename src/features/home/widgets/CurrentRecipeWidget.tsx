@@ -4,6 +4,7 @@ import { FiCalendar, FiLoader } from 'react-icons/fi';
 import { mealplanApi } from '../../../api/mealplanApi';
 import { recipeApi } from '../../../api/recipeApi';
 import type { RecipeSummary } from '../../../types/Recipe';
+import { formatDateForApi } from '../../../utils/weekUtils';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 
 function getLocalDateKey(date = new Date()): string {
@@ -12,7 +13,6 @@ function getLocalDateKey(date = new Date()): string {
     const d = String(date.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + d;
 }
-
 
 export const CurrentRecipeWidget = () => {
     const [meals, setMeals] = useState<{ entry: MealPlanEntry; recipe: RecipeSummary }[]>([]);
@@ -25,8 +25,14 @@ export const CurrentRecipeWidget = () => {
     useEffect(() => {
         const loadTodayMeals = async () => {
             try {
-                const plan = await mealplanApi.getMealPlan();
-                const today = getLocalDateKey();
+                // Fetch only today's mealplan entries
+                const today = new Date();
+                const todayStr = formatDateForApi(today);
+                const plan = await mealplanApi.getMealPlan({
+                    startDate: todayStr,
+                    endDate: todayStr
+                });
+                const todayKey = getLocalDateKey();
 
                 const todayEntries = plan?.entries.filter((e) => {
                     const dateOnly = e.date?.split('T')[0];

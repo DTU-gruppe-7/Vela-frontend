@@ -1,25 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
-export function useIsMobile(breakpoint: number) {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < breakpoint;
-  });
+export function useIsMobile(breakpoint: number): boolean {
+  const subscribe = (onStoreChange: () => void): (() => void) => {
+    if (typeof window === 'undefined') {
+      return () => {};
+    }
 
-  useEffect(() => {
     const mediaQuery = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-
-    const handleScreenChange = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches);
-    };
-
-    setIsMobile(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleScreenChange);
+    mediaQuery.addEventListener('change', onStoreChange);
 
     return () => {
-      mediaQuery.removeEventListener('change', handleScreenChange);
+      mediaQuery.removeEventListener('change', onStoreChange);
     };
-  }, [breakpoint]);
+  };
 
-  return isMobile;
+  const getSnapshot = (): boolean => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
+  };
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }

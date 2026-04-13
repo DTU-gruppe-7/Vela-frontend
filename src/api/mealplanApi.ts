@@ -1,27 +1,39 @@
+import axios from 'axios';
 import axiosClient from './axiosClient';
 import type { MealPlanEntry, MealPlan } from '../types/MealPlan';
 
+interface GetMealPlanParams {
+  groupId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const mealplanApi = {
   // Hent alle madplaner for brugeren
-  getMealPlan: async (groupId?: string): Promise<MealPlan | null> => { 
+  getMealPlan: async (params?: GetMealPlanParams): Promise<MealPlan | null> => {
     try {
-      // Hvis groupId findes, tilføjes den som query param (?groupId=...)
-      const url = groupId ? `/MealPlan?groupId=${groupId}` : '/MealPlan';
-      const response = await axiosClient.get<MealPlan>(url);
-      return response.data;
-    } catch (error) {
-      console.error('Fejl ved hentning af madplaner:', error);
-      throw error;
-    }
-  },
+      const queryParams = new URLSearchParams();
 
-  //  API-kald til personlig + grupperet madplan (aggregated)
-  getAggregatedMealPlan: async (): Promise<MealPlanEntry[]> => {
-    try {
-      const response = await axiosClient.get<MealPlanEntry[]>('/MealPlan/aggregated');
-      return response.data;
+      if (params?.groupId) {
+        queryParams.append('groupId', params.groupId);
+      }
+      if (params?.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      if (params?.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `/MealPlan?${queryString}` : '/MealPlan';
+
+      const response = await axiosClient.get<MealPlan>(url);
+      return response.data ?? null;
     } catch (error) {
-      console.error('Fejl ved hentning af aggregerede madplaner:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      console.error('Fejl ved hentning af madplaner:', error);
       throw error;
     }
   },

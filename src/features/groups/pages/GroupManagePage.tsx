@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FiUserMinus, FiUserPlus, FiUsers, FiAlertTriangle, FiLoader, FiSave, FiTrash2 } from 'react-icons/fi';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiAlertTriangle, FiLoader, FiSave, FiTrash2 } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { useAuth } from '../../../hooks/useAuth';
 import type { Group } from '../../../types/Group';
@@ -34,7 +34,7 @@ export default function GroupManagePage() {
 
     const isOwner = currentRole === 'owner';
 
-    const fetchGroup = async () => {
+    const fetchGroup = useCallback(async () => {
         if (!groupId) return;
 
         try {
@@ -48,11 +48,11 @@ export default function GroupManagePage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [groupId]);
 
     useEffect(() => {
-        fetchGroup();
-    }, [groupId]);
+        void fetchGroup();
+    }, [fetchGroup]);
 
     const handleUpdateGroupName = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

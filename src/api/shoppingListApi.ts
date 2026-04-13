@@ -1,8 +1,10 @@
 import axiosClient from './axiosClient';
+import axios from 'axios';
 import type {
   ShoppingList,
   ShoppingListItem,
-  AddShoppingListItem
+  AddShoppingListItem,
+  IngredientSearchResult,
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
@@ -12,6 +14,23 @@ export const shoppingListApi = {
   getShoppingList: async (groupId?: string): Promise<ShoppingList> => {
     const url = groupId ? `/shoppingList?groupId=${groupId}` : '/shoppingList';
     const response = await axiosClient.get<ShoppingList>(url);
+    return response.data;
+  },
+
+  /** Search ingredients for autocomplete */
+  searchIngredients: async (
+    query: string,
+    limit = 10,
+  ): Promise<IngredientSearchResult[]> => {
+    const response = await axiosClient.get<IngredientSearchResult[]>(
+      '/Ingredients/search',
+      {
+        params: {
+          query,
+          limit,
+        },
+      },
+    );
     return response.data;
   },
 
@@ -46,12 +65,26 @@ export const shoppingListApi = {
   },
 
   /** Generér indkøbsliste fra en madplan */
-  generateShoppingList: async (
-      mealPlanId: string
-  ): Promise<ShoppingList> => {
+  generateShoppingList: async ({
+      shoppingListId,
+      mealPlanId,
+      startDate,
+      endDate,
+      excludedMealPlanEntryIds = [],
+  }: {
+    shoppingListId: string;
+    mealPlanId: string;
+    startDate: string;
+    endDate: string;
+    excludedMealPlanEntryIds: string[];
+}): Promise<ShoppingList> => {
     try {
       const response = await axiosClient.post<ShoppingList>(
-          `/shoppingList/from-mealplan/${mealPlanId}`
+          `/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          { excludedMealPlanEntryIds },
+          {
+            params: { startDate, endDate },
+          }
       );
       return response.data;
     } catch (error) {
@@ -59,7 +92,7 @@ export const shoppingListApi = {
       throw error;
     }
   },
-
+    
   clearAll: async (id: string): Promise<void> => {
     await axiosClient.delete(`/shoppingList/${id}/clear`);
   },
@@ -67,5 +100,33 @@ export const shoppingListApi = {
   /** Clear all purchased items from shopping list */
   clearPurchased: async (id: string): Promise<void> => {
     await axiosClient.delete(`/shoppingList/${id}/clearPurchased`);
+
+  /** Fjern varer tilføjet fra en madplan fra indkøbslisten */
+  removeFromMealPlan: async (
+    shoppingListId: string,
+    mealPlanId: string,
+    mealPlanEntryId: string
+  ): Promise<void> => {
+    try {
+      await axiosClient.delete(`/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          {
+            params: mealPlanEntryId ? { mealPlanEntryId } : undefined,
+          }
+        );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data;
+        const backendMessage =
+          typeof errorData === 'string'
+            ? errorData
+            : typeof errorData?.detail === 'string'
+              ? errorData.detail
+              : typeof errorData?.title === 'string'
+                ? errorData.title
+            : undefined;
+        throw new Error(backendMessage || `REMOVE_FROM_MEALPLAN_FAILED:${error.response?.status ?? 'unknown'}`);
+      }
+      throw error;
+    }
   },
 };

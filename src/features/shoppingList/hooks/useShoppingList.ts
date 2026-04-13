@@ -44,11 +44,10 @@ export function useShoppingList(groupId?: string) {
             const savedItem = await shoppingListApi.addItem(shoppingList.id, item);
             setShoppingList(prev => {
                 if (!prev) return prev;
-                const filteredItems = (prev.items ?? []).filter(
-                    i => i.id !== tempItem.id &&
-                        i.ingredientName.toLowerCase() !== savedItem.ingredientName.toLowerCase()
-                )
-                return {...prev, items: [...filteredItems, savedItem]};
+                return {
+                    ...prev,
+                    items: (prev.items ?? []).map(i => i.id === tempItem.id ? savedItem : i),
+                };
             });
         } catch (err) {
             console.error('Error adding item: ', err);
