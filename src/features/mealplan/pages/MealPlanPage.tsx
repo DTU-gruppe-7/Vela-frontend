@@ -41,6 +41,9 @@ export default function MealPlanPage() {
   const [entryToRemoveFromShoppingList, setEntryToRemoveFromShoppingList] = useState<MealPlanEntry | null>(null);
   const [isRemovingFromShoppingList, setIsRemovingFromShoppingList] = useState(false);
   const [shoppingListRemovalError, setShoppingListRemovalError] = useState<string | null>(null);
+  const [pendingServingsChange, setPendingServingsChange] = useState<{ entry: MealPlanEntry; newServings: number } | null>(null);
+  const [isApplyingServingsChange, setIsApplyingServingsChange] = useState(false);
+  const [servingsChangeError, setServingsChangeError] = useState<string | null>(null);
   const groups = usePersonalGroups(isPersonalView);
   const { shoppingList } = useShoppingList(groupId);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
@@ -133,6 +136,51 @@ export default function MealPlanPage() {
       setShoppingListRemovalError(message);
     } finally {
       setIsRemovingFromShoppingList(false);
+    }
+  };
+
+  const closeServingsWarningModal = () => {
+    if (isApplyingServingsChange) return;
+    setPendingServingsChange(null);
+    setServingsChangeError(null);
+  };
+
+  const handleRequestServingsChange = async (entry: MealPlanEntry, newServings: number) => {
+    if (entry.servings === newServings) return;
+
+    if (!entry.addedToShoppingList) {
+      await updateServings(entry.id, newServings);
+      return;
+    }
+
+    setServingsChangeError(null);
+    setPendingServingsChange({ entry, newServings });
+  };
+
+  const handleConfirmServingsChange = async () => {
+    if (!pendingServingsChange) return;
+
+    setIsApplyingServingsChange(true);
+    setServingsChangeError(null);
+    try {
+      const resolvedShoppingListId = shoppingList?.id ?? (await shoppingListApi.getShoppingList(groupId)).id;
+      const resolvedMealPlanId = mealPlanId ?? pendingServingsChange.entry.mealPlanId;
+
+      await removeFromShoppingList(
+        resolvedShoppingListId,
+        resolvedMealPlanId,
+        pendingServingsChange.entry.id,
+      );
+
+      await updateServings(pendingServingsChange.entry.id, pendingServingsChange.newServings);
+      setPendingServingsChange(null);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : 'Kunne ikke opdatere antal personer. Prøv igen.';
+      setServingsChangeError(message);
+    } finally {
+      setIsApplyingServingsChange(false);
     }
   };
 
@@ -307,7 +355,7 @@ export default function MealPlanPage() {
                                     dateKey={dateKey}
                                     entries={visibleEntries}
                                     onRemoveRecipe={removeRecipe}
-                                    onUpdateServings={updateServings}
+                                    onUpdateServings={handleRequestServingsChange}
                                     onRequestRemoveFromShoppingList={handleRequestRemoveFromShoppingList}
                                     isRemovingFromShoppingList={isRemovingFromShoppingList}
                                     onAddClick={() => setSelectedDay({ dateKey, dayLabel })}
@@ -413,6 +461,38 @@ export default function MealPlanPage() {
                     </div>
                 </div>
             </Modal>
+
+            <Modal
+                isOpen={pendingServingsChange !== null}
+                onClose={closeServingsWarningModal}
+                title="Opdater antal personer"
+            >
+                <div className="flex flex-col gap-4">
+                    <p className="text-sm text-slate-700">
+                        Denne opskrift er allerede tilføjet til indkøbslisten. Hvis du fortsætter,
+                        bliver varerne fjernet fra indkøbslisten før antallet af personer opdateres.
+                    </p>
+                    {servingsChangeError && (
+                        <p className="text-sm text-red-600">⚠️ {servingsChangeError}</p>
+                    )}
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={closeServingsWarningModal}
+                            disabled={isApplyingServingsChange}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition"
+                        >
+                            Annuller
+                        </button>
+                        <button
+                            onClick={handleConfirmServingsChange}
+                            disabled={isApplyingServingsChange}
+                            className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-amber-600 text-white shadow hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                            {isApplyingServingsChange ? 'Opdaterer…' : 'Fortsæt'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
@@ -435,7 +515,7 @@ function DayColumn({
     entries: MealPlanEntry[];
     isPersonalView: boolean;
     onRemoveRecipe: (dateKey: string, recipeId: string) => void;
-    onUpdateServings: (entryId: string, newServings: number) => void;
+    onUpdateServings: (entry: MealPlanEntry, newServings: number) => void;
     onRequestRemoveFromShoppingList: (entry: MealPlanEntry) => void;
     isRemovingFromShoppingList: boolean;
     onAddClick: () => void;
@@ -469,7 +549,7 @@ function DayColumn({
                           {isEditable ? (
                             <ServingsControl
                               value={entry.servings}
-                              onChange={(newVal) => onUpdateServings(entry.id, newVal)}
+                              onChange={(newVal) => onUpdateServings(entry, newVal)}
                             />
                           ) : (
                             <span className="text-xs text-slate-400 flex items-center gap-1 font-semibold">

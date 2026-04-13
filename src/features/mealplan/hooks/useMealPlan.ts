@@ -98,7 +98,6 @@ export function useMealPlan(
             setError('Ingen madplan fundet.');
           }
         } else {
-           // --- PERSONLIG KONTEKST ---
           const plan = await mealplanApi.getMealPlan({ startDate, endDate });
           if (plan) {
             setMealPlanId(plan.id);
@@ -125,7 +124,7 @@ export function useMealPlan(
     try {
       try {
         const fullRecipe = await recipeApi.getRecipeById(recipe.id);
-        if (fullRecipe && typeof fullRecipe.servings === 'number') {
+        if (fullRecipe) {
           initialServings = fullRecipe.servings;
         }
       } catch {
