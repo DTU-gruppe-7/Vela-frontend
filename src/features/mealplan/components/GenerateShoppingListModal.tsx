@@ -7,14 +7,20 @@ interface GenerateShoppingListModalProps {
     isOpen: boolean;
     onClose: () => void;
     mealPlanId: string;
+    groupId?: string;
+    startDate: string;
+    endDate: string;
 }
 
 export function GenerateShoppingListModal({
     isOpen,
     onClose,
     mealPlanId,
+    groupId,
+    startDate,
+    endDate,
 }: GenerateShoppingListModalProps) {
-    const { shoppingList, loading } = useShoppingList(); // Kun én personlig liste
+    const { shoppingList, loading } = useShoppingList(groupId); // Kun én personlig liste
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,7 +35,12 @@ export function GenerateShoppingListModal({
                 setSubmitting(false);
                 return;
             }
-            await shoppingListApi.generateShoppingList(mealPlanId);
+            await shoppingListApi.generateShoppingList({
+                shoppingListId: shoppingList.id,
+                mealPlanId,
+                startDate,
+                endDate
+            });
 
             onClose();
         } catch {
@@ -45,14 +56,20 @@ export function GenerateShoppingListModal({
                 {/* Mode-vælger fjernet, kun én liste */}
                 <div>
                     {loading ? (
-                        <p className="text-sm text-slate-400">Indlæser indkøbsliste…</p>
+                        <p className="text-sm text-slate-400">Henter indkøbsliste…</p>
                     ) : !shoppingList ? (
-                        <p className="text-sm text-slate-400">
-                            Du har ingen indkøbsliste endnu.
+                        <p className="text-sm text-slate-500">
+                            Vi kunne ikke finde en indkøbsliste at tilføje til.
                         </p>
                     ) : (
-                        <div className="text-sm text-slate-700">
-                            {shoppingList.name} — {new Date(shoppingList.createdAt).toLocaleDateString('da-DK')}
+                        <div className="space-y-2 text-sm text-slate-700">
+                            <p>
+                                Generér indkøbsliste fra madplanen for perioden{' '}
+                                <span className="font-semibold">{startDate} – {endDate}</span>.
+                            </p>
+                            <p className="text-slate-500">
+                                Ingredienser fra måltider i perioden bliver tilføjet til din indkøbsliste.
+                            </p>
                         </div>
                     )}
                 </div>

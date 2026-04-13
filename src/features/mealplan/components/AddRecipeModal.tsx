@@ -5,12 +5,11 @@ import { Modal } from '../../../components/ui/Modal';
 import RecipeCard from '../../../components/ui/RecipeCard';
 import { useLikedRecipes } from '../hooks/useLikedRecipes';
 import { groupApi } from '../../../api/groupApi';
-import { DAYS } from '../../../utils/weekUtils';
 
 interface AddRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  day: typeof DAYS[number];
+  day: string;
   availableRecipes: RecipeSummary[];
   addedRecipes: RecipeSummary[];
   onSelect: (recipe: RecipeSummary) => void;

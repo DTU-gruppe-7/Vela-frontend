@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient';
+import axios from 'axios';
 import type {
   ShoppingList,
   ShoppingListItem,
@@ -46,16 +47,57 @@ export const shoppingListApi = {
   },
 
   /** Generér indkøbsliste fra en madplan */
-  generateShoppingList: async (
-      mealPlanId: string
-  ): Promise<ShoppingList> => {
+  generateShoppingList: async ({
+      shoppingListId,
+      mealPlanId,
+      startDate,
+      endDate,
+  }: {
+    shoppingListId: string;
+    mealPlanId: string;
+    startDate: string;
+    endDate: string;
+}): Promise<ShoppingList> => {
     try {
       const response = await axiosClient.post<ShoppingList>(
-          `/shoppingList/from-mealplan/${mealPlanId}`
+          `/shoppingList/${shoppingListId}from-mealplan/${mealPlanId}`,
+          undefined,
+          {
+            params: { startDate, endDate },
+          }
       );
       return response.data;
     } catch (error) {
       console.error('Fejl ved generering af indkøbsliste:', error);
+      throw error;
+    }
+  },
+
+  /** Fjern varer tilføjet fra en madplan fra indkøbslisten */
+  removeFromMealPlan: async (
+    shoppingListId: string,
+    mealPlanId: string,
+    mealPlanEntryId: string
+  ): Promise<void> => {
+    try {
+      await axiosClient.delete(`/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          {
+            params: mealPlanEntryId ? { mealPlanEntryId } : undefined,
+          }
+        );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data;
+        const backendMessage =
+          typeof errorData === 'string'
+            ? errorData
+            : typeof errorData?.detail === 'string'
+              ? errorData.detail
+              : typeof errorData?.title === 'string'
+                ? errorData.title
+            : undefined;
+        throw new Error(backendMessage || `REMOVE_FROM_MEALPLAN_FAILED:${error.response?.status ?? 'unknown'}`);
+      }
       throw error;
     }
   },

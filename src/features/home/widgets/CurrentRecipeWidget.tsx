@@ -6,13 +6,14 @@ import { mealplanApi } from '../../../api/mealplanApi';
 import { recipeApi } from '../../../api/recipeApi';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import type { RecipeSummary } from '../../../types/Recipe';
+import { formatDateForApi } from '../../../utils/weekUtils';
 
 function getLocalDateKey(date = new Date()): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + d;
-    }
+}
 
     export const CurrentRecipeWidget = () => {
         const [entry, setEntry] = useState<MealPlanEntry | null>(null);
@@ -23,13 +24,19 @@ function getLocalDateKey(date = new Date()): string {
         useEffect(() => {
             const loadTodayRecipe = async () => {
             try {
-                const plan = await mealplanApi.getMealPlan();
-                const today = getLocalDateKey();
+                // Fetch only today's mealplan entries
+                const today = new Date();
+                const todayStr = formatDateForApi(today);
+                const plan = await mealplanApi.getMealPlan({
+                    startDate: todayStr,
+                    endDate: todayStr
+                });
+                const todayKey = getLocalDateKey();
 
                 const todayEntry =
                 plan?.entries.find((e) => {
                     const dateOnly = e.date?.split('T')[0];
-                    const isToday = dateOnly === today;
+                    const isToday = dateOnly === todayKey;
                     const isDinner = !e.mealType || e.mealType.toLowerCase() === 'dinner';
                     return isToday && isDinner;
                     }) ?? null;
