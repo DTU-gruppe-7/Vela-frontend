@@ -6,13 +6,10 @@ export function usePersonalGroups(isPersonalView: boolean) {
   const [groups, setGroups] = useState<Group[]>([]);
 
   useEffect(() => {
-    if (!isPersonalView) {
-      setGroups([]);
-      return;
-    }
+    if (!isPersonalView) return;
 
     groupApi.getGroups().then(setGroups).catch(console.error);
   }, [isPersonalView]);
 
-  return groups;
+  return isPersonalView ? groups : [];
 }

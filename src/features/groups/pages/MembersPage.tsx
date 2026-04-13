@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiMoreVertical, FiUserMinus, FiShield, FiUser, FiLogOut, FiKey, FiUserPlus } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
@@ -33,7 +33,7 @@ const MembersPage: React.FC = () => {
         .filter((identifier): identifier is string => Boolean(identifier))
         .map((identifier) => identifier.toLowerCase());
 
-    const fetchGroup = async () => {
+    const fetchGroup = useCallback(async () => {
         if (!groupId) return;
         try {
             setIsLoading(true);
@@ -44,11 +44,11 @@ const MembersPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [groupId]);
 
     useEffect(() => {
-        fetchGroup();
-    }, [groupId]);
+        void fetchGroup();
+    }, [fetchGroup]);
 
     // Close dropdown when clicking outside
     useEffect(() => {

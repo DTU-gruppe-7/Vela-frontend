@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { FiUserMinus, FiUserPlus, FiUsers, FiAlertTriangle, FiLoader } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
@@ -30,7 +30,7 @@ export default function GroupManagePage() {
 
     const hasManageAccess = canManageGroup(currentRole);
 
-    const fetchGroup = async () => {
+    const fetchGroup = useCallback(async () => {
         if (!groupId) return;
 
         try {
@@ -43,11 +43,11 @@ export default function GroupManagePage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [groupId]);
 
     useEffect(() => {
-        fetchGroup();
-    }, [groupId]);
+        void fetchGroup();
+    }, [fetchGroup]);
 
     const handleRemoveMember = async (memberId: string) => {
         if (!groupId || !hasManageAccess) return;

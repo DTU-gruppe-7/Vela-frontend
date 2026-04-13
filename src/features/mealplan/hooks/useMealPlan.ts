@@ -8,30 +8,28 @@ import { shoppingListApi } from '../../../api/shoppingListApi';
 
 type MealPlanData = { [key: string]: MealPlanEntry[] };
 
-function getEmptyMealPlan(days: readonly string[]): MealPlanData {
-  return Object.fromEntries(days.map((d) => [d, []]));
+function getPeriodDateKeys(periodInfo: PeriodInfo): string[] {
+  return periodInfo.days.map((_, index) => {
+    const date = new Date(periodInfo.startDate);
+    date.setDate(periodInfo.startDate.getDate() + index);
+    return formatDateForApi(date);
+  });
 }
 
-function getDateStringForDay(dayName: string, periodInfo: PeriodInfo): string {
-  const dayIndex = (periodInfo.days as readonly string[]).indexOf(dayName);
-  const date = new Date(periodInfo.startDate);
-  date.setDate(date.getDate() + dayIndex);
-  return formatDateForApi(date);
+function getEmptyMealPlan(dateKeys: readonly string[]): MealPlanData {
+  return Object.fromEntries(dateKeys.map((dateKey) => [dateKey, []]));
 }
 
 function convertEntriesToMealPlanData(entries: MealPlanEntry[], periodInfo: PeriodInfo): MealPlanData {
-  const mealPlan: MealPlanData = getEmptyMealPlan(periodInfo.days);
-  const periodDates = periodInfo.days.map(day => getDateStringForDay(day, periodInfo));
+  const periodDateKeys = getPeriodDateKeys(periodInfo);
+  const periodDateSet = new Set(periodDateKeys);
+  const mealPlan: MealPlanData = getEmptyMealPlan(periodDateKeys);
 
   entries.forEach((entry) => {
     if (entry.recipe && entry.date) {
-      const entryDateOnly = entry.date.split('T')[0];
-      const dayIndex = periodDates.indexOf(entryDateOnly);
-      if (dayIndex !== -1) {
-        const dayName = periodInfo.days[dayIndex];
-        if (!mealPlan[dayName].some((e) => e.id === entry.id)) {
-          mealPlan[dayName].push(entry);
-        }
+      const entryDateKey = entry.date.split('T')[0];
+      if (periodDateSet.has(entryDateKey) && !mealPlan[entryDateKey].some((e) => e.id === entry.id)) {
+        mealPlan[entryDateKey].push(entry);
       }
     }
   });
@@ -43,7 +41,7 @@ export function useMealPlan(
   periodInfo: PeriodInfo,
   groupId?: string
 ) {
-  const [mealPlan, setMealPlan] = useState<MealPlanData>(getEmptyMealPlan(periodInfo.days));
+  const [mealPlan, setMealPlan] = useState<MealPlanData>(getEmptyMealPlan(getPeriodDateKeys(periodInfo)));
   const [availableRecipes, setAvailableRecipes] = useState<RecipeSummary[]>([]);
   const [likedRecipes, setLikedRecipes] = useState<RecipeSummary[]>([]); // Ny state til likes
   const [loading, setLoading] = useState(true);
@@ -53,8 +51,8 @@ export function useMealPlan(
 
   // Opdater mealPlan når periodInfo ændrer sig
   useEffect(() => {
-    setMealPlan(getEmptyMealPlan(periodInfo.days));
-  }, [periodInfo.days]);
+    setMealPlan(getEmptyMealPlan(getPeriodDateKeys(periodInfo)));
+  }, [periodInfo]);
 
   // 1. Hent alle tilgængelige opskrifter
   useEffect(() => {
@@ -118,9 +116,9 @@ export function useMealPlan(
     loadMealPlan();
   }, [periodInfo, groupId]);
 
-  const addRecipe = useCallback(async (day: string, recipe: RecipeSummary) => {
+  const addRecipe = useCallback(async (dateKey: string, recipe: RecipeSummary) => {
     if (!mealPlanId) return;
-    const targetDate = getDateStringForDay(day, periodInfo);
+    const targetDate = dateKey;
     const tempId = `temp-${Date.now()}`;
     // Default servings; will be overridden if recipe details are available
     let initialServings = 4;
@@ -143,23 +141,23 @@ export function useMealPlan(
         servings: initialServings,
         addedToShoppingList: false,
       };
-      setMealPlan(prev => ({ ...prev, [day]: [...(prev[day] || []), tempEntry] }));
+      setMealPlan(prev => ({ ...prev, [dateKey]: [...(prev[dateKey] || []), tempEntry] }));
       const entry = await mealplanApi.addEntry(mealPlanId, recipe.id, targetDate, "Dinner", initialServings);
       // Erstat midlertidigt entry med det rigtige fra backend, og sikr servings er korrekt
       const finalEntry: MealPlanEntry = { ...entry, servings: entry.servings || initialServings };
       setMealPlan(prev => ({
         ...prev,
-        [day]: prev[day].map(e => e.id === tempId ? finalEntry : e)
+        [dateKey]: (prev[dateKey] || []).map(e => e.id === tempId ? finalEntry : e)
       }));
     } catch {
       // Rollback: fjern midlertidigt entry
       setMealPlan(prev => ({
         ...prev,
-        [day]: prev[day].filter(e => e.id !== tempId)
+        [dateKey]: (prev[dateKey] || []).filter(e => e.id !== tempId)
       }));
       setError('Kunne ikke gemme');
     }
-  }, [mealPlanId, periodInfo]);
+  }, [mealPlanId]);
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;
@@ -193,8 +191,8 @@ export function useMealPlan(
     }
   }, [mealPlanId, mealPlan]);
 
-  const removeRecipe = useCallback(async (day: string, entryId: string) => {
-    setMealPlan(prev => ({ ...prev, [day]: prev[day].filter(e => e.id !== entryId) }));
+  const removeRecipe = useCallback(async (dateKey: string, entryId: string) => {
+    setMealPlan(prev => ({ ...prev, [dateKey]: (prev[dateKey] || []).filter(e => e.id !== entryId) }));
     try {
       await mealplanApi.removeEntry(mealPlanId!, entryId);
     } catch { setError('Kunne ikke fjerne'); }
@@ -224,6 +222,23 @@ export function useMealPlan(
     }
   }, []);
 
+  const markEntriesAsAddedToShoppingList = useCallback((entryIds: string[]) => {
+    if (entryIds.length === 0) return;
+
+    const entryIdSet = new Set(entryIds);
+    setMealPlan((prev) => {
+      const next: MealPlanData = {};
+      for (const day of Object.keys(prev)) {
+        next[day] = prev[day].map((entry) =>
+          entryIdSet.has(entry.id)
+            ? { ...entry, addedToShoppingList: true }
+            : entry,
+        );
+      }
+      return next;
+    });
+  }, []);
+
   return {
     mealPlan,
     mealPlanId,
@@ -233,6 +248,7 @@ export function useMealPlan(
     removeRecipe, 
     updateServings,
     removeFromShoppingList,
+    markEntriesAsAddedToShoppingList,
     loading,
     error 
   };

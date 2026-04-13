@@ -52,16 +52,18 @@ export const shoppingListApi = {
       mealPlanId,
       startDate,
       endDate,
+      excludedMealPlanEntryIds = [],
   }: {
     shoppingListId: string;
     mealPlanId: string;
     startDate: string;
     endDate: string;
+    excludedMealPlanEntryIds: string[];
 }): Promise<ShoppingList> => {
     try {
       const response = await axiosClient.post<ShoppingList>(
-          `/shoppingList/${shoppingListId}from-mealplan/${mealPlanId}`,
-          undefined,
+          `/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          { excludedMealPlanEntryIds },
           {
             params: { startDate, endDate },
           }

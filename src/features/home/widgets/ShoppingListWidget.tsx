@@ -15,7 +15,7 @@ export const ShoppingListWidget = () => {
             try {
           const data = await shoppingListApi.getShoppingList();
                 setShoppingList(data);
-            } catch(err) {
+            } catch {
                 setError('Kunne ikke hente din indkøbsliste');
             } finally {
                 setLoading(false)

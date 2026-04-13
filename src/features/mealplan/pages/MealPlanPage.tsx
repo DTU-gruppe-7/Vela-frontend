@@ -6,7 +6,7 @@ import { AddRecipeButton } from '../../../components/ui/AddRecipeButton';
 import { Modal } from '../../../components/ui/Modal';
 import { AddRecipeModal } from '../components/AddRecipeModal';
 import { GenerateShoppingListModal } from '../components/GenerateShoppingListModal';
-import {formatDateForApi, getPeriodInfo, type ViewMode} from '../../../utils/weekUtils';
+import { formatDateForApi, getPeriodInfo, type ViewMode } from '../../../utils/weekUtils';
 import { useMealPlan } from '../hooks/useMealPlan';
 import { usePersonalGroups } from '../hooks/usePersonalGroups';
 import { useShoppingList } from '../../shoppingList/hooks/useShoppingList';
@@ -36,17 +36,27 @@ export default function MealPlanPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('1week');
   const [periodOffset, setPeriodOffset] = useState(0);
   const [showViewModeDropdown, setShowViewModeDropdown] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ dateKey: string; dayLabel: string } | null>(null);
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const [entryToRemoveFromShoppingList, setEntryToRemoveFromShoppingList] = useState<MealPlanEntry | null>(null);
   const [isRemovingFromShoppingList, setIsRemovingFromShoppingList] = useState(false);
   const [shoppingListRemovalError, setShoppingListRemovalError] = useState<string | null>(null);
   const groups = usePersonalGroups(isPersonalView);
-  // Keep removal aligned with generate flow, which currently targets the personal list.
-  const { shoppingList } = useShoppingList();
+  const { shoppingList } = useShoppingList(groupId);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
 
    const periodInfo = useMemo(() => getPeriodInfo(viewMode, periodOffset), [viewMode, periodOffset]);
+   const dayColumns = useMemo(() => {
+     return periodInfo.days.map((dayLabel, index) => {
+       const date = new Date(periodInfo.startDate);
+       date.setDate(periodInfo.startDate.getDate() + index);
+       return {
+         dayLabel,
+         date,
+         dateKey: formatDateForApi(date),
+       };
+     });
+   }, [periodInfo]);
    const is1Day = viewMode === '1day';
    const visibleColumns = isMobile ? 1 : (is1Day ? 1 : VISIBLE_COLUMNS);
    const { setWeekOffset, canGoBack, canGoForward, translateX } = useWeekOffset(periodInfo.days.length, visibleColumns, is1Day);
@@ -60,6 +70,7 @@ export default function MealPlanPage() {
     removeRecipe,
     updateServings,
     removeFromShoppingList,
+    markEntriesAsAddedToShoppingList,
     error
   } = useMealPlan(
     recipeApi.getAllRecipes,
@@ -100,7 +111,15 @@ export default function MealPlanPage() {
     setIsRemovingFromShoppingList(true);
     setShoppingListRemovalError(null);
     try {
-      const resolvedShoppingListId = shoppingList?.id ?? (await shoppingListApi.getShoppingList()).id;
+
+        if (isPersonalView && entryToRemoveFromShoppingList.source === 'group') {
+          setShoppingListRemovalError(
+            'Gruppeopskrifter kan kun fjernes fra indkøbslisten via gruppens madplan.'
+          );
+          setIsRemovingFromShoppingList(false);
+          return;
+        }
+      const resolvedShoppingListId = shoppingList?.id ?? (await shoppingListApi.getShoppingList(groupId)).id;
       const resolvedMealPlanId = mealPlanId ?? entryToRemoveFromShoppingList.mealPlanId;
 
       await removeFromShoppingList(
@@ -116,6 +135,16 @@ export default function MealPlanPage() {
       setIsRemovingFromShoppingList(false);
     }
   };
+
+  const candidateEntries = useMemo(() => {
+    const flattened = Object.values(mealPlan).flat();
+
+    // Keep only entries that backend has not already added
+    const notGenerated = flattened.filter((entry) => !entry.addedToShoppingList);
+
+    // Deduplicate by entry id (safe guard)
+    return Array.from(new Map(notGenerated.map((e) => [e.id, e])).values());
+  }, [mealPlan]);
 
   const swipeHandlers = useSwipe({
     onSwipeLeft: () => {
@@ -261,8 +290,8 @@ export default function MealPlanPage() {
                         transform: `translateX(-${translateX}%)`,
                     }}
                 >
-                    {periodInfo.days.map((day, index) => {
-                        const dayEntries = mealPlan[day] || [];
+                    {dayColumns.map(({ dayLabel, date, dateKey }) => {
+                        const dayEntries = mealPlan[dateKey] || [];
                         const visibleEntries = dayEntries.filter(entry => {
                             if (!isPersonalView) return true;
                             if (activeFilter === 'all') return true;
@@ -271,16 +300,17 @@ export default function MealPlanPage() {
                         });
 
                         return (
-                            <div key={day} style={{ width: `${100 / periodInfo.days.length}%` }} className="flex-shrink-0">
+                            <div key={dateKey} style={{ width: `${100 / periodInfo.days.length}%` }} className="shrink-0">
                                 <DayColumn
-                                    day={day}
-                                    date={new Date(periodInfo.startDate.getTime() + index * 24 * 60 * 60 * 1000)}
+                                    day={dayLabel}
+                                    date={date}
+                                    dateKey={dateKey}
                                     entries={visibleEntries}
                                     onRemoveRecipe={removeRecipe}
                                     onUpdateServings={updateServings}
                                     onRequestRemoveFromShoppingList={handleRequestRemoveFromShoppingList}
                                     isRemovingFromShoppingList={isRemovingFromShoppingList}
-                                    onAddClick={() => setSelectedDay(day)}
+                                    onAddClick={() => setSelectedDay({ dateKey, dayLabel })}
                                     isPersonalView={isPersonalView}
                                 />
                             </div>
@@ -291,7 +321,7 @@ export default function MealPlanPage() {
                 {/* Navigationspile - only show if not in 1-day mode */}
                 {!is1Day && canGoBack && (
                     <div className="absolute left-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-transparent rounded-l-2xl" />
+                        <div className="absolute inset-0 bg-linear-to-r from-white/70 to-transparent rounded-l-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o - 1)}
                             className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all opacity-70 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
@@ -305,7 +335,7 @@ export default function MealPlanPage() {
 
                 {!is1Day && canGoForward && (
                     <div className="absolute right-0 top-0 bottom-0 w-20 hidden lg:flex items-center justify-center pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-l from-white/70 to-transparent rounded-r-2xl" />
+                        <div className="absolute inset-0 bg-linear-to-l from-white/70 to-transparent rounded-r-2xl" />
                         <button
                             onClick={() => setWeekOffset((o) => o + 1)}
                             className="relative z-10 w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg transition-all opacity-70 hover:opacity-100 hover:bg-indigo-700 pointer-events-auto"
@@ -323,11 +353,11 @@ export default function MealPlanPage() {
                 <AddRecipeModal
                     isOpen={true}
                     onClose={() => setSelectedDay(null)}
-                    day={selectedDay}
+                    day={selectedDay.dayLabel}
                     availableRecipes={availableRecipes}
-                    addedRecipes={(mealPlan[selectedDay] || []).filter(e => e.recipe).map(e => e.recipe!)}
+                    addedRecipes={(mealPlan[selectedDay.dateKey] || []).filter(e => e.recipe).map(e => e.recipe!)}
                     onSelect={(recipe) => {
-                        addRecipe(selectedDay, recipe);
+                        addRecipe(selectedDay.dateKey, recipe);
                         setSelectedDay(null);
                     }}
                 />
@@ -342,6 +372,10 @@ export default function MealPlanPage() {
                     groupId={groupId}
                     startDate={formatDateForApi(periodInfo.startDate)}
                     endDate={formatDateForApi(periodInfo.endDate)}
+                    candidateEntries={candidateEntries}
+                    onGenerated={(generatedEntryIds) => {
+                      markEntriesAsAddedToShoppingList(generatedEntryIds);
+                    }}
                 />
             )}
 
@@ -386,6 +420,7 @@ export default function MealPlanPage() {
 function DayColumn({
                        day,
                        date,
+                       dateKey,
                        entries,
                        isPersonalView,
                        onRemoveRecipe,
@@ -396,9 +431,10 @@ function DayColumn({
                    }: {
     day: string;
     date: Date;
+    dateKey: string;
     entries: MealPlanEntry[];
     isPersonalView: boolean;
-    onRemoveRecipe: (day: string, recipeId: string) => void;
+    onRemoveRecipe: (dateKey: string, recipeId: string) => void;
     onUpdateServings: (entryId: string, newServings: number) => void;
     onRequestRemoveFromShoppingList: (entry: MealPlanEntry) => void;
     isRemovingFromShoppingList: boolean;
@@ -408,8 +444,8 @@ function DayColumn({
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="px-4 py-3 border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-        <span className="text-sm font-semibold text-slate-700 tracking-wide uppercase text-xs">{day}</span>
+      <div className="px-4 py-3 border-b-2 border-slate-200 bg-linear-to-r from-slate-50 to-white">
+        <span className="text-xs font-semibold text-slate-700 tracking-wide uppercase">{day}</span>
         <span className="text-xs text-slate-500 ml-2">{dateStr}</span>
       </div>
       <div className="p-4 flex flex-col min-h-96 bg-white">
@@ -419,13 +455,15 @@ function DayColumn({
 {entries.filter(e => e.recipe).map((entry) => {
                 // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
                 const isEditable = !isPersonalView || entry.source !== 'group';
+                const canRemoveFromShoppingList =
+                  entry.addedToShoppingList && (!isPersonalView || entry.source !== 'group');
                 return (
                   <div key={entry.id} className="relative">
                     <RecipeCard
                       recipe={entry.recipe!}
                       compact
                       showKeywords={false}
-                      onRemove={isEditable ? () => onRemoveRecipe(day, entry.id) : undefined}
+                      onRemove={isEditable ? () => onRemoveRecipe(dateKey, entry.id) : undefined}
                       topRightContent={
                         <div className="flex items-center gap-2">
                           {isEditable ? (
@@ -438,7 +476,7 @@ function DayColumn({
                               👥 {entry.servings}
                             </span>
                           )}
-                          {entry.addedToShoppingList && (
+                          {canRemoveFromShoppingList && (
                             <button
                               type="button"
                               onClick={(event) => {
