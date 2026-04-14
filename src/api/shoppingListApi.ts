@@ -92,7 +92,7 @@ export const shoppingListApi = {
       throw error;
     }
   },
-    
+
   clearAll: async (id: string, itemIds: string[]): Promise<void> => {
     await Promise.all(itemIds.map((itemId) => shoppingListApi.removeItem(id, itemId)));
   },

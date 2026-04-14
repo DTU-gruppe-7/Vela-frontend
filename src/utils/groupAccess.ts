@@ -32,7 +32,7 @@ export function getCurrentUserGroupRole(
     group: Group | null,
     ...identifiers: Array<string | undefined>
 ): GroupRole | null {
-    if (!group) return null;
+    if (!group || !group.members) return null;
 
     const explicitRole = normalizeRole(group.currentUserRole);
     if (explicitRole) return explicitRole;

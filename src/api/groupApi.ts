@@ -2,6 +2,7 @@ import axiosClient from './axiosClient';
 import type { 
     Group,
     CreateGroupRequest,
+    UpdateGroupRequest,
     GroupInvite
  } from '../types/Group';
 import type {Match} from "../types/Match.ts";
@@ -22,7 +23,7 @@ export const groupApi = {
     return response.data;
   },
 
-  updateGroup: async (id: string, data: CreateGroupRequest): Promise<Group> => {
+  updateGroup: async (id: string, data: UpdateGroupRequest): Promise<Group> => {
     const response = await axiosClient.patch<Group>(`/Group/${id}`, data);
     return response.data;
   },
