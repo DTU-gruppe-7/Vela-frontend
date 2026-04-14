@@ -20,6 +20,7 @@ interface RecipeCardProps {
     recipe: RecipeSummary;
     isFavorite?: boolean;
     compact?: boolean;
+    onClick?: () => void;
     onToggleFavorite?: (id: string) => void;
     onRemove?: () => void;
     onCategoryClick?: (category: string) => void;
@@ -34,6 +35,7 @@ function RecipeCard({
     recipe,
     isFavorite = false,
     compact = false,
+    onClick,
     onToggleFavorite,
     onRemove,
     onCategoryClick,
@@ -56,7 +58,10 @@ function RecipeCard({
         topRightContent;
 
     return (
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group">
+        <div
+            onClick={onClick}
+            className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group ${onClick ? 'cursor-pointer' : ''}`}
+        >
             {/* Image with title overlay */}
             <div className={`relative overflow-hidden ${compact ? 'h-48 sm:h-32' : 'h-56'}`}>
                 {recipe.thumbnailUrl ? (

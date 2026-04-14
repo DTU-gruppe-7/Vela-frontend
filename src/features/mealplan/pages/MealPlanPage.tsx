@@ -14,7 +14,7 @@ import { useWeekOffset } from '../hooks/useWeekOffset';
 import { useIsMobile } from '../../../hooks/useIsMobile';
 import { useSwipe } from '../../../hooks/useSwipe';
 import { recipeApi } from '../../../api/recipeApi';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getSourceDotColor } from '../utils/sourceDotColor';
 
 const VISIBLE_COLUMNS = 4;
@@ -30,6 +30,7 @@ const VIEW_MODE_LABELS: Record<ViewMode, string> = {
 export default function MealPlanPage() {
 
   const { groupId } = useParams<{ groupId: string }>();
+  const navigate = useNavigate();
   const isPersonalView = !groupId;
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('1week');
@@ -367,6 +368,7 @@ export default function MealPlanPage() {
                                     date={date}
                                     dateKey={dateKey}
                                     entries={visibleEntries}
+                                  onRecipeClick={(recipeId) => navigate(`/recipes/${recipeId}`)}
                                     onRemoveRecipe={removeRecipe}
                                     onUpdateServings={handleRequestServingsChange}
                                     onRequestRemoveFromShoppingList={handleRequestRemoveFromShoppingList}
@@ -522,6 +524,7 @@ function DayColumn({
                        dateKey,
                        entries,
                        isPersonalView,
+                       onRecipeClick,
                        onRemoveRecipe,
                        onUpdateServings,
                        onRequestRemoveFromShoppingList,
@@ -538,6 +541,7 @@ function DayColumn({
     dateKey: string;
     entries: MealPlanEntry[];
     isPersonalView: boolean;
+    onRecipeClick: (recipeId: string) => void;
     onRemoveRecipe: (dateKey: string, recipeId: string) => void;
     onUpdateServings: (entry: MealPlanEntry, newServings: number) => void;
     onRequestRemoveFromShoppingList: (entry: MealPlanEntry) => void;
@@ -603,6 +607,7 @@ function DayColumn({
                       recipe={entry.recipe!}
                       compact
                       showKeywords={false}
+                      onClick={() => onRecipeClick(entry.recipe!.id)}
                       onRemove={isEditable ? () => onRemoveRecipe(dateKey, entry.id) : undefined}
                       topRightContent={
                         <div className="flex items-center gap-2">
