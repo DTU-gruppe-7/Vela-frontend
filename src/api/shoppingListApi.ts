@@ -60,6 +60,7 @@ export const shoppingListApi = {
     }
   },
 
+    /** Clear all items from shopping list */ 
   clearAll: async (id: string): Promise<void> => {
     await axiosClient.delete(`/shoppingList/${id}/clear`);
   },
