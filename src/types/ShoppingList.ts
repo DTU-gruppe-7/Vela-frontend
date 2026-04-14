@@ -53,6 +53,7 @@ export interface ShoppingListItem extends AddShoppingListItem {
   id: string;
   price?: string;
   shop?: string;
+  recipeName?: string;
   isBought: boolean;
   createdAt: string;
   updatedAt: string;
