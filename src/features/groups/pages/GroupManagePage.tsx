@@ -92,7 +92,7 @@ export default function GroupManagePage() {
             
             setTimeout(() => {
                 window.location.reload();
-            }, 200);
+            }, 500);
 
         } catch (err) {
             setError('Kunne ikke opdatere gruppenavnet.');
