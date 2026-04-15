@@ -105,5 +105,4 @@ export const mealplanApi = {
       throw error;
     }
   }
-  
 };
