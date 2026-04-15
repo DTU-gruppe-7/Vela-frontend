@@ -8,7 +8,7 @@ import SwipeCard from "../components/SwipeCard";
 function SwipePage() {
 
     const [categories, setCategories] = useState<string[]>([]);
-    const [activeCategory, setActiveCategory] = useState("Alle");
+    const [activeCategory, setActiveCategory] = useState("Aftensmad");
     const { queue, swipe, isLoading } = useRecipeQueue(activeCategory);
     const [lastDir, setLastDir] = useState<"like" | "dislike">("like");
 
@@ -61,11 +61,12 @@ function SwipePage() {
     return (
         <div className="flex flex-col items-center justify-center px-4 pt-4 pb-8 min-h-[80vh] select-none overflow-hidden">
                 {/* Category filter*/}
-                <div className="w-full max-w-[420px] mb-2">
+                <div className="w-full max-w-[380px] mb-2">
                     <CategoryFilter
                         categories={categories}
                         activeCategory={activeCategory}
                         onCategoryChange={setActiveCategory}
+                        hideAll={true}
                     />
                 </div>
                 
