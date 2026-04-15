@@ -11,6 +11,7 @@ import type { Notification } from '../../types/Notification';
 import Logo from '../ui/headerComponents/Logo.tsx';
 import Navigation from '../ui/headerComponents/Navigation.tsx';
 import NotificationBell from '../ui/headerComponents/NotificationBell.tsx';
+import MobileNavigation from '../ui/headerComponents/MobileNavigation.tsx';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -101,11 +102,11 @@ const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-6 bg-white shadow-sm">
       {/* Container for Logo and Actions */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4 sm:gap-8">
         <Logo />
         <a
           href="/swipe"
-          className={`flex items-center justify-center px-6 py-2 rounded-full border-2 text-lg font-medium transition-all duration-200 shadow-sm
+          className={`flex items-center justify-center px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-lg rounded-full border-2 font-medium transition-all duration-200 shadow-sm
             ${activePage === 'swipe'
               ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
               : 'border-gray-300 text-gray-700 bg-white hover:border-gray-400 hover:text-indigo-600 hover:bg-gray-50'
@@ -119,7 +120,7 @@ const Header: React.FC = () => {
 
       {/* Profile & Notifications */}
       <div className="flex items-center gap-3">
-        {/* Notification Dropdown (temporary, floating) */}
+        {/* Notification Dropdown (temporary, floating) */} 
         <NotificationDropdown
           notification={latestNotification}
           visible={dropdownVisible}
@@ -164,6 +165,9 @@ const Header: React.FC = () => {
             <ProfileMenu onClose={() => setShowProfileMenu(false)} />
           )}
         </div>
+
+        {/* Mobile Hamburger Menu */}
+        <MobileNavigation />
       </div>
     </header>
   );

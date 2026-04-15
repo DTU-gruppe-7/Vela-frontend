@@ -31,7 +31,7 @@ const Navigation: React.FC = () => {
   const activePage = getActivePage();
 
   return (
-    <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+    <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-2">
       {navItems.map((item) => (
         <a
           key={item.key}
