@@ -228,7 +228,6 @@ export function useMealPlan(
         [toDateKey]: (prev[toDateKey] || []).filter((entry) => entry.id !== entryId),
         [fromDateKey]: [...(prev[fromDateKey] || []), entryToMove],
       }));
-      setError('Kunne ikke flytte opskriften til en anden dag');
       throw new Error('MOVE_ENTRY_FAILED');
     }
   }, [mealPlan, mealPlanId]);
