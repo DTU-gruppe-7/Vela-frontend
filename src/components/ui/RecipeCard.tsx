@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { FaClock, FaHeart, FaRegHeart } from 'react-icons/fa';
 import type { RecipeSummary } from '../../types/Recipe';
 
@@ -20,6 +21,7 @@ interface RecipeCardProps {
     recipe: RecipeSummary;
     isFavorite?: boolean;
     compact?: boolean;
+    onClick?: () => void;
     onToggleFavorite?: (id: string) => void;
     onRemove?: () => void;
     onCategoryClick?: (category: string) => void;
@@ -34,6 +36,7 @@ function RecipeCard({
     recipe,
     isFavorite = false,
     compact = false,
+    onClick,
     onToggleFavorite,
     onRemove,
     onCategoryClick,
@@ -43,6 +46,15 @@ function RecipeCard({
     showTime = true,
     showCategory = true,
 }: RecipeCardProps) {
+    const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+        if (!onClick) return;
+
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            onClick();
+        }
+    };
+
     const keywords: string[] = recipe.keywordsJson
         ? JSON.parse(recipe.keywordsJson)
         : [];
@@ -56,7 +68,14 @@ function RecipeCard({
         topRightContent;
 
     return (
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group">
+        <div
+            onClick={onClick}
+            onKeyDown={handleCardKeyDown}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            aria-label={onClick ? `Open recipe ${recipe.name}` : undefined}
+            className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group ${onClick ? 'cursor-pointer' : ''}`}
+        >
             {/* Image with title overlay */}
             <div className={`relative overflow-hidden ${compact ? 'h-48 sm:h-32' : 'h-56'}`}>
                 {recipe.thumbnailUrl ? (
