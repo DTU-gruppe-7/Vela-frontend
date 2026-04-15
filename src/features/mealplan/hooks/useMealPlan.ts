@@ -217,9 +217,30 @@ export function useMealPlan(
     }));
 
     try {
-      // Persist move atomically by updating the existing entry date.
-      await mealplanApi.updateEntry(mealPlanId, entryId, {
-        date: toDateKey,
+      await mealplanApi.removeEntry(mealPlanId, entryId);
+      const createdEntry = await mealplanApi.addEntry(
+        mealPlanId,
+        entryToMove.recipeId,
+        toDateKey,
+        entryToMove.mealType,
+        entryToMove.servings,
+      );
+
+      // Update state with backend entry (which may have different ID)
+      setMealPlan((prev) => {
+        const newState = { ...prev };
+        // Remove optimistic entry (with old ID) from targetDateKey
+        newState[toDateKey] = (prev[toDateKey] || []).filter((entry) => entry.id !== entryId);
+        // Add backend entry with new ID
+        newState[toDateKey] = [
+          ...newState[toDateKey],
+          {
+            ...createdEntry,
+            recipe: createdEntry.recipe ?? entryToMove.recipe,
+            addedToShoppingList: createdEntry.addedToShoppingList ?? entryToMove.addedToShoppingList,
+          }
+        ];
+        return newState;
       });
     } catch {
       // Rollback if backend update fails.

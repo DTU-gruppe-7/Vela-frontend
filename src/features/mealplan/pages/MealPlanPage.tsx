@@ -674,6 +674,7 @@ function DayColumn({
                     draggable={isDraggable}
                     onDragStart={(event) => {
                       event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', String(entry.id)); // For Safari og Firefox
                       onDragStartEntry(entry.id, dateKey);
                     }}
                     onDragEnd={onDragEndEntry}
