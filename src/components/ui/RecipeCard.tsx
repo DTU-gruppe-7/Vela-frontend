@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { FaClock, FaHeart, FaRegHeart } from 'react-icons/fa';
 import type { RecipeSummary } from '../../types/Recipe';
 
@@ -45,6 +46,15 @@ function RecipeCard({
     showTime = true,
     showCategory = true,
 }: RecipeCardProps) {
+    const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+        if (!onClick) return;
+
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            onClick();
+        }
+    };
+
     const keywords: string[] = recipe.keywordsJson
         ? JSON.parse(recipe.keywordsJson)
         : [];
@@ -60,6 +70,10 @@ function RecipeCard({
     return (
         <div
             onClick={onClick}
+            onKeyDown={handleCardKeyDown}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            aria-label={onClick ? `Open recipe ${recipe.name}` : undefined}
             className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group ${onClick ? 'cursor-pointer' : ''}`}
         >
             {/* Image with title overlay */}

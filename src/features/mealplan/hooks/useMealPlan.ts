@@ -217,28 +217,10 @@ export function useMealPlan(
     }));
 
     try {
-      await mealplanApi.removeEntry(mealPlanId, entryId);
-      const createdEntry = await mealplanApi.addEntry(
-        mealPlanId,
-        entryToMove.recipeId,
-        toDateKey,
-        entryToMove.mealType,
-        entryToMove.servings,
-      );
-
-      // Replace optimistic entry with backend entry (new id), but keep recipe data for smooth UI.
-      setMealPlan((prev) => ({
-        ...prev,
-        [toDateKey]: (prev[toDateKey] || []).map((entry) =>
-          entry.id === entryId
-            ? {
-                ...createdEntry,
-                recipe: createdEntry.recipe ?? entryToMove.recipe,
-                addedToShoppingList: createdEntry.addedToShoppingList ?? entryToMove.addedToShoppingList,
-              }
-            : entry,
-        ),
-      }));
+      // Persist move atomically by updating the existing entry date.
+      await mealplanApi.updateEntry(mealPlanId, entryId, {
+        date: toDateKey,
+      });
     } catch {
       // Rollback if backend update fails.
       setMealPlan((prev) => ({
