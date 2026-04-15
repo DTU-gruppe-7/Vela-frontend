@@ -197,6 +197,60 @@ export function useMealPlan(
     } catch { setError('Kunne ikke fjerne'); }
   }, [mealPlanId]);
 
+  const moveEntry = useCallback(async (entryId: string, fromDateKey: string, toDateKey: string) => {
+    if (!mealPlanId || fromDateKey === toDateKey) return;
+
+    const sourceEntries = mealPlan[fromDateKey] || [];
+    const entryToMove = sourceEntries.find((entry) => entry.id === entryId);
+    if (!entryToMove) return;
+
+    const movedEntry: MealPlanEntry = {
+      ...entryToMove,
+      date: toDateKey,
+    };
+
+    // Optimistic move in UI.
+    setMealPlan((prev) => ({
+      ...prev,
+      [fromDateKey]: (prev[fromDateKey] || []).filter((entry) => entry.id !== entryId),
+      [toDateKey]: [...(prev[toDateKey] || []), movedEntry],
+    }));
+
+    try {
+      await mealplanApi.removeEntry(mealPlanId, entryId);
+      const createdEntry = await mealplanApi.addEntry(
+        mealPlanId,
+        entryToMove.recipeId,
+        toDateKey,
+        entryToMove.mealType,
+        entryToMove.servings,
+      );
+
+      // Replace optimistic entry with backend entry (new id), but keep recipe data for smooth UI.
+      setMealPlan((prev) => ({
+        ...prev,
+        [toDateKey]: (prev[toDateKey] || []).map((entry) =>
+          entry.id === entryId
+            ? {
+                ...createdEntry,
+                recipe: createdEntry.recipe ?? entryToMove.recipe,
+                addedToShoppingList: createdEntry.addedToShoppingList ?? entryToMove.addedToShoppingList,
+              }
+            : entry,
+        ),
+      }));
+    } catch {
+      // Rollback if backend update fails.
+      setMealPlan((prev) => ({
+        ...prev,
+        [toDateKey]: (prev[toDateKey] || []).filter((entry) => entry.id !== entryId),
+        [fromDateKey]: [...(prev[fromDateKey] || []), entryToMove],
+      }));
+      setError('Kunne ikke flytte opskriften til en anden dag');
+      throw new Error('MOVE_ENTRY_FAILED');
+    }
+  }, [mealPlan, mealPlanId]);
+
   const removeFromShoppingList = useCallback(async (
     shoppingListId: string,
     targetMealPlanId: string,
@@ -245,6 +299,7 @@ export function useMealPlan(
     likedIds, 
     addRecipe, 
     removeRecipe, 
+    moveEntry,
     updateServings,
     removeFromShoppingList,
     markEntriesAsAddedToShoppingList,

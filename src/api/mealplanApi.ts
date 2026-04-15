@@ -8,6 +8,12 @@ interface GetMealPlanParams {
   endDate?: string;
 }
 
+interface UpdateMealPlanEntryPayload {
+  date?: string;
+  mealType?: string;
+  servings?: number;
+}
+
 export const mealplanApi = {
   // Hent alle madplaner for brugeren
   getMealPlan: async (params?: GetMealPlanParams): Promise<MealPlan | null> => {
@@ -80,9 +86,22 @@ export const mealplanApi = {
     servings: number
   ): Promise<void> => {
     try {
-      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, { servings });
+      await mealplanApi.updateEntry(mealplanId, entryId, { servings });
     } catch (error) {
       console.error('Fejl ved opdatering af antal personer:', error);
+      throw error;
+    }
+  },
+
+  updateEntry: async (
+    mealplanId: string,
+    entryId: string,
+    payload: UpdateMealPlanEntryPayload
+  ): Promise<void> => {
+    try {
+      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, payload);
+    } catch (error) {
+      console.error('Fejl ved opdatering af madplans-entry:', error);
       throw error;
     }
   }

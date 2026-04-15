@@ -44,6 +44,9 @@ export default function MealPlanPage() {
   const [pendingServingsChange, setPendingServingsChange] = useState<{ entry: MealPlanEntry; newServings: number } | null>(null);
   const [isApplyingServingsChange, setIsApplyingServingsChange] = useState(false);
   const [servingsChangeError, setServingsChangeError] = useState<string | null>(null);
+  const [draggedEntry, setDraggedEntry] = useState<{ entryId: string; fromDateKey: string } | null>(null);
+  const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
+  const [dragMoveError, setDragMoveError] = useState<string | null>(null);
   const groups = usePersonalGroups(isPersonalView);
   const { shoppingList } = useShoppingList(groupId);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
@@ -71,6 +74,7 @@ export default function MealPlanPage() {
     mealPlanId,
     addRecipe,
     removeRecipe,
+    moveEntry,
     updateServings,
     removeFromShoppingList,
     markEntriesAsAddedToShoppingList,
@@ -227,6 +231,38 @@ export default function MealPlanPage() {
     }
   }, [showViewModeDropdown]);
 
+  const handleDragStartEntry = (entryId: string, fromDateKey: string) => {
+    setDraggedEntry({ entryId, fromDateKey });
+    setDragMoveError(null);
+  };
+
+  const handleDragEnterDay = (dateKey: string) => {
+    if (!draggedEntry) return;
+    setDragOverDateKey(dateKey);
+  };
+
+  const handleDragEndEntry = () => {
+    setDraggedEntry(null);
+    setDragOverDateKey(null);
+  };
+
+  const handleDropOnDay = async (targetDateKey: string) => {
+    if (!draggedEntry) return;
+
+    const { entryId, fromDateKey } = draggedEntry;
+    setDraggedEntry(null);
+    setDragOverDateKey(null);
+
+    if (fromDateKey === targetDateKey) return;
+
+    try {
+      await moveEntry(entryId, fromDateKey, targetDateKey);
+      setDragMoveError(null);
+    } catch {
+      setDragMoveError('Kunne ikke flytte opskriften. Prøv igen.');
+    }
+  };
+
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
@@ -340,6 +376,12 @@ export default function MealPlanPage() {
                 </div>
             )}
 
+            {dragMoveError && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                ⚠️ {dragMoveError}
+              </div>
+            )}
+
             {/* Horisontal uge-oversigt */}
             <div 
                 className="relative overflow-hidden border-2 border-slate-200 rounded-2xl shadow-xl bg-white"
@@ -368,7 +410,12 @@ export default function MealPlanPage() {
                                     date={date}
                                     dateKey={dateKey}
                                     entries={visibleEntries}
-                                  onRecipeClick={(recipeId) => navigate(`/recipes/${recipeId}`)}
+                                    isDropTarget={dragOverDateKey === dateKey}
+                                    onDragStartEntry={handleDragStartEntry}
+                                    onDragEnterDay={handleDragEnterDay}
+                                    onDragEndEntry={handleDragEndEntry}
+                                    onDropOnDay={handleDropOnDay}
+                                    onRecipeClick={(recipeId) => navigate(`/recipes/${recipeId}`)}
                                     onRemoveRecipe={removeRecipe}
                                     onUpdateServings={handleRequestServingsChange}
                                     onRequestRemoveFromShoppingList={handleRequestRemoveFromShoppingList}
@@ -523,7 +570,12 @@ function DayColumn({
                        date,
                        dateKey,
                        entries,
+                       isDropTarget,
                        isPersonalView,
+                       onDragStartEntry,
+                       onDragEnterDay,
+                       onDragEndEntry,
+                       onDropOnDay,
                        onRecipeClick,
                        onRemoveRecipe,
                        onUpdateServings,
@@ -540,7 +592,12 @@ function DayColumn({
     date: Date;
     dateKey: string;
     entries: MealPlanEntry[];
+    isDropTarget: boolean;
     isPersonalView: boolean;
+    onDragStartEntry: (entryId: string, fromDateKey: string) => void;
+    onDragEnterDay: (dateKey: string) => void;
+    onDragEndEntry: () => void;
+    onDropOnDay: (dateKey: string) => void;
     onRecipeClick: (recipeId: string) => void;
     onRemoveRecipe: (dateKey: string, recipeId: string) => void;
     onUpdateServings: (entry: MealPlanEntry, newServings: number) => void;
@@ -592,7 +649,15 @@ function DayColumn({
           </button>
         </div>
       </div>
-      <div className="p-4 flex flex-col min-h-96 bg-white">
+      <div
+        className={`p-4 flex flex-col min-h-96 transition-colors ${isDropTarget ? 'bg-indigo-50/60' : 'bg-white'}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDragEnter={() => onDragEnterDay(dateKey)}
+        onDrop={(event) => {
+          event.preventDefault();
+          onDropOnDay(dateKey);
+        }}
+      >
         {entries.length > 0 ? (
           <>
             <div className="flex flex-col gap-4">
@@ -601,8 +666,18 @@ function DayColumn({
                 const isEditable = !isPersonalView || entry.source !== 'group';
                 const canRemoveFromShoppingList =
                   entry.addedToShoppingList && (!isPersonalView || entry.source !== 'group');
+                const isDraggable = isEditable;
                 return (
-                  <div key={entry.id} className="relative">
+                  <div
+                    key={entry.id}
+                    className={`relative ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                    draggable={isDraggable}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'move';
+                      onDragStartEntry(entry.id, dateKey);
+                    }}
+                    onDragEnd={onDragEndEntry}
+                  >
                     <RecipeCard
                       recipe={entry.recipe!}
                       compact
@@ -649,6 +724,27 @@ function DayColumn({
                                                         getSourceDotColor(entry)
                           }`}
                         />
+                        {entry.source === 'group' && (
+                          <span
+                            className="inline-flex items-center text-slate-400"
+                            title="Denne opskrift kommer fra en gruppe. Gå til gruppens madplan for at ændre den."
+                            aria-label="Låst gruppeopskrift"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <rect x="5" y="11" width="14" height="10" rx="2" />
+                              <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                            </svg>
+                          </span>
+                        )}
                         <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
                           {entry.source === 'group'
                             ? entry.sourceGroupName || 'Gruppe'
