@@ -1,12 +1,13 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { recipeApi } from '../../../api/recipeApi'
 import type { RecipeSummary } from '../../../types/Recipe'
-import { RecipeCarousel } from '../widgets/RecipeCarousel'
+import { MostLikedRecipesWidget } from '../../home/widgets/MostLikedWidget'
 import { Guide } from '../widgets/GuideComponent'
 import velaLogo from '../../../assets/vela-logo.svg'
 
 export const LandingPage = () => {
+    const navigate = useNavigate();
 
     const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
     const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export const LandingPage = () => {
     useEffect(() => {
         const loadRecipes = async () => {
             try {
-                const data = await recipeApi.getMostLikedRecipes(3);
+                const data = await recipeApi.getMostLikedRecipes(10);
                 setRecipes(data);
             } catch {
                 setError('Kunne ikke hente opskrifter');
@@ -66,7 +67,12 @@ export const LandingPage = () => {
                         </p>
                         {loading && <p className="text-slate-400 text-sm">Indlæser...</p>}
                         {error && <p className="text-red-400 text-sm">{error}</p>}
-                        {!loading && !error && <RecipeCarousel recipes={recipes} />}
+                        {!loading && !error && (
+                            <MostLikedRecipesWidget
+                                recipes={recipes}
+                                onRecipeClick={() => navigate('/login')}
+                            />
+                        )}
                     </section>
 
                 </div>
