@@ -10,9 +10,20 @@ interface ItemsSectionProps {
   onToggle: (id: string) => Promise<void> | void;
   onRemove: (id: string) => Promise<void> | void;
   onRemoveGroup: (itemIds: string[]) => Promise<void> | void;
+  showAssignment?: boolean;
+  assignees?: { userId: string; label: string }[];
+  onAssign?: (itemId: string, assignedUserId: string | null) => Promise<void> | void;
 }
 
-function ItemsSection({ items, onToggle, onRemove, onRemoveGroup }: ItemsSectionProps) {
+function ItemsSection({
+  items,
+  onToggle,
+  onRemove,
+  onRemoveGroup,
+  showAssignment = false,
+  assignees = [],
+  onAssign,
+}: ItemsSectionProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const groupedCategories = useMemo(() => groupItemsByCategory(items), [items]);
@@ -48,7 +59,17 @@ function ItemsSection({ items, onToggle, onRemove, onRemoveGroup }: ItemsSection
             {category.groups.map((group) => {
               if (group.items.length === 1) {
                 const item = group.items[0];
-                return <ShoppingItem key={item.id} item={item} onToggle={onToggle} onRemove={onRemove} />;
+                return (
+                  <ShoppingItem
+                    key={item.id}
+                    item={item}
+                    onToggle={onToggle}
+                    onRemove={onRemove}
+                    showAssignment={showAssignment}
+                    assignees={assignees}
+                    onAssign={onAssign}
+                  />
+                );
               }
 
               const isExpanded = !!expandedGroups[group.key];
@@ -105,7 +126,15 @@ function ItemsSection({ items, onToggle, onRemove, onRemoveGroup }: ItemsSection
                   {isExpanded && (
                     <div className="ml-8 flex flex-col gap-2 pb-2 pr-2">
                       {group.items.map((item) => (
-                        <ShoppingItem key={item.id} item={item} onToggle={onToggle} onRemove={onRemove} />
+                        <ShoppingItem
+                          key={item.id}
+                          item={item}
+                          onToggle={onToggle}
+                          onRemove={onRemove}
+                          showAssignment={showAssignment}
+                          assignees={assignees}
+                          onAssign={onAssign}
+                        />
                       ))}
                     </div>
                   )}

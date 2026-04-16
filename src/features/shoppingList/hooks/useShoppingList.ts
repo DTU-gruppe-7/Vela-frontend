@@ -112,6 +112,34 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
+    const assignItem = useCallback(async (itemId: string, assignedUserId: string | null) => {
+        if (!shoppingList || !itemId) return;
+
+        const currentItem = (shoppingList.items ?? []).find((item) => item.id === itemId);
+        if (!currentItem) return;
+
+        const updatedItem: ShoppingListItem = {
+            ...currentItem,
+            assignedUserId,
+        };
+
+        setShoppingList((prev) => prev
+            ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? updatedItem : item) }
+            : prev
+        );
+
+        try {
+            await shoppingListApi.updateItem(shoppingList.id, itemId, updatedItem);
+        } catch (err) {
+            console.error('Error assigning item: ', err);
+            setError('Kunne ikke tildele varen.');
+            setShoppingList((prev) => prev
+                ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? currentItem : item) }
+                : prev
+            );
+        }
+    }, [shoppingList]);
+
     return {
         shoppingList,
         loading,
@@ -119,6 +147,7 @@ export function useShoppingList(groupId?: string) {
         addItem,
         toogleItem,
         removeItem,
+        assignItem,
         refetch: fetchShoppingList,
     };
 }
