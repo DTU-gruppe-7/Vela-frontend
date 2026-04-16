@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import RecipeCard from '../../../components/ui/RecipeCard';
-import type { RecipeSummary } from '../../../types/Recipe'
+import RecipeCard from './RecipeCard';
+import type { RecipeSummary } from '../../types/Recipe'
 
 interface Props{
     recipes: RecipeSummary[];
@@ -18,8 +18,9 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastTimeRef = useRef<number | null>(null);
 
-    // Duplicate recipes for seamless looping
-    const loopedRecipes = [...recipes, ...recipes];
+    // Fill up to 25 recipes by repeating, then duplicate for seamless looping
+    const filled = recipes.length === 0 ? [] : Array.from({ length: Math.min(25, recipes.length) }, (_, i) => recipes[i % recipes.length]);
+    const loopedRecipes = [...filled, ...filled];
 
     useEffect(() => {
         const track = trackRef.current;
