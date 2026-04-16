@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { recipeApi } from '../../../api/recipeApi'
 import type { RecipeSummary } from '../../../types/Recipe'
-import { MostLikedRecipesWidget } from '../../home/widgets/MostLikedWidget'
+import { MostLikedRecipesWidget } from '../../../components/ui/MostLikedWidget'
 import { Guide } from '../widgets/GuideComponent'
 import velaLogo from '../../../assets/vela-logo.svg'
 
