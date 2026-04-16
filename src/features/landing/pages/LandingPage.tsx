@@ -37,15 +37,26 @@ export const LandingPage = () => {
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;
                 }
+                html {
+                    scroll-behavior: smooth;
+                }
             `}</style>
-            <div className="flex min-h-screen flex-col-reverse lg:flex-row lg:h-screen lg:overflow-hidden bg-stone-50">
+            <div className="flex min-h-screen flex-col lg:flex-row lg:h-screen lg:overflow-hidden bg-stone-50">
 
                 {/* Venstre side — indhold */}
                 <div className="hide-scrollbar w-full lg:w-2/3 lg:overflow-y-auto px-8 sm:px-12 py-14 space-y-8">
 
-                    {/* Logo */}
-                    <div className="w-24 sm:w-28">
-                        <img src={velaLogo} alt="Vela logo" className="w-full h-auto" />
+                    {/* Logo + mobil log ind-knap */}
+                    <div className="flex items-center justify-between">
+                        <div className="w-24 sm:w-28">
+                            <img src={velaLogo} alt="Vela logo" className="w-full h-auto" />
+                        </div>
+                        <a
+                            href="#login"
+                            className="lg:hidden text-sm font-semibold text-slate-700 border border-slate-300 rounded-lg px-4 py-2 hover:bg-slate-100 transition-colors"
+                        >
+                            Log ind
+                        </a>
                     </div>
 
                     {/* Hero */}
@@ -78,7 +89,7 @@ export const LandingPage = () => {
                 </div>
 
                 {/* Højre side — auth */}
-                <div className="flex w-full items-start justify-center bg-white border-l border-slate-200 lg:w-1/3 lg:items-center">
+                <div id="login" className="flex w-full items-start justify-center bg-white border-l border-slate-200 lg:w-1/3 lg:items-center">
                     <div className="w-full p-8 lg:p-10">
                         <Outlet />
                     </div>
