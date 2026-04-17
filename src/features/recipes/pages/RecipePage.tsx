@@ -8,6 +8,14 @@ import CategoryFilter from '../../../components/ui/CategoryFilter';
 import { useNavigate } from 'react-router-dom';
 import { useLikedRecipes } from '../../mealplan/hooks/useLikedRecipes';
 
+type ExcludeAllergen = 'gluten' | 'lactose' | 'nuts';
+
+const ALLERGEN_FILTERS: Array<{ value: ExcludeAllergen; label: string }> = [
+    { value: 'gluten', label: 'Gluten' },
+    { value: 'lactose', label: 'Laktose' },
+    { value: 'nuts', label: 'Nødder' },
+];
+
 function RecipePage() {
     const [allRecipes, setAllRecipes] = useState<RecipeSummary[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,9 +28,22 @@ function RecipePage() {
     const [activeCategory, setActiveCategory] = useState('Alle');
     const [activeKeyword, setActiveKeyword] = useState('Alle');
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+    const [excludeFilters, setExcludeFilters] = useState<ExcludeAllergen[]>([]);
     const [showKeywordDropdown, setShowKeywordDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+
+    const toggleExcludeFilter = (filter: ExcludeAllergen) => {
+        setExcludeFilters((prev) =>
+            prev.includes(filter)
+                ? prev.filter((value) => value !== filter)
+                : [...prev, filter],
+        );
+    };
+
+    const clearExcludeFilters = () => {
+        setExcludeFilters([]);
+    };
 
     // Luk dropdown ved klik udenfor
     useEffect(() => {
@@ -35,16 +56,11 @@ function RecipePage() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Hent ALLE opskrifter én gang
-    useEffect(() => {
-        fetchAllRecipes();
-    }, []);
-
     const fetchAllRecipes = async () => {
         try {
             setLoading(true);
             setError(null);
-            const data = await recipeApi.getAllRecipes();
+            const data = await recipeApi.getAllRecipes({ exclude: excludeFilters });
             setAllRecipes(data);
         } catch (err) {
             setError('Kunne ikke hente opskrifter. Prøv igen senere.');
@@ -53,6 +69,11 @@ function RecipePage() {
             setLoading(false);
         }
     };
+
+    // Hent ALLE opskrifter én gang
+    useEffect(() => {
+        fetchAllRecipes();
+    }, [excludeFilters]);
 
     const handlePageSizeChange = (newSize: number) => {
         setPageSize(newSize);
@@ -86,6 +107,15 @@ function RecipePage() {
     // Filtrering på tværs af ALLE opskrifter
     const filteredRecipes = useMemo(() => {
         return allRecipes.filter((recipe) => {
+            let recipeKeywords: string[] = [];
+            if (recipe.keywordsJson) {
+                try {
+                    recipeKeywords = JSON.parse(recipe.keywordsJson) as string[];
+                } catch {
+                    recipeKeywords = [];
+                }
+            }
+
             const matchesSearch =
                 !searchQuery ||
                 recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -93,8 +123,7 @@ function RecipePage() {
                 activeCategory === 'Alle' || recipe.category === activeCategory;
             const matchesKeyword =
                 activeKeyword === 'Alle' ||
-                (recipe.keywordsJson &&
-                    (JSON.parse(recipe.keywordsJson) as string[]).includes(activeKeyword));
+                recipeKeywords.includes(activeKeyword);
             const matchesFavorites = !showFavoritesOnly || favoriteIds.has(recipe.id);
             return matchesSearch && matchesCategory && matchesKeyword && matchesFavorites;
         });
@@ -107,7 +136,7 @@ function RecipePage() {
     // Nulstil side når filtre ændres
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, activeCategory, activeKeyword, showFavoritesOnly, pageSize]);
+    }, [searchQuery, activeCategory, activeKeyword, showFavoritesOnly, pageSize, excludeFilters]);
 
     const paginatedRecipes = useMemo(() => {
         const start = (currentPage - 1) * pageSize;
@@ -204,6 +233,34 @@ function RecipePage() {
                     onCategoryChange={setActiveCategory}
                 >
                 </CategoryFilter>
+
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                    <span className="text-sm text-gray-500 mr-1">Filter:</span>
+                    {ALLERGEN_FILTERS.map(({ value, label }) => {
+                        const isActive = excludeFilters.includes(value);
+                        return (
+                            <button
+                                key={value}
+                                type="button"
+                                onClick={() => toggleExcludeFilter(value)}
+                                className={`px-3 py-1.5 text-sm rounded-full border transition ${isActive
+                                        ? 'bg-orange-500 text-white border-orange-500'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'
+                                    }`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                    <button
+                        type="button"
+                        onClick={clearExcludeFilters}
+                        disabled={excludeFilters.length === 0}
+                        className="ml-auto px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        Clear filters
+                    </button>
+                </div>
 
                 {/* Page size selector + Liked Recipes button */}
                 <div className="flex items-center justify-between mb-8">
@@ -355,7 +412,7 @@ function RecipePage() {
                 {!loading && !error && (
                     <p className="text-center text-sm text-gray-400 mt-4">
                         Viser {paginatedRecipes.length} af {totalCount} opskrifter
-                        {(searchQuery || activeCategory !== 'Alle' || activeKeyword !== 'Alle' || showFavoritesOnly) &&
+                        {(searchQuery || activeCategory !== 'Alle' || activeKeyword !== 'Alle' || showFavoritesOnly || excludeFilters.length > 0) &&
                             ` (${allRecipes.length} total)`}
                     </p>
                 )}

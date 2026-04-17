@@ -18,7 +18,7 @@ const navigate = useNavigate();
             try {
                 /*setLoadingMostLiked(true);
                 setMostLikedError(null);*/
-                const data = await recipeApi.getMostLikedRecipes(25);
+                const data = await recipeApi.getMostLikedRecipes({ limit: 25 });
                 setMostLikedRecipes(data);
             } catch {
                 /*setMostLikedError('Kunne ikke hente populære opskrifter');*/

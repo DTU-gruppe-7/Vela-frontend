@@ -16,7 +16,7 @@ export const LandingPage = () => {
     useEffect(() => {
         const loadRecipes = async () => {
             try {
-                const data = await recipeApi.getMostLikedRecipes(10);
+                const data = await recipeApi.getMostLikedRecipes({ limit: 10 });
                 setRecipes(data);
             } catch {
                 setError('Kunne ikke hente opskrifter');
