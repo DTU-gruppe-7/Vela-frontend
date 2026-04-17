@@ -1,15 +1,44 @@
+import axios from 'axios';
 import axiosClient from './axiosClient';
 import type { MealPlanEntry, MealPlan } from '../types/MealPlan';
 
+interface GetMealPlanParams {
+  groupId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+interface UpdateMealPlanEntryPayload {
+  date?: string;
+  mealType?: string;
+  servings?: number;
+}
+
 export const mealplanApi = {
   // Hent alle madplaner for brugeren
-  getMealPlan: async (groupId?: string): Promise<MealPlan | null> => { 
+  getMealPlan: async (params?: GetMealPlanParams): Promise<MealPlan | null> => {
     try {
-      // Hvis groupId findes, tilføjes den som query param (?groupId=...)
-      const url = groupId ? `/MealPlan?groupId=${groupId}` : '/MealPlan';
+      const queryParams = new URLSearchParams();
+
+      if (params?.groupId) {
+        queryParams.append('groupId', params.groupId);
+      }
+      if (params?.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      if (params?.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `/MealPlan?${queryString}` : '/MealPlan';
+
       const response = await axiosClient.get<MealPlan>(url);
-      return response.data;
+      return response.data ?? null;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
       console.error('Fejl ved hentning af madplaner:', error);
       throw error;
     }
@@ -57,9 +86,22 @@ export const mealplanApi = {
     servings: number
   ): Promise<void> => {
     try {
-      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, { servings });
+      await mealplanApi.updateEntry(mealplanId, entryId, { servings });
     } catch (error) {
       console.error('Fejl ved opdatering af antal personer:', error);
+      throw error;
+    }
+  },
+
+  updateEntry: async (
+    mealplanId: string,
+    entryId: string,
+    payload: UpdateMealPlanEntryPayload
+  ): Promise<void> => {
+    try {
+      await axiosClient.put(`/MealPlan/${mealplanId}/entries/${entryId}`, payload);
+    } catch (error) {
+      console.error('Fejl ved opdatering af madplans-entry:', error);
       throw error;
     }
   }

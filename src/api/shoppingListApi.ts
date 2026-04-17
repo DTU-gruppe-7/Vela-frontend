@@ -1,46 +1,37 @@
 import axiosClient from './axiosClient';
+import axios from 'axios';
 import type {
   ShoppingList,
   ShoppingListItem,
-  ShoppingListCreate,
-  AddShoppingListItem
+  AddShoppingListItem,
+  IngredientSearchResult,
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
-  /** Fetch the personal shopping list (no groupId) */
-  getPersonalShoppingList: async (): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(`/shoppingList`);
+  /**
+   * Hent indkøbsliste. Hvis groupId er angivet, hentes gruppens, ellers den personlige.
+   */
+  getShoppingList: async (groupId?: string): Promise<ShoppingList> => {
+    const url = groupId ? `/shoppingList?groupId=${groupId}` : '/shoppingList';
+    const response = await axiosClient.get<ShoppingList>(url);
     return response.data;
   },
 
-  /** Fetch the shopping list for a specific group */
-  getGroupShoppingList: async (groupId: string): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(
-        `/shoppingList`,
-        { params: { groupId } },
+  /** Search ingredients for autocomplete */
+  searchIngredients: async (
+    query: string,
+    limit = 10,
+  ): Promise<IngredientSearchResult[]> => {
+    const response = await axiosClient.get<IngredientSearchResult[]>(
+      '/Ingredients/search',
+      {
+        params: {
+          query,
+          limit,
+        },
+      },
     );
     return response.data;
-  },
-
-  getShoppingList: async (id: string): Promise<ShoppingList> => {
-    const response = await axiosClient.get<ShoppingList>(
-        `/shoppingList/${id}`,
-    );
-    return response.data;
-  },
-
-  createShoppingList: async(data: ShoppingListCreate): Promise<ShoppingList> => {
-    const response = await axiosClient.post<ShoppingList>(
-        `/shoppingList`,
-        data,
-    );
-    return response.data;
-  },
-
-  deleteShoppingList: async (id: string): Promise<void> => {
-    await axiosClient.delete(
-        `/shoppingList/${id}`
-    )
   },
 
   /** Add a new item to the shoppingList list */
@@ -74,24 +65,79 @@ export const shoppingListApi = {
   },
 
   /** Generér indkøbsliste fra en madplan */
-  generateShoppingList: async (
-      mealPlanId: string,
-      existingListId?: string,
-      groupId?: string
-  ): Promise<ShoppingList> => {
+  generateShoppingList: async ({
+      shoppingListId,
+      mealPlanId,
+      startDate,
+      endDate,
+      excludedMealPlanEntryIds = [],
+  }: {
+    shoppingListId: string;
+    mealPlanId: string;
+    startDate: string;
+    endDate: string;
+    excludedMealPlanEntryIds: string[];
+}): Promise<ShoppingList> => {
     try {
-      const params: Record<string, string> = {};
-      if (existingListId) params.existingListId = existingListId;
-      if (groupId) params.groupId = groupId;
-
       const response = await axiosClient.post<ShoppingList>(
-          `/shoppingList/from-mealplan/${mealPlanId}`,
-          null,
-          { params }
+          `/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          { excludedMealPlanEntryIds },
+          {
+            params: { startDate, endDate },
+          }
       );
       return response.data;
     } catch (error) {
       console.error('Fejl ved generering af indkøbsliste:', error);
+      throw error;
+    }
+  },
+    
+  clearAll: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clear`);
+  },
+
+  /** Clear all purchased items from shopping list */
+  clearPurchased: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clear-purchased`);
+  },
+
+  /** Fjern varer tilføjet fra en madplan fra indkøbslisten */
+  removeFromMealPlan: async (
+    shoppingListId: string,
+    mealPlanId: string,
+    mealPlanEntryId: string
+  ): Promise<void> => {
+    try {
+      await axiosClient.delete(`/shoppingList/${shoppingListId}/from-mealplan/${mealPlanId}`,
+          {
+            params: mealPlanEntryId ? { mealPlanEntryId } : undefined,
+          }
+        );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data;
+        const backendMessage =
+          typeof errorData === 'string'
+            ? errorData
+            : typeof errorData?.detail === 'string'
+              ? errorData.detail
+              : typeof errorData?.title === 'string'
+                ? errorData.title
+            : undefined;
+        throw new Error(backendMessage || `REMOVE_FROM_MEALPLAN_FAILED:${error.response?.status ?? 'unknown'}`);
+      }
+      throw error;
+    }
+  },
+
+  assignItem: async (shoppingListId: string, itemId: string, userId: string | null): Promise<void> => {
+    try {
+      await axiosClient.patch(`/shoppingList/${shoppingListId}/items/${itemId}/assign`, {
+        userId
+      });
+    } catch (error) {
+      console.error('Fejl ved tildeling af vare:', error);
       throw error;
     }
   },

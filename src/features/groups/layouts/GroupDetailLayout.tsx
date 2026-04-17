@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
-import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiLoader } from 'react-icons/fi';
+import { FiCalendar, FiShoppingCart, FiHeart, FiChevronLeft, FiSettings, FiUsers } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
 import { type Group } from '../../../types/Group';
+import { useAuth } from '../../../hooks/useAuth';
+import { getCurrentUserGroupRole } from '../../../utils/groupAccess';
 
 const GroupDetailLayout: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
     const location = useLocation();
+    const { user } = useAuth();
 
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const currentRole = getCurrentUserGroupRole(group, user?.id, user?.userId, user?.email);
+    const isOwner = currentRole === 'owner';
 
     useEffect(() => {
         const fetchGroup = async () => {
@@ -29,17 +35,18 @@ const GroupDetailLayout: React.FC = () => {
     }, [groupId]);
 
     const groupName = group?.name || (isLoading ? "Henter..." : "Ukendt Gruppe");
-
     const navItems = [
         { label: 'Madplan', path: 'mealplan', icon: <FiCalendar /> },
         { label: 'Indkøbslister', path: 'shoppinglist', icon: <FiShoppingCart /> },
-        { label: 'Liked Recipes', path: 'liked-recipes', icon: <FiHeart /> },
+        { label: 'Medlemmer', path: 'members', icon: <FiUsers /> },
+        { label: 'Matches', path: 'liked-recipes', icon: <FiHeart /> },
+        ...(isOwner ? [{ label: 'Administrer gruppe', path: 'manage', icon: <FiSettings /> }] : []),
     ];
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 flex">
-            {/* Sidebar - Fast i venstre side og korrekt højde under headeren */}
-            <aside className="fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white z-40 flex flex-col">
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 flex items-start">
+            {/* Sidebar - Sticky, stopper naturligt ved footeren - Skjult på mobil */}
+            <aside className="hidden md:flex sticky top-16 w-64 h-[calc(100vh-4rem)] bg-white z-40 flex flex-col flex-shrink-0 self-start border-r border-slate-100">
                 <div className="p-6 flex-1">
                     <p className="text-[10px] uppercase font-bold text-slate-300 tracking-[0.2em] mb-10 px-2">Menu</p>
                     
@@ -65,32 +72,14 @@ const GroupDetailLayout: React.FC = () => {
                         })}
                     </nav>
                 </div>
-
-                {/* Medlemmer sektion i bunden */}
-                <div className="p-6 pt-4">
-                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-4 px-2">Medlemmer</p>
-                    <div className="flex -space-x-2 px-2">
-                        {isLoading ? (
-                            <FiLoader className="animate-spin text-slate-400 ml-2" />
-                        ) : group?.members && group.members.length > 0 ? (
-                            group.members.slice(0, 5).map((member, i) => (
-                                <div key={member.userId|| i} className="w-9 h-9 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-700 shadow-sm ring-1 ring-orange-200" title={member.userId}>
-                                    U{i + 1}
-                                </div>
-                            ))
-                        ) : (
-                            <span className="text-xs text-slate-400 ml-2">Ingen medlemmer</span>
-                        )}
-                    </div>
-                </div>
             </aside>
 
             {/* Main Content Area - Sømløs baggrund uden luft mod venstremenu */}
-            <main className="flex-1 ml-64 min-h-[calc(100vh-4rem)] bg-slate-50">
-                <div className="pt-6 md:pt-8 pb-0 w-full">
+            <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)] bg-slate-50 pb-20 md:pb-0">
+                <div className="pt-2 md:pt-4 pb-0 w-full">
                     {/* Header */}
-                    <div className="flex items-center gap-5 md:gap-6 mb-8 md:mb-10 px-6 md:px-10 xl:px-14">
-                        <Link 
+                    <div className="flex items-center gap-5 md:gap-6 mb-4 md:mb-6 px-6 md:px-10 xl:px-14">
+                        <Link
                             to="/groups" 
                             className="group flex items-center justify-center w-10 h-10 bg-slate-50 rounded-full text-slate-400 hover:bg-orange-500 hover:text-white transition-all shadow-sm"
                         >
@@ -108,6 +97,35 @@ const GroupDetailLayout: React.FC = () => {
                     </div>
                 </div>
             </main>
+            
+            {/* Mobile Bottom Navigation */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-2 py-2 z-50 flex justify-around items-center h-16 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] focus-within:ring-0">
+                {navItems.map((item) => {
+                    const fullPath = `/groups/${groupId}/${item.path}`;
+                    const isActive = location.pathname.includes(item.path);
+
+                    // Shorten labels for mobile
+                    const mobileLabel = 
+                        item.label === 'Indkøbslister' ? 'Indkøbsliste' : 
+                        item.label === 'Administrer gruppe' ? 'Admin' : 
+                        item.label;
+
+                    return (
+                        <Link
+                            key={item.path}
+                            to={fullPath}
+                            className={`flex flex-col items-center justify-center gap-1 min-w-[64px] transition-all
+                                ${isActive
+                                    ? 'text-orange-500'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            <span className={`text-xl ${isActive ? 'scale-110' : ''} transition-transform`}>{item.icon}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-tight">{mobileLabel}</span>
+                        </Link>
+                    );
+                })}
+            </nav>
         </div>
     );
 };

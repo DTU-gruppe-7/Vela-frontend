@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { shoppingListApi } from "../../../api/shoppingListApi.ts";
 import type { ShoppingList, ShoppingListItem, AddShoppingListItem } from "../../../types/ShoppingList.ts";
 
-export function useShoppingList(id: string | undefined) {
+export function useShoppingList(groupId?: string) {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchShoppingList = useCallback(async () => {
-        if (!id) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await shoppingListApi.getShoppingList(id);
-            // Sikr at items altid er et array
+            const data = await shoppingListApi.getShoppingList(groupId);
             setShoppingList({ ...data, items: data.items ?? [] });
         } catch (err) {
             console.error('Error loading the list: ', err);
@@ -21,15 +19,11 @@ export function useShoppingList(id: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [id]);
+    }, [groupId]);
 
     useEffect(() => {
-        if (!id) {
-            setLoading(true);
-            return;
-        }
         fetchShoppingList();
-    }, [fetchShoppingList, id]);
+    }, [fetchShoppingList, groupId]);
 
     const addItem = useCallback(async (item: AddShoppingListItem) => {
         if (!shoppingList) return;
@@ -50,11 +44,10 @@ export function useShoppingList(id: string | undefined) {
             const savedItem = await shoppingListApi.addItem(shoppingList.id, item);
             setShoppingList(prev => {
                 if (!prev) return prev;
-                const filteredItems = (prev.items ?? []).filter(
-                    i => i.id !== tempItem.id &&
-                        i.ingredientName.toLowerCase() !== savedItem.ingredientName.toLowerCase()
-                )
-                return {...prev, items: [...filteredItems, savedItem]};
+                return {
+                    ...prev,
+                    items: (prev.items ?? []).map(i => i.id === tempItem.id ? savedItem : i),
+                };
             });
         } catch (err) {
             console.error('Error adding item: ', err);
@@ -65,10 +58,10 @@ export function useShoppingList(id: string | undefined) {
                 : prev
             );
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
 
     const toogleItem = useCallback(async (itemId: string) => {
-        if (!shoppingList || !id || !itemId) return;
+        if (!shoppingList || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const item = items.find(i => i.id === itemId);
@@ -83,7 +76,7 @@ export function useShoppingList(id: string | undefined) {
         );
 
         try {
-            await shoppingListApi.updateItem(id, itemId, updatedItem);
+            await shoppingListApi.updateItem(shoppingList.id, itemId, updatedItem);
         } catch (err) {
             console.error('Error updating an item: ', err);
             setError('Kunne ikke opdatere varen.');
@@ -92,10 +85,10 @@ export function useShoppingList(id: string | undefined) {
                 : prev
             );
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
 
     const removeItem = useCallback(async (itemId: string) => {
-        if (!shoppingList || !id || !itemId) return;
+        if (!shoppingList || !itemId) return;
 
         const items = shoppingList.items ?? [];
         const removedItem = items.find(i => i.id === itemId);
@@ -106,7 +99,7 @@ export function useShoppingList(id: string | undefined) {
         );
 
         try {
-            await shoppingListApi.removeItem(id, itemId);
+            await shoppingListApi.removeItem(shoppingList.id, itemId);
         } catch (err) {
             console.error('Error removing the item', err);
             setError('Kunne ikke fjerne varen.');
@@ -117,7 +110,36 @@ export function useShoppingList(id: string | undefined) {
                 );
             }
         }
-    }, [id, shoppingList]);
+    }, [shoppingList]);
+
+    const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
+        if (!shoppingList || !itemId) return;
+
+        const currentItem = (shoppingList.items ?? []).find((item) => item.id === itemId);
+        if (!currentItem) return;
+
+        const updatedItem: ShoppingListItem = {
+            ...currentItem,
+            assignedUserId: userId,
+        };
+
+        setShoppingList((prev) => prev
+            ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? updatedItem : item) }
+            : prev
+        );
+
+        try {
+            await shoppingListApi.assignItem(shoppingList.id, itemId, userId);
+            await fetchShoppingList();
+        } catch (err) {
+            console.error('Error assigning item: ', err);
+            setError('Kunne ikke tildele varen.');
+            setShoppingList((prev) => prev
+                ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? currentItem : item) }
+                : prev
+            );
+        }
+    }, [shoppingList, fetchShoppingList]);
 
     return {
         shoppingList,
@@ -126,6 +148,8 @@ export function useShoppingList(id: string | undefined) {
         addItem,
         toogleItem,
         removeItem,
+        handleAssignMember,
+        assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };
 }

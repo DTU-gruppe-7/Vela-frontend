@@ -2,6 +2,7 @@ import axiosClient from './axiosClient';
 import type { 
     Group,
     CreateGroupRequest,
+    UpdateGroupRequest,
     GroupInvite
  } from '../types/Group';
 import type {Match} from "../types/Match.ts";
@@ -22,6 +23,11 @@ export const groupApi = {
     return response.data;
   },
 
+  updateGroup: async (id: string, data: UpdateGroupRequest): Promise<Group> => {
+    const response = await axiosClient.patch<Group>(`/Group/${id}`, data);
+    return response.data;
+  },
+
   deleteGroup: async (id: string): Promise<void> => {
     await axiosClient.delete(`/Group/${id}`);
   },
@@ -29,13 +35,25 @@ export const groupApi = {
   removeMember: async (id: string, userId: string): Promise<void> => {
     await axiosClient.delete(`/Group/${id}/members/${userId}`);
   },
+    
+  changeRole: async (id: string, userId: string, newRole: 'administrator' | 'member'): Promise<void> => {
+    await axiosClient.patch(`/Group/${id}/members/${userId}/role`, { newRole });
+  },
 
-  getMatches: async (id: string): Promise<Match> => {
-    const response = await axiosClient.get<Match>(`/Group/${id}/matches`);
+  leaveGroup: async (id: string): Promise<void> => {
+    await axiosClient.post(`/Group/${id}/leave`);
+  },
+
+  transferOwnership: async (id: string, newOwnerUserId: string): Promise<void> => {
+    await axiosClient.patch(`/Group/${id}/transfer-ownership`, { newOwnerUserId });
+  },
+
+  getMatches: async (id: string): Promise<Match[]> => {
+    const response = await axiosClient.get<Match[]>(`/Group/${id}/matches`);
     return response.data;
   },
 
-  /* --- INVITATIONS --- */
+    /* --- INVITATIONS --- */
 
   
   sendInvite: async (id: string, email: string): Promise<void> => {

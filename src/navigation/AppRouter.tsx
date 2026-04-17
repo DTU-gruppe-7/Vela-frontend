@@ -9,22 +9,25 @@ import GuestRoute from './GuestRoute';
 import MainLayout from '../components/layout/MainLayout';
 
 // LandingPage
-import { LandingPage } from '../features/landing/LandingPage';
+import { LandingPage } from '../features/landing/pages/LandingPage';
 
 // Auth pages (no header/footer)
-import LoginPage from '../features/auth/LoginPage';
-import RegisterPage from '../features/auth/RegisterPage';
+import LoginPage from '../features/auth/pages/LoginPage';
+import RegisterPage from '../features/auth/pages/RegisterPage';
 
 // App pages (with header/footer)
-import {HomePage} from '../features/home/HomePage';
-import SwipePage from '../features/swipe/SwipePage';
-import GroupPage from '../features/groups/GroupPage';
-import ProfilePage from '../features/profile/ProfilePage';
-import RecipePage from '../features/recipes/RecipePage';
-import ShoppingListDetailPage from '../features/shoppingList/ShoppingListDetailPage';
-import MealPlanPage from '../features/mealplan/MealPlanPage';
+import { HomePage } from '../features/home/pages/HomePage';
+import SwipePage from '../features/swipe/pages/SwipePage';
+import GroupPage from '../features/groups/pages/GroupPage';
+import ProfilePage from '../features/profile/pages/ProfilePage';
+import RecipePage from '../features/recipes/pages/RecipePage';
+import ShoppingListPage from '../features/shoppingList/pages/ShoppingListPage';
+import MealPlanPage from '../features/mealplan/pages/MealPlanPage';
 import GroupDetailLayout from '../features/groups/layouts/GroupDetailLayout';
-import RecipeDetailPage from '../features/recipes/RecipeDetailPage';
+import MembersPage from '../features/groups/pages/MembersPage';
+import RecipeDetailPage from '../features/recipes/pages/RecipeDetailPage';
+import GroupManagePage from '../features/groups/pages/GroupManagePage';
+import GroupMatchPage from '../features/groups/pages/GroupMatchPage';
 
 
 function AppRouter() {
@@ -44,13 +47,15 @@ function AppRouter() {
                     <Route path="/groups/:groupId" element={<GroupDetailLayout />}>
                         <Route index element={<Navigate to="mealplan" replace />} />
                         <Route path="mealplan" element={<MealPlanPage />} />
-                        <Route path="shoppinglist" element={<ShoppingListDetailPage />} />
-                        <Route path="liked-recipes" element={<RecipePage />} />
+                        <Route path="members" element={<MembersPage />} />
+                        <Route path="shoppinglist" element={<ShoppingListPage />} />
+                        <Route path="manage" element={<GroupManagePage />} />
+                        <Route path="liked-recipes" element={<GroupMatchPage />} />
                     </Route>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/recipes" element={<RecipePage />} />
                     <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-                    <Route path="/shoppinglist" element={<ShoppingListDetailPage />} />
+                    <Route path="/shoppinglist" element={<ShoppingListPage />} />
                     <Route path="/mealplan" element={<MealPlanPage />} />
                 </Route>
             </Route>

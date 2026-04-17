@@ -7,9 +7,11 @@ import ProfileMenu from '../ui/ProfileMenu.tsx';
 import NotificationDropdown from '../ui/headerComponents/NotificationDropdown.tsx';
 import NotificationMenu from '../ui/headerComponents/NotificationMenu.tsx';
 import { useNotificationStore } from '../../stores/notificationStore';
+import type { Notification } from '../../types/Notification';
 import Logo from '../ui/headerComponents/Logo.tsx';
 import Navigation from '../ui/headerComponents/Navigation.tsx';
 import NotificationBell from '../ui/headerComponents/NotificationBell.tsx';
+import MobileNavigation from '../ui/headerComponents/MobileNavigation.tsx';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -20,7 +22,21 @@ const Header: React.FC = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
 
-  const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
+  // Determine active page - handle subpaths like /groups/123 and /recipes/123
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path.startsWith('/swipe')) return 'swipe';
+    if (path.startsWith('/groups')) return 'groups';
+    if (path.startsWith('/mealplan')) return 'mealplan';
+    if (path.startsWith('/shoppinglist')) return 'shoppinglist';
+    if (path.startsWith('/recipes')) return 'recipes';
+    if (path.startsWith('/profile')) return 'profile';
+    
+    return 'home';
+  };
+
+  const activePage = getActivePage();
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -56,9 +72,12 @@ const Header: React.FC = () => {
 
   // Håndtering af klik på en notifikation
   // Opdateret klik-håndtering med dynamisk navigation
-  const handleNotificationClick = async (notif: any) => {
+  const handleNotificationClick = async (notif: Notification) => {
+    const typeLower = notif.type.toLowerCase();
+
     // 1. Marker som læst i baggrunden, hvis den er ulæst
-    if (!notif.isRead) {
+    // Men ikke for GroupInvite - de skal først markeres som læst når brugeren accepterer/afviser
+    if (!notif.isRead && !typeLower.includes('groupinvite')) {
       await markAsRead(notif.id);
     }
 
@@ -67,7 +86,7 @@ const Header: React.FC = () => {
 
     // 3. Naviger baseret på typen af notifikation
     if (notif.relatedEntityId) {
-      const typeLower = notif.type.toLowerCase();
+      const typeLower = String(notif.type ?? '').toLowerCase();
 
       // Hvis typen indeholder ordet "group" (f.eks. "GroupInvite")
       if (typeLower.includes('group')) {
@@ -83,11 +102,11 @@ const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-6 bg-white shadow-sm">
       {/* Container for Logo and Actions */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4 sm:gap-8">
         <Logo />
         <a
           href="/swipe"
-          className={`flex items-center justify-center px-6 py-2 rounded-full border-2 text-lg font-medium transition-all duration-200 shadow-sm
+          className={`flex items-center justify-center px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-lg rounded-full border-2 font-medium transition-all duration-200 shadow-sm
             ${activePage === 'swipe'
               ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
               : 'border-gray-300 text-gray-700 bg-white hover:border-gray-400 hover:text-indigo-600 hover:bg-gray-50'
@@ -101,7 +120,7 @@ const Header: React.FC = () => {
 
       {/* Profile & Notifications */}
       <div className="flex items-center gap-3">
-        {/* Notification Dropdown (temporary, floating) */}
+        {/* Notification Dropdown (temporary, floating) */} 
         <NotificationDropdown
           notification={latestNotification}
           visible={dropdownVisible}
@@ -110,7 +129,10 @@ const Header: React.FC = () => {
         <div className="relative" ref={notifMenuRef}>
           <NotificationBell
             unreadCount={unreadCount}
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              hideDropdown();
+            }}
             notifMenuRef={notifMenuRef}
           />
           {showNotifications && (
@@ -143,6 +165,9 @@ const Header: React.FC = () => {
             <ProfileMenu onClose={() => setShowProfileMenu(false)} />
           )}
         </div>
+
+        {/* Mobile Hamburger Menu */}
+        <MobileNavigation />
       </div>
     </header>
   );

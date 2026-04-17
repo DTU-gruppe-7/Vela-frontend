@@ -37,23 +37,21 @@ export function useRecipeDetails(recipeId: string | null) {
     try {
       const parsed = JSON.parse(recipe.instructionsJson);
       
-      // Hvis det er et objekt med sections, flatter vi det
-      if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const flattened: string[] = [];
-        Object.entries(parsed).forEach(([section, steps]: [string, any]) => {
-          flattened.push(`**${section}**`);
-          if (Array.isArray(steps)) {
-            flattened.push(...steps);
-          }
-        });
-        return flattened;
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        return Object.entries(parsed).map(([section, steps]) => ({
+          sectionName: section,
+          steps: Array.isArray(steps) ? steps : [steps]
+        }));
       }
       
-      // Hvis det allerede er et array
-      return parsed;
+      if (Array.isArray(parsed)) {
+        return [{ sectionName: null, steps: parsed }];
+      }
+
+      return [{ sectionName: null, steps: [parsed] }];
     } catch (e) {
       console.error("Fejl ved parsing af instruktioner:", e);
-      return [recipe.instructionsJson]; // Fallback til rå tekst
+      return [{ sectionName: null, steps: [recipe.instructionsJson] }];
     }
   }, [recipe?.instructionsJson]);
 

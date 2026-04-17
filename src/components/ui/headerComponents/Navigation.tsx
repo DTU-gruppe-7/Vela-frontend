@@ -12,10 +12,26 @@ const navItems = [
 
 const Navigation: React.FC = () => {
   const location = useLocation();
-  const activePage = location.pathname === '/' ? 'home' : location.pathname.slice(1);
+  
+  // Determine active page by checking which nav item the current path starts with
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    
+    for (const item of navItems) {
+      if (item.key === 'home') continue; // Skip home, already checked above
+      if (path.startsWith(item.href + '/') || path === item.href) {
+        return item.key;
+      }
+    }
+    
+    return null; // No active page (shouldn't happen in normal navigation)
+  };
+
+  const activePage = getActivePage();
 
   return (
-    <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+    <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-2">
       {navItems.map((item) => (
         <a
           key={item.key}

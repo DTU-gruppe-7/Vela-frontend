@@ -5,15 +5,17 @@ interface CategoryFilterProps {
     activeCategory: string;
     onCategoryChange: (category: string) => void;
     children?: React.ReactNode;    // Slot til ekstra knapper (f.eks. favorites)
+    hideAll?: boolean;             // Om "Alle" skal fjernes
 }
 function CategoryFilter({
     categories,
     activeCategory,
     onCategoryChange,
     children,
+    hideAll = false,
 }: CategoryFilterProps) {
     const [expanded, setExpanded] = useState(false);
-    const allCategories = ['Alle', ...categories];
+    const allCategories = hideAll ? categories : ['Alle', ...categories];
     return (
         <div className="relative mb-4">
             <div

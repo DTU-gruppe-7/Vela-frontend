@@ -5,10 +5,23 @@ import { notificationApi } from '../api/notificationApi';
 import { groupApi } from '../api/groupApi';
 import { useAuthStore } from './authStore'; // For at hente JWT token
 
+// Sort notifications: unread first, then by date (newest first)
+const sortNotifications = (notifications: Notification[]): Notification[] => {
+  return [...notifications].sort((a, b) => {
+    // Unread first (false comes before true)
+    if (a.isRead !== b.isRead) {
+      return a.isRead ? 1 : -1;
+    }
+    // Then by date, newest first
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+};
+
 interface NotificationState {
     notifications: Notification[];
     unreadCount: number;
     connection: signalR.HubConnection | null;
+    isConnecting: boolean;
     isLoading: boolean;
     error: string | null;
     // Dropdown state
@@ -34,6 +47,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
     unreadCount: 0,
     connection: null,
+    isConnecting: false,
     isLoading: false,
     error: null,
     dropdownVisible: false,
@@ -50,10 +64,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         try {
             const data = await notificationApi.getNotifications();
 
-            const unread = data.filter(n => !n.isRead);
+            const sortedData = sortNotifications(data);
+            const unread = sortedData.filter(n => !n.isRead);
 
             set({
-                notifications: data,
+                notifications: sortedData,
                 unreadCount: unread.length,
                 isLoading: false
             });
@@ -64,15 +79,18 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     },
 
     connectToSignalR: () => {
-        // Hvis der allerede er en forbindelse, gør ingenting
-        if (get().connection) return;
+        // Hvis der allerede er en forbindelse ELLER vi er i gang med at oprette forbindelse, gør ingenting
+        if (get().connection || get().isConnecting) return;
 
         // Hent token fra authStore for at autentificere mod SignalR Hubben
         const token = useAuthStore.getState().token;
         if (!token) return;
 
+        // Sæt flag for at forhindre concurrent connection attempts
+        set({ isConnecting: true });
+
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`${BACKEND_URL}/hubs/notifications`, {
+            .withUrl(`${BACKEND_URL}/api/hubs/notifications`, {
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()
@@ -82,24 +100,26 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         set({ connection: newConnection });
 
         // Definer hvad der skal ske, når vi modtager begivenheden "ReceiveNotification"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newConnection.on('ReceiveNotification', (notification: any) => {
-            // SignalR sender ofte camelCase eller PascalCase afhængig af dine backend settings.
+            // SignalR sender PascalCase fra C# backend
             // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
                 id: notification.payload?.notificationId || crypto.randomUUID(),
-                title: notification.title,
-                message: notification.message,
-                type: notification.type,
+                title: notification.title ?? '',
+                message: notification.message ?? '',
+                type: String(notification.type ?? ''),
                 relatedEntityId: notification.payload?.relatedEntityId || null,
                 isRead: false,
                 createdAt: notification.timestamp || new Date().toISOString()
             };
 
-            // Tilføj den nye notifikation i toppen af listen og opdater tælleren
+            // Tilføj den nye notifikation og sorter listen
             set((state) => {
                 if (state.notifications.some(n => n.id === newNotif.id)) return state;
+                const updatedNotifications = sortNotifications([newNotif, ...state.notifications]);
                 return {
-                    notifications: [newNotif, ...state.notifications],
+                    notifications: updatedNotifications,
                     unreadCount: state.unreadCount + 1,
                     dropdownVisible: true,
                     latestNotification: newNotif
@@ -109,8 +129,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
         // Start forbindelsen
         newConnection.start()
-            .then(() => console.log('SignalR Connected to Notifications Hub'))
+            .then(() => {
+                console.log('SignalR Connected to Notifications Hub');
+                set({ isConnecting: false });
+            })
             .catch(err => {
+                set({ isConnecting: false });
                 if (err instanceof Error && err.message.includes('stopped')) return;
                 console.error('SignalR Connection Error: ', err);
             });
@@ -120,7 +144,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const { connection } = get();
         if (connection) {
             connection.stop();
-            set({ connection: null });
+            set({ connection: null, isConnecting: false });
         }
     },
 
@@ -140,9 +164,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 const updatedList = state.notifications.map(n =>
                     n.id === id ? { ...n, isRead: true } : n
                 );
+                const sortedList = sortNotifications(updatedList);
                 return {
-                    notifications: updatedList,
-                    unreadCount: updatedList.filter(n => !n.isRead).length
+                    notifications: sortedList,
+                    unreadCount: sortedList.filter(n => !n.isRead).length
                 };
             });
             await notificationApi.markAsRead(id);
@@ -153,16 +178,28 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     markAllAsRead: async () => {
         try {
+            // Filter out GroupInvites - they should not be marked as read via "Mark all"
+            const markableNotifications = get().notifications.filter(
+                n => !n.isRead && !n.type.toLowerCase().includes('group')
+            );
+            
+            if (markableNotifications.length === 0) return;
+            
             set((state) => {
-                const updatedList = state.notifications.map(n => ({ ...n, isRead: true }));
+                const updatedList = state.notifications.map(n => 
+                    !n.isRead && !n.type.toLowerCase().includes('group')
+                        ? { ...n, isRead: true }
+                        : n
+                );
+                const sortedList = sortNotifications(updatedList);
                 return {
-                    notifications: updatedList,
-                    unreadCount: 0
+                    notifications: sortedList,
+                    unreadCount: sortedList.filter(n => !n.isRead).length
                 };
             });
-            // Optionally call API for each notification
-            const unread = get().notifications.filter(n => !n.isRead);
-            await Promise.all(unread.map(n => notificationApi.markAsRead(n.id)));
+            
+            // Only call API for markable notifications (excluding GroupInvites)
+            await Promise.all(markableNotifications.map(n => notificationApi.markAsRead(n.id)));
         } catch (error) {
             console.error('Kunne ikke markere alle som læst', error);
         }

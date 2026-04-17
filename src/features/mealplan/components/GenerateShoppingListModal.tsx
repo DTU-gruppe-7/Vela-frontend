@@ -1,54 +1,78 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../../components/ui/Modal';
-import { useShoppingLists } from '../../shoppingList/hooks/useShoppingLists';
+import { useShoppingList } from '../../shoppingList/hooks/useShoppingList';
 import { shoppingListApi } from '../../../api/shoppingListApi';
+import type { MealPlanEntry } from '../../../types/MealPlan';
 
 interface GenerateShoppingListModalProps {
     isOpen: boolean;
     onClose: () => void;
     mealPlanId: string;
+    groupId?: string;
+    startDate: string;
+    endDate: string;
+    candidateEntries: MealPlanEntry[];
+    forcedExcludedEntryIds?: string[];
+    onGenerated: (generatedEntryIds: string[]) => void;
 }
 
 export function GenerateShoppingListModal({
-                                              isOpen,
-                                              onClose,
-                                              mealPlanId,
-                                          }: GenerateShoppingListModalProps) {
-    const { shoppingLists, loading, createShoppingList } = useShoppingLists();
+    isOpen,
+    onClose,
+    mealPlanId,
+    groupId,
+    startDate,
+    endDate,
+    candidateEntries,
+    forcedExcludedEntryIds = [],
+    onGenerated,
+}: GenerateShoppingListModalProps) {
+    const { shoppingList, loading } = useShoppingList(groupId); // Kun én personlig liste
 
-    const [mode, setMode] = useState<'existing' | 'new'>('existing');
-    const [selectedListId, setSelectedListId] = useState('');
-    const [newListName, setNewListName] = useState('');
+    const [excludedEntryIds, setExcludedEntryIds] = useState<string[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setExcludedEntryIds([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
+    const excludedIdSet = useMemo(() => new Set(excludedEntryIds), [excludedEntryIds]);
+    const includedCount = candidateEntries.length - excludedEntryIds.length;
+
+    const toggleExcluded = (entryId: string) => {
+        setExcludedEntryIds((prev) =>
+            prev.includes(entryId) ? prev.filter((id) => id !== entryId) : [...prev, entryId]
+        );
+    };
 
     const handleSubmit = async () => {
         setError(null);
         setSubmitting(true);
+        const generatedEntryIds = candidateEntries
+            .filter((entry) => !excludedIdSet.has(entry.id))
+            .map((entry) => entry.id);
+        const allExcludedEntryIds = Array.from(new Set([...forcedExcludedEntryIds, ...excludedEntryIds]));
 
         try {
-            if (mode === 'existing') {
-                if (!selectedListId) {
-                    setError('Vælg venligst en indkøbsliste.');
-                    setSubmitting(false);
-                    return;
-                }
-                await shoppingListApi.generateShoppingList(mealPlanId, selectedListId);
-            } else {
-                if (!newListName.trim()) {
-                    setError('Giv venligst den nye indkøbsliste et navn.');
-                    setSubmitting(false);
-                    return;
-                }
-                const created = await createShoppingList({ name: newListName.trim() });
-                if (!created) {
-                    setError('Kunne ikke oprette indkøbslisten.');
-                    setSubmitting(false);
-                    return;
-                }
-                await shoppingListApi.generateShoppingList(mealPlanId, created.id);
+            if (!shoppingList) {
+                setError('Ingen indkøbsliste fundet.');
+                setSubmitting(false);
+                return;
             }
+            await shoppingListApi.generateShoppingList({
+                shoppingListId: shoppingList.id,
+                mealPlanId,
+                startDate,
+                endDate,
+                excludedMealPlanEntryIds: allExcludedEntryIds,
+            });
 
+            onGenerated(generatedEntryIds);
+            setExcludedEntryIds([]);
             onClose();
         } catch {
             setError('Noget gik galt. Prøv igen.');
@@ -60,74 +84,85 @@ export function GenerateShoppingListModal({
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Generér indkøbsliste">
             <div className="flex flex-col gap-6">
-                {/* Mode-vælger */}
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setMode('existing')}
-                        className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
-                            mode === 'existing'
-                                ? 'bg-indigo-600 text-white shadow-md'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                    >
-                        Eksisterende liste
-                    </button>
-                    <button
-                        onClick={() => setMode('new')}
-                        className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
-                            mode === 'new'
-                                ? 'bg-indigo-600 text-white shadow-md'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                    >
-                        Ny liste
-                    </button>
+                {/* Mode-vælger fjernet, kun én liste */}
+                <div>
+                    {loading ? (
+                        <p className="text-sm text-slate-400">Henter indkøbsliste…</p>
+                    ) : !shoppingList ? (
+                        <p className="text-sm text-slate-500">
+                            Vi kunne ikke finde en indkøbsliste at tilføje til.
+                        </p>
+                    ) : (
+                        <div className="space-y-2 text-sm text-slate-700">
+                            <p>
+                                Generér indkøbsliste fra madplanen for perioden{' '}
+                                <span className="font-semibold">{startDate} – {endDate}</span>.
+                            </p>
+                            <p className="text-slate-500">
+                                Ingredienser fra måltider i perioden bliver tilføjet til din indkøbsliste.
+                            </p>
+                            {candidateEntries.length > 0 ? (
+                                <p className="text-slate-500">
+                                    {includedCount} af {candidateEntries.length} måltider er inkluderet.
+                                </p>
+                            ) : (
+                                <p className="text-slate-500">
+                                    Der er ingen nye måltider i perioden at generere.
+                                </p>
+                            )}
+                            {groupId === undefined && candidateEntries.length === 0 && (
+                                <p className="text-slate-500">
+                                    Gruppemåltider kan kun genereres fra gruppens side.
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {/* Indhold */}
-                {mode === 'existing' ? (
-                    <div>
-                        {loading ? (
-                            <p className="text-sm text-slate-400">Indlæser indkøbslister…</p>
-                        ) : shoppingLists.length === 0 ? (
-                            <p className="text-sm text-slate-400">
-                                Du har ingen indkøbslister endnu. Opret en ny i stedet.
-                            </p>
-                        ) : (
-                            <select
-                                value={selectedListId}
-                                onChange={(e) => setSelectedListId(e.target.value)}
-                                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                            >
-                                <option value="">— Vælg indkøbsliste —</option>
-                                {shoppingLists.map((list) => (
-                                    <option key={list.id} value={list.id}>
-                                        {list.name} — {new Date(list.createdAt).toLocaleDateString('da-DK')}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                    </div>
-                ) : (
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Navn på ny indkøbsliste
-                        </label>
-                        <input
-                            type="text"
-                            value={newListName}
-                            onChange={(e) => setNewListName(e.target.value)}
-                            placeholder="F.eks. Uge 11 indkøb"
-                            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-                        />
+                {!loading && shoppingList && candidateEntries.length > 0 && (
+                    <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Vælg måltider, der skal ekskluderes
+                        </p>
+                        <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                            {candidateEntries.map((entry) => {
+                                const excluded = excludedIdSet.has(entry.id);
+                                const dateLabel = new Date(entry.date).toLocaleDateString('da-DK', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                });
+
+                                return (
+                                    <div key={entry.id} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-700">
+                                                {entry.recipe?.name ?? 'Opskrift'}
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                {dateLabel} · {entry.servings} pers.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleExcluded(entry.id)}
+                                            className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
+                                                excluded
+                                                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                                    : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                            }`}
+                                        >
+                                            {excluded ? 'Inkludér' : 'Ekskludér'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
-
                 {/* Fejl */}
                 {error && (
                     <p className="text-sm text-red-600">⚠️ {error}</p>
                 )}
-
                 {/* Knapper */}
                 <div className="flex justify-end gap-3">
                     <button
@@ -138,7 +173,7 @@ export function GenerateShoppingListModal({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting}
+                        disabled={submitting || !shoppingList || candidateEntries.length === 0}
                         className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         {submitting ? 'Genererer…' : 'Generér indkøbsliste'}
