@@ -118,6 +118,7 @@ function ShoppingListPage() {
     };
 
     const items = shoppingList?.items ?? [];
+    const hasOnlyAssignedItems = !groupId && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -129,6 +130,7 @@ function ShoppingListPage() {
                 <Toolbar
                     hasCheckedItems={items.some((item) => item.isBought)}
                     hasItems={items.length > 0}
+                    disableBulkActions={hasOnlyAssignedItems}
                     onDeleteChecked={() => {
                         void handleDeleteChecked();
                     }}
