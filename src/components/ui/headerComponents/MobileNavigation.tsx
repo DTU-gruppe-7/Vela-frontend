@@ -11,8 +11,9 @@ const navItems = [
 ];
 
 const MobileNavigation: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [openPathname, setOpenPathname] = useState<string | null>(null);
   const location = useLocation();
+  const isOpen = openPathname === location.pathname;
 
   const getActivePage = () => {
     const path = location.pathname;
@@ -28,6 +29,9 @@ const MobileNavigation: React.FC = () => {
 
   const activePage = getActivePage();
 
+  const openMenu = () => setOpenPathname(location.pathname);
+  const closeMenu = () => setOpenPathname(null);
+
   // Disable body scroll when menu is open
   useEffect(() => {
     if (isOpen) {
@@ -40,15 +44,10 @@ const MobileNavigation: React.FC = () => {
     };
   }, [isOpen]);
 
-  // Close menu when route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
-
   return (
     <div className="lg:hidden flex items-center">
       <button 
-        onClick={() => setIsOpen(true)}
+        onClick={openMenu}
         className="p-2 text-xl text-gray-500 rounded-full transition-all duration-200 hover:bg-gray-100 hover:text-indigo-600"
         aria-label="Åbn menu"
       >
@@ -59,7 +58,7 @@ const MobileNavigation: React.FC = () => {
       {isOpen && (
         <div 
           className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity"
-          onClick={() => setIsOpen(false)}
+          onClick={closeMenu}
         />
       )}
 
@@ -70,7 +69,7 @@ const MobileNavigation: React.FC = () => {
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-800">Menu</h2>
           <button 
-            onClick={() => setIsOpen(false)}
+            onClick={closeMenu}
             className="p-2 text-xl text-gray-500 rounded-full hover:bg-gray-100 hover:text-red-500 transition-colors"
             aria-label="Luk menu"
           >
@@ -83,6 +82,7 @@ const MobileNavigation: React.FC = () => {
             <Link
               key={item.key}
               to={item.href}
+              onClick={closeMenu}
               className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium
                 ${activePage === item.key
                   ? 'text-indigo-600 bg-indigo-50 border border-indigo-100 shadow-sm'
@@ -100,6 +100,7 @@ const MobileNavigation: React.FC = () => {
           
           <Link
             to="/swipe"
+            onClick={closeMenu}
             className="flex justify-center px-6 py-3 rounded-xl border-2 border-indigo-600 text-indigo-600 bg-white hover:bg-indigo-50 transition-all duration-200 font-bold"
           >
             Gå til Swipe

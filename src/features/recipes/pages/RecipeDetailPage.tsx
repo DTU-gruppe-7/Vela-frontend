@@ -24,6 +24,7 @@ export const RecipeDetailPage: React.FC = () => {
 
   // 2. Brug ID'et fra URL'en til at hente data
   const { recipe, loading, error, instructions } = useRecipeDetails(id || null);
+  type InstructionSection = (typeof instructions)[number];
 
   // Gruppér ingredienser efter sektion (fx. "Dej", "Fyld")
   const groupedIngredients = useMemo(() => {
@@ -47,7 +48,7 @@ export const RecipeDetailPage: React.FC = () => {
         if (!sectionName) return -1;
         const name = sectionName.toLowerCase();
         
-        const idx = instructions.findIndex((s: any) => {
+        const idx = instructions.findIndex((s: InstructionSection) => {
            if (!s.sectionName) return false;
            const sName = s.sectionName.toLowerCase();
            return sName.includes(name) || name.includes(sName);

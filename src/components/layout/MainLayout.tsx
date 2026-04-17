@@ -10,11 +10,26 @@ interface Props {
 }
 
 const PAGE_PADDING = "p-6 md:p-12";
+const GROUP_DETAIL_ROUTE = /^\/groups\/[^/]+/;
+
+function getMainClassName(pathname: string): string {
+    if (GROUP_DETAIL_ROUTE.test(pathname)) {
+        return 'flex-1 p-0';
+    }
+
+    const exactRouteClasses: Record<string, string> = {
+        '/': `flex-1 ${PAGE_PADDING} pb-28`,
+        '/groups': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
+        '/mealplan': 'flex-1 px-2 sm:px-4 lg:px-6 pt-8 pb-28',
+        '/shoppinglist': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
+    };
+
+    return exactRouteClasses[pathname] ?? `flex-1 ${PAGE_PADDING} pt-24 pb-28`;
+}
 
 function MainLayout({ children }: Props) {
     const location = useLocation();
-    const isGroupDetailRoute = /^\/groups\/[^/]+/.test(location.pathname);
-    const isHomePage = location.pathname === '/';
+    const mainClassName = getMainClassName(location.pathname);
 
     // Hent auth-status og notification actions
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -35,7 +50,7 @@ function MainLayout({ children }: Props) {
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
             <Header />
-            <main className={isGroupDetailRoute ? "flex-1 p-0" : isHomePage ? `flex-1 ${PAGE_PADDING} pb-28` : `flex-1 ${PAGE_PADDING} pt-24 pb-28`}>
+            <main className={mainClassName}>
                 {children ?? <Outlet />}
             </main>
             <Footer />

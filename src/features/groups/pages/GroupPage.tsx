@@ -66,7 +66,7 @@ export default function GroupPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-10 px-4">
+        <div className="max-w-6xl mx-auto px-4 pt-2 pb-10">
             <div className="flex justify-end mb-10">
                 <button 
                     onClick={() => setIsModalOpen(true)}

@@ -18,7 +18,6 @@ function ShoppingListPage() {
 
     useEffect(() => {
         if (!groupId) {
-            setGroupMembers([]);
             return;
         }
 
@@ -45,12 +44,14 @@ function ShoppingListPage() {
         };
     }, [groupId]);
 
+    const visibleGroupMembers = useMemo(() => (groupId ? groupMembers : []), [groupId, groupMembers]);
+
     const assignees = useMemo(
-        () => groupMembers.map((member) => ({
+        () => visibleGroupMembers.map((member) => ({
             userId: member.userId,
             label: getGroupMemberDisplayName(member),
         })),
-        [groupMembers],
+        [visibleGroupMembers],
     );
 
     const handleAddItem = async (item: AddShoppingListItem): Promise<void> => {
@@ -120,7 +121,7 @@ function ShoppingListPage() {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-screen-2xl px-4 pt-2 pb-10 sm:px-6 sm:pt-3 lg:px-8">
                 {error && <ErrorBanner error={error} />}
 
                 <AddItemForm onAddItem={handleAddItem} />

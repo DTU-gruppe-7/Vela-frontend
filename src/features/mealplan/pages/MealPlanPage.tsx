@@ -264,11 +264,9 @@ export default function MealPlanPage() {
   };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="w-full max-w-none px-2 sm:px-4 lg:px-6 pt-1 pb-4 lg:pt-2 lg:pb-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                    <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
-                    
                     {isPersonalView && (
                       <div className="relative ml-0 sm:ml-4">
                         <select
@@ -650,7 +648,7 @@ function DayColumn({
         </div>
       </div>
       <div
-        className={`p-4 flex flex-col min-h-96 transition-colors ${isDropTarget ? 'bg-indigo-50/60' : 'bg-white'}`}
+        className={`p-3 sm:p-4 lg:p-5 flex flex-col min-h-44 transition-colors ${isDropTarget ? 'bg-indigo-50/60' : 'bg-white'}`}
         onDragOver={(event) => event.preventDefault()}
         onDragEnter={() => onDragEnterDay(dateKey)}
         onDrop={(event) => {
