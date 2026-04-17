@@ -13,7 +13,7 @@ import { getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();
-    const { shoppingList, loading, error, addItem, toogleItem, removeItem, assignItem, refetch } = useShoppingList(groupId);
+    const { shoppingList, loading, error, addItem, toogleItem, removeItem, handleAssignMember, refetch } = useShoppingList(groupId);
     const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
 
     useEffect(() => {
@@ -146,7 +146,7 @@ function ShoppingListPage() {
                         onRemoveGroup={handleRemoveGroup}
                         showAssignment={Boolean(groupId)}
                         assignees={assignees}
-                        onAssign={assignItem}
+                        onAssign={handleAssignMember}
                     />
                 )}
 

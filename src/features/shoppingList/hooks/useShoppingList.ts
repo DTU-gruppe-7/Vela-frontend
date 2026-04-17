@@ -112,7 +112,7 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
-    const assignItem = useCallback(async (itemId: string, assignedUserId: string | null) => {
+        const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
         if (!shoppingList || !itemId) return;
 
         const currentItem = (shoppingList.items ?? []).find((item) => item.id === itemId);
@@ -120,7 +120,7 @@ export function useShoppingList(groupId?: string) {
 
         const updatedItem: ShoppingListItem = {
             ...currentItem,
-            assignedUserId,
+                        assignedUserId: userId,
         };
 
         setShoppingList((prev) => prev
@@ -129,7 +129,8 @@ export function useShoppingList(groupId?: string) {
         );
 
         try {
-            await shoppingListApi.updateItem(shoppingList.id, itemId, updatedItem);
+            await shoppingListApi.assignItem(shoppingList.id, itemId, userId);
+            await fetchShoppingList();
         } catch (err) {
             console.error('Error assigning item: ', err);
             setError('Kunne ikke tildele varen.');
@@ -147,7 +148,8 @@ export function useShoppingList(groupId?: string) {
         addItem,
         toogleItem,
         removeItem,
-        assignItem,
+        handleAssignMember,
+        assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };
 }

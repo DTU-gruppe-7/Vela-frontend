@@ -13,24 +13,15 @@ interface ShoppingItemProps {
     onAssign?: (itemId: string, assignedUserId: string | null) => Promise<void> | void;
 }
 
-function ShoppingItem({
-    item,
-    onToggle,
-    onRemove,
-    showAssignment = false,
-    assignees = [],
-    onAssign,
-}: ShoppingItemProps) {
+function ShoppingItem({ item, onToggle, onRemove, showAssignment = false, assignees = [], onAssign,}: ShoppingItemProps) {
     const [isAssignMenuOpen, setIsAssignMenuOpen] = useState(false);
     const assignMenuRef = useRef<HTMLDivElement | null>(null);
-
     const recipeName = item.recipeName?.trim();
     const hasRecipeName =
         Boolean(recipeName) &&
         recipeName?.toLowerCase() !== 'null' &&
         recipeName?.toLowerCase() !== 'undefined' &&
         recipeName?.toLowerCase() !== '()';
-
     const canAssign = showAssignment && assignees.length > 0 && Boolean(onAssign);
     const isAssigned = Boolean(item.assignedUserId);
     const assignedMember = assignees.find((assignee) => assignee.userId === item.assignedUserId);
