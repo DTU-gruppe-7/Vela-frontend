@@ -93,6 +93,11 @@ export const ShoppingListWidget = () => {
                                     <p className="text-xs text-slate-500">
                                         {item.quantity > 0 ? item.quantity : ''} {item.unit ?? ''}
                                     </p>
+                                    {item.recipeName?.trim() && (
+                                        <p className="truncate text-xs text-slate-500">
+                                            Fra opskrift: {item.recipeName.trim()}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="ml-2 flex items-center gap-2 text-slate-400">
                                     <FiCheck className="opacity-40" />

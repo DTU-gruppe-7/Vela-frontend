@@ -93,13 +93,13 @@ export const shoppingListApi = {
     }
   },
     
-  clearAll: async (id: string, itemIds: string[]): Promise<void> => {
-    await Promise.all(itemIds.map((itemId) => shoppingListApi.removeItem(id, itemId)));
+  clearAll: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clear`);
   },
 
   /** Clear all purchased items from shopping list */
-  clearPurchased: async (id: string, purchasedItemIds: string[]): Promise<void> => {
-    await Promise.all(purchasedItemIds.map((itemId) => shoppingListApi.removeItem(id, itemId)));
+  clearPurchased: async (id: string): Promise<void> => {
+    await axiosClient.delete(`/shoppingList/${id}/clear-purchased`);
   },
 
   /** Fjern varer tilføjet fra en madplan fra indkøbslisten */

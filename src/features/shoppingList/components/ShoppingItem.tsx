@@ -1,5 +1,6 @@
 import { FiCheck, FiTrash2 } from 'react-icons/fi';
 import type { ShoppingListItem } from '../../../types/ShoppingList';
+import QuantityLabel from './QuantityLabel';
 
 interface ShoppingItemProps {
     item: ShoppingListItem;
@@ -8,6 +9,13 @@ interface ShoppingItemProps {
 }
 
 function ShoppingItem({ item, onToggle, onRemove }: ShoppingItemProps) {
+    const recipeName = item.recipeName?.trim();
+    const hasRecipeName =
+        Boolean(recipeName) &&
+        recipeName?.toLowerCase() !== 'null' &&
+        recipeName?.toLowerCase() !== 'undefined' &&
+        recipeName?.toLowerCase() !== '()';
+
     return (
         <div
             className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
@@ -40,9 +48,19 @@ function ShoppingItem({ item, onToggle, onRemove }: ShoppingItemProps) {
                     {item.ingredientName}
                 </span>
                 {(item.quantity > 0 || item.unit) && (
-                    <span className="ml-2 text-xs text-gray-400">
-                        {item.quantity > 0 && item.quantity} {item.unit}
-                    </span>
+                    <QuantityLabel
+                        quantity={item.quantity}
+                        unit={item.unit}
+                        className="ml-2 text-xs text-gray-400"
+                    />
+                )}
+                {hasRecipeName && (
+                    <p className="mt-1 text-xs text-gray-500">
+                        Fra opskrift:{' '}
+                        <span className="font-medium text-gray-600">
+                            {recipeName}
+                        </span>
+                    </p>
                 )}
             </div>
 

@@ -27,10 +27,10 @@ export default function GroupManagePage() {
         [user?.id, user?.userId, user?.email]
     );
 
-    const currentRole = useMemo(
-        () => getCurrentUserGroupRole(group, ...userIdentifiers),
-        [group, userIdentifiers]
-    );
+    const currentRole = useMemo(() => {
+        if (!group || !group.members) return null;
+        return getCurrentUserGroupRole(group, ...userIdentifiers);
+    }, [group, userIdentifiers]);
 
     const isOwner = currentRole === 'owner';
 
@@ -54,9 +54,10 @@ export default function GroupManagePage() {
         void fetchGroup();
     }, [fetchGroup]);
 
-    const handleUpdateGroupName = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleUpdateGroupName = async (event: React.SyntheticEvent) => {
         event.preventDefault();
-        if (!groupId || !isOwner) return;
+        
+        if (!groupId || !isOwner || !group) return;
 
         const trimmedName = groupName.trim();
         if (!trimmedName) {
@@ -64,7 +65,7 @@ export default function GroupManagePage() {
             return;
         }
 
-        if (group && trimmedName === group.name) {
+        if (trimmedName === group.name) {
             setSuccessMessage('Gruppenavnet er allerede opdateret.');
             setError(null);
             return;
@@ -74,14 +75,28 @@ export default function GroupManagePage() {
             setIsSavingName(true);
             setError(null);
             setSuccessMessage(null);
-            const updatedGroup = await groupApi.updateGroup(groupId, {
+
+            await groupApi.updateGroup(groupId, {
                 name: trimmedName,
             });
-            setGroup(updatedGroup);
-            setGroupName(updatedGroup.name);
+
+            setGroup(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    name: trimmedName
+                };
+            });
+
             setSuccessMessage('Gruppenavnet blev opdateret.');
-        } catch {
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+
+        } catch (err) {
             setError('Kunne ikke opdatere gruppenavnet.');
+            console.error("Update error:", err);
         } finally {
             setIsSavingName(false);
         }

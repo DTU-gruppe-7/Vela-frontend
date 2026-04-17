@@ -108,7 +108,15 @@ const MembersPage: React.FC = () => {
             await groupApi.leaveGroup(groupId);
             navigate('/groups');
         } catch (error: unknown) {
-            const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Kunne ikke forlade gruppen';
+            const backendMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            const normalizedMessage = backendMessage?.toLowerCase() ?? '';
+            const isOwnerLeaveWarning =
+                normalizedMessage.includes('owner') &&
+                (normalizedMessage.includes('cannot leave') || normalizedMessage.includes('transfer ownership'));
+
+            const msg = isOwnerLeaveWarning
+                ? 'Du er ejer af gruppen og kan ikke forlade den, før du har overdraget ejerskabet.'
+                : (backendMessage || 'Kunne ikke forlade gruppen');
             alert(msg);
         }
     };
@@ -198,7 +206,8 @@ const MembersPage: React.FC = () => {
                 </h2>
                 <div className="flex items-center gap-2">
                     {/* Invite button - visible to owner and administrator */}
-                    {myRole && (myRole === 'owner' || myRole === 'administrator') && (
+                    <div>
+                        {myRole && (myRole === 'owner' || myRole === 'administrator') ? (
                         <button
                             onClick={() => setIsInviteModalOpen(true)}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-xl hover:bg-orange-700 transition-colors"
@@ -206,9 +215,21 @@ const MembersPage: React.FC = () => {
                             <FiUserPlus />
                             Inviter medlemmer
                         </button>
-                    )}
+                        ) : (
+                            <button
+                                type="button"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                                className="invisible pointer-events-none flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-xl"
+                            >
+                                <FiUserPlus />
+                                Inviter medlemmer
+                            </button>
+                        )}
+                    </div>
                     {/* Leave group button for non-owners */}
-                    {myRole && myRole !== 'owner' && (
+                    <div>
+                        {myRole ? (
                         <button
                             onClick={handleLeaveGroup}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
@@ -216,7 +237,18 @@ const MembersPage: React.FC = () => {
                             <FiLogOut />
                             Forlad gruppe
                         </button>
-                    )}
+                        ) : (
+                            <button
+                                type="button"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                                className="invisible pointer-events-none flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-xl"
+                            >
+                                <FiLogOut />
+                                Forlad gruppe
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -250,15 +282,15 @@ const MembersPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-[160px] justify-end">
                                 {/* Role badge */}
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${roleBadgeClass[member.role]}`}>
                                     {roleLabelMap[member.role]}
                                 </span>
 
                                 {/* Actions dropdown */}
-                                {menuItems.length > 0 && (
-                                    <div className="relative" ref={openMenuId === member.userId ? menuRef : undefined}>
+                                <div className="relative w-10 flex justify-end" ref={openMenuId === member.userId ? menuRef : undefined}>
+                                    {menuItems.length > 0 ? (
                                         <button
                                             onClick={() => setOpenMenuId(openMenuId === member.userId ? null : member.userId)}
                                             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
@@ -266,7 +298,11 @@ const MembersPage: React.FC = () => {
                                             <FiMoreVertical />
                                         </button>
 
-                                        {openMenuId === member.userId && (
+                                    ) : (
+                                        <div className="h-9 w-9" aria-hidden="true" />
+                                    )}
+
+                                    {openMenuId === member.userId && menuItems.length > 0 && (
                                             <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
                                                 {menuItems.map((item) => (
                                                     <button
@@ -283,9 +319,8 @@ const MembersPage: React.FC = () => {
                                                     </button>
                                                 ))}
                                             </div>
-                                        )}
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     );
