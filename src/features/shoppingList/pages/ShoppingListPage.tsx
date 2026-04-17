@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { AddShoppingListItem } from '../../../types/ShoppingList';
 import { useShoppingList } from '../hooks/useShoppingList';
@@ -6,10 +7,51 @@ import ItemsSection from '../components/ItemsSection';
 import { EmptyListState, ErrorBanner, LoadingList } from '../components/ListStates';
 import Toolbar from '../components/Toolbar';
 import { shoppingListApi } from '../../../api/shoppingListApi';
+import { groupApi } from '../../../api/groupApi';
+import type { GroupMember } from '../../../types/Group';
+import { getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();
-    const { shoppingList, loading, error, addItem, toogleItem, removeItem, refetch } = useShoppingList(groupId);
+    const { shoppingList, loading, error, addItem, toogleItem, removeItem, handleAssignMember, refetch } = useShoppingList(groupId);
+    const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+
+    useEffect(() => {
+        if (!groupId) {
+            setGroupMembers([]);
+            return;
+        }
+
+        let isCancelled = false;
+
+        const fetchGroupMembers = async () => {
+            try {
+                const group = await groupApi.getGroup(groupId);
+                if (!isCancelled) {
+                    setGroupMembers(group.members ?? []);
+                }
+            } catch (err) {
+                console.error('Fejl ved hentning af gruppemedlemmer:', err);
+                if (!isCancelled) {
+                    setGroupMembers([]);
+                }
+            }
+        };
+
+        void fetchGroupMembers();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [groupId]);
+
+    const assignees = useMemo(
+        () => groupMembers.map((member) => ({
+            userId: member.userId,
+            label: getGroupMemberDisplayName(member),
+        })),
+        [groupMembers],
+    );
 
     const handleAddItem = async (item: AddShoppingListItem): Promise<void> => {
         await addItem(item);
@@ -102,6 +144,9 @@ function ShoppingListPage() {
                         onToggle={toogleItem}
                         onRemove={removeItem}
                         onRemoveGroup={handleRemoveGroup}
+                        showAssignment={Boolean(groupId)}
+                        assignees={assignees}
+                        onAssign={handleAssignMember}
                     />
                 )}
 

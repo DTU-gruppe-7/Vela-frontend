@@ -130,4 +130,15 @@ export const shoppingListApi = {
       throw error;
     }
   },
+
+  assignItem: async (shoppingListId: string, itemId: string, userId: string | null): Promise<void> => {
+    try {
+      await axiosClient.patch(`/shoppingList/${shoppingListId}/items/${itemId}/assign`, {
+        userId
+      });
+    } catch (error) {
+      console.error('Fejl ved tildeling af vare:', error);
+      throw error;
+    }
+  },
 };
