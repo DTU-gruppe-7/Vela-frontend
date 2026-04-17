@@ -112,7 +112,7 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
-        const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
+    const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
         if (!shoppingList || !itemId) return;
 
         const currentItem = (shoppingList.items ?? []).find((item) => item.id === itemId);
@@ -120,7 +120,7 @@ export function useShoppingList(groupId?: string) {
 
         const updatedItem: ShoppingListItem = {
             ...currentItem,
-                        assignedUserId: userId,
+            assignedUserId: userId,
         };
 
         setShoppingList((prev) => prev
@@ -139,7 +139,7 @@ export function useShoppingList(groupId?: string) {
                 : prev
             );
         }
-    }, [shoppingList]);
+    }, [shoppingList, fetchShoppingList]);
 
     return {
         shoppingList,
