@@ -59,9 +59,9 @@ function SwipePage() {
     const currentRecipe = queue[0];
 
     return (
-        <div className="flex flex-col items-center justify-center px-4 pt-4 pb-8 min-h-[80vh] select-none overflow-hidden">
+        <div className="flex flex-col items-center justify-center px-4 pt-2 pb-8 min-h-[80vh] select-none overflow-hidden">
                 {/* Category filter*/}
-                <div className="w-full max-w-[380px] mb-2">
+                <div className="w-full max-w-95 mb-2">
                     <CategoryFilter
                         categories={categories}
                         activeCategory={activeCategory}
@@ -70,7 +70,7 @@ function SwipePage() {
                     />
                 </div>
                 
-                <div className="relative w-full max-w-[380px] h-[430px]">
+                <div className="relative w-full max-w-95 h-107.5">
 
                 <AnimatePresence mode="popLayout" custom={lastDir}>
                     {queue.slice(0, 3).map((recipeSummary, index) => (
@@ -90,7 +90,7 @@ function SwipePage() {
                 <button
                     type="button"
                     onClick={() => handleSwipe(currentRecipe.id, 'dislike')}
-                    className="flex items-center justify-center w-[72px] h-[72px] rounded-full bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-xl shadow-rose-200/50 hover:shadow-2xl hover:shadow-rose-300 hover:-translate-y-1 active:scale-90 transition-all duration-300 transform"
+                    className="flex items-center justify-center w-18 h-18 rounded-full bg-linear-to-br from-rose-400 to-red-500 text-white shadow-xl shadow-rose-200/50 hover:shadow-2xl hover:shadow-rose-300 hover:-translate-y-1 active:scale-90 transition-all duration-300 transform"
                     aria-label="Dislike"
                 >
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -103,7 +103,7 @@ function SwipePage() {
                 <button
                     type="button"
                     onClick={() => handleSwipe(currentRecipe.id, 'like')}
-                    className="flex items-center justify-center w-[72px] h-[72px] rounded-full bg-gradient-to-br from-emerald-400 to-green-500 text-white shadow-xl shadow-green-200/50 hover:shadow-2xl hover:shadow-green-300 hover:-translate-y-1 active:scale-90 transition-all duration-300 transform"
+                    className="flex items-center justify-center w-18 h-18 rounded-full bg-linear-to-br from-emerald-400 to-green-500 text-white shadow-xl shadow-green-200/50 hover:shadow-2xl hover:shadow-green-300 hover:-translate-y-1 active:scale-90 transition-all duration-300 transform"
                     aria-label="Like"
                 >
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round">

@@ -662,8 +662,10 @@ function DayColumn({
 {entries.filter(e => e.recipe).map((entry) => {
                 // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
                 const isEditable = !isPersonalView || entry.source !== 'group';
-                const canRemoveFromShoppingList =
-                  entry.addedToShoppingList && (!isPersonalView || entry.source !== 'group');
+                const showShoppingListCheckmark = entry.addedToShoppingList;
+                const isLockedGroupEntryInPersonalView = isPersonalView && entry.source === 'group';
+                const canClickShoppingListCheckmark =
+                  showShoppingListCheckmark && !isLockedGroupEntryInPersonalView;
                 const isDraggable = isEditable;
                 return (
                   <div
@@ -695,17 +697,26 @@ function DayColumn({
                               👥 {entry.servings}
                             </span>
                           )}
-                          {canRemoveFromShoppingList && (
+                          {showShoppingListCheckmark && (
                             <button
                               type="button"
                               onClick={(event) => {
+                                if (!canClickShoppingListCheckmark) return;
                                 event.stopPropagation();
                                 onRequestRemoveFromShoppingList(entry);
                               }}
-                              disabled={isRemovingFromShoppingList}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                              title="Fjern fra indkøbsliste"
-                              aria-label="Fjern fra indkøbsliste"
+                              disabled={isRemovingFromShoppingList || !canClickShoppingListCheckmark}
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition ${
+                                canClickShoppingListCheckmark
+                                  ? 'hover:bg-emerald-200'
+                                  : 'opacity-60 cursor-default'
+                              } disabled:cursor-not-allowed`}
+                              title={canClickShoppingListCheckmark
+                                ? 'Fjern fra indkøbsliste'
+                                : 'Kan kun fjernes via gruppens madplan'}
+                              aria-label={canClickShoppingListCheckmark
+                                ? 'Fjern fra indkøbsliste'
+                                : 'Tilføjet til indkøbsliste. Kan kun fjernes via gruppens madplan'}
                             >
                               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="20 6 9 17 4 12" />

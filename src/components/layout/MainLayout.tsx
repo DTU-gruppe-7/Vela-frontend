@@ -19,7 +19,9 @@ function getMainClassName(pathname: string): string {
 
     const exactRouteClasses: Record<string, string> = {
         '/': `flex-1 ${PAGE_PADDING} pb-28`,
+        '/swipe': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
         '/groups': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
+        '/recipes': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
         '/mealplan': 'flex-1 px-2 sm:px-4 lg:px-6 pt-8 pb-28',
         '/shoppinglist': `flex-1 ${PAGE_PADDING} pt-8 pb-28`,
     };
