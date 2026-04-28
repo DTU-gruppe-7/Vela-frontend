@@ -3,11 +3,9 @@ import { useAuthStore } from "../stores/authStore.ts";
 
 function GuestRoute() {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-    const location = useLocation();
 
     if (isAuthenticated) {
-        const from = (location.state as { from?: Location })?.from?.pathname || '/';
-        return <Navigate to={from} replace />;
+        return <Navigate to="/" replace />;
     }
 
     return <Outlet />

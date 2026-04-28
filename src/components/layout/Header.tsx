@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FaUserCircle
 } from 'react-icons/fa';
@@ -104,8 +104,8 @@ const Header: React.FC = () => {
       {/* Container for Logo and Actions */}
       <div className="flex items-center gap-4 sm:gap-8">
         <Logo />
-        <a
-          href="/swipe"
+        <Link
+          to="/swipe"
           className={`flex items-center justify-center px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-lg rounded-full border-2 font-medium transition-all duration-200 shadow-sm
             ${activePage === 'swipe'
               ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
@@ -113,7 +113,7 @@ const Header: React.FC = () => {
             }`}
         >
           Swipe
-        </a>
+        </Link>
       </div>
 
       <Navigation />

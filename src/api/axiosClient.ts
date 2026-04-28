@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env?.VITE_API_BASE_URL || '/api';
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+    baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,9 +31,11 @@ const processQueue = (error: Error | null, token: string | null = null ) => {
 // Request interceptor (for adding auth tokens, etc.)
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            if (token && config.headers) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
     }
     return config;
   },
@@ -46,6 +50,10 @@ axiosClient.interceptors.response.use(
 
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh-token')) {
+                return Promise.reject(error);
+            }
+
+            if (typeof window === 'undefined') {
                 return Promise.reject(error);
             }
 

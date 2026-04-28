@@ -14,8 +14,7 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // Redirect til den side brugeren prøvede at besøge (sat af ProtectedRoute)
-    const from = (location.state as { from?: Location })?.from?.pathname || '/';
+    const dashboardRoute = '/';
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -23,7 +22,7 @@ function LoginPage() {
 
         try {
             await login({ email, password });
-            navigate(from, { replace: true });
+            navigate(dashboardRoute, { replace: true });
         } catch {
             setError('Forkert email eller adgangskode');
         }
