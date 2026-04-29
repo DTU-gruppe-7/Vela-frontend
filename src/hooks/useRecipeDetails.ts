@@ -2,14 +2,23 @@ import { useState, useEffect, useMemo } from "react";
 import { recipeApi } from "../api/recipeApi";
 import type { Recipe } from "../types/Recipe";
 
-export function useRecipeDetails(recipeId: string | null) {
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [loading, setLoading] = useState(false);
+interface UseRecipeDetailsOptions {
+  initialRecipe?: Recipe | null;
+}
+
+export function useRecipeDetails(recipeId: string | null, options: UseRecipeDetailsOptions = {}) {
+  const [recipe, setRecipe] = useState<Recipe | null>(options.initialRecipe ?? null);
+  const [loading, setLoading] = useState(!options.initialRecipe);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!recipeId) {
       setRecipe(null);
+      return;
+    }
+
+    if (options.initialRecipe?.id === recipeId) {
+      setLoading(false);
       return;
     }
 
@@ -28,7 +37,7 @@ export function useRecipeDetails(recipeId: string | null) {
     };
 
     loadRecipe();
-  }, [recipeId]);
+  }, [recipeId, options.initialRecipe]);
 
   const instructions = useMemo(() => {
     if (!recipe?.instructionsJson) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useDeferredValue, useCallback } from 'react';
 import { recipeApi } from '../../../api/recipeApi';
 import type { RecipeSummary } from '../../../types/Recipe';
 import { FiSearch, FiSliders } from 'react-icons/fi';
@@ -25,6 +25,7 @@ function RecipePage() {
     const pageSizeOptions = [12, 24, 48, 100];
 
     const [searchQuery, setSearchQuery] = useState('');
+    const deferredSearchQuery = useDeferredValue(searchQuery);
     const [activeCategory, setActiveCategory] = useState('Alle');
     const [activeKeyword, setActiveKeyword] = useState('Alle');
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -83,6 +84,20 @@ function RecipePage() {
     // Hook til liked/favorit opskrifter
     const { likedRecipes, toggleLike } = useLikedRecipes();
     const favoriteIds = useMemo(() => new Set(likedRecipes.map((r) => r.id)), [likedRecipes]);
+    const recipesById = useMemo(() => {
+        return new Map(allRecipes.map((recipe) => [recipe.id, recipe]));
+    }, [allRecipes]);
+
+    const handleToggleFavoriteById = useCallback((id: string) => {
+        const recipe = recipesById.get(id);
+        if (recipe) {
+            void toggleLike(recipe);
+        }
+    }, [recipesById, toggleLike]);
+
+    const handleRecipeOpen = useCallback((id: string) => {
+        navigate(`/recipes/${id}`);
+    }, [navigate]);
 
     // Kategorier fra ALLE opskrifter
     const categories = useMemo(() => {
@@ -90,35 +105,40 @@ function RecipePage() {
         return ['Alle', ...Array.from(cats)];
     }, [allRecipes]);
 
+    const recipeKeywordsById = useMemo(() => {
+        const keywordMap = new Map<string, string[]>();
+        allRecipes.forEach((recipe) => {
+            if (!recipe.keywordsJson) {
+                keywordMap.set(recipe.id, []);
+                return;
+            }
+
+            try {
+                keywordMap.set(recipe.id, JSON.parse(recipe.keywordsJson) as string[]);
+            } catch {
+                keywordMap.set(recipe.id, []);
+            }
+        });
+        return keywordMap;
+    }, [allRecipes]);
+
     // Keywords fra ALLE opskrifter
     const allKeywords = useMemo(() => {
         const kws = new Set<string>();
-        allRecipes.forEach((r) => {
-            if (r.keywordsJson) {
-                try {
-                    const parsed: string[] = JSON.parse(r.keywordsJson);
-                    parsed.forEach((k) => kws.add(k));
-                } catch { /* ignore */ }
-            }
+        recipeKeywordsById.forEach((keywords) => {
+            keywords.forEach((keyword) => kws.add(keyword));
         });
         return ['Alle', ...Array.from(kws).sort()];
-    }, [allRecipes]);
+    }, [recipeKeywordsById]);
 
     // Filtrering på tværs af ALLE opskrifter
     const filteredRecipes = useMemo(() => {
         return allRecipes.filter((recipe) => {
-            let recipeKeywords: string[] = [];
-            if (recipe.keywordsJson) {
-                try {
-                    recipeKeywords = JSON.parse(recipe.keywordsJson) as string[];
-                } catch {
-                    recipeKeywords = [];
-                }
-            }
+            const recipeKeywords = recipeKeywordsById.get(recipe.id) ?? [];
 
             const matchesSearch =
-                !searchQuery ||
-                recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
+                !deferredSearchQuery ||
+                recipe.name.toLowerCase().includes(deferredSearchQuery.toLowerCase());
             const matchesCategory =
                 activeCategory === 'Alle' || recipe.category === activeCategory;
             const matchesKeyword =
@@ -127,7 +147,7 @@ function RecipePage() {
             const matchesFavorites = !showFavoritesOnly || favoriteIds.has(recipe.id);
             return matchesSearch && matchesCategory && matchesKeyword && matchesFavorites;
         });
-    }, [allRecipes, searchQuery, activeCategory, activeKeyword, showFavoritesOnly, favoriteIds]);
+    }, [allRecipes, recipeKeywordsById, deferredSearchQuery, activeCategory, activeKeyword, showFavoritesOnly, favoriteIds]);
 
     // Client-side pagination
     const totalCount = filteredRecipes.length;
@@ -142,6 +162,18 @@ function RecipePage() {
         const start = (currentPage - 1) * pageSize;
         return filteredRecipes.slice(start, start + pageSize);
     }, [filteredRecipes, currentPage, pageSize]);
+
+    const paginationItems = useMemo<(number | string)[]>(() => {
+        return Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+            .reduce<(number | string)[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) {
+                    acc.push('...');
+                }
+                acc.push(p);
+                return acc;
+            }, []);
+    }, [currentPage, totalPages]);
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
@@ -316,13 +348,13 @@ function RecipePage() {
                                 {paginatedRecipes.map((recipe) => (
                                     <div
                                         key={recipe.id}
-                                        onClick={() => navigate(`/recipes/${recipe.id}`)}
+                                        onClick={() => handleRecipeOpen(recipe.id)}
                                         className="cursor-pointer"
                                     >
                                         <RecipeCard
                                             recipe={recipe}
                                             isFavorite={favoriteIds.has(recipe.id)}
-                                            onToggleFavorite={() => toggleLike(recipe)}
+                                            onToggleFavorite={handleToggleFavoriteById}
                                             onCategoryClick={setActiveCategory}
                                             onKeywordClick={setActiveKeyword}
                                             showKeywords={false}
@@ -361,20 +393,7 @@ function RecipePage() {
                             Forrige
                         </button>
                         <div className="flex items-center gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                .filter(
-                                    (p) =>
-                                        p === 1 ||
-                                        p === totalPages ||
-                                        Math.abs(p - currentPage) <= 1
-                                )
-                                .reduce<(number | string)[]>((acc, p, i, arr) => {
-                                    if (i > 0 && p - (arr[i - 1] as number) > 1) {
-                                        acc.push('...');
-                                    }
-                                    acc.push(p);
-                                    return acc;
-                                }, [])
+                            {paginationItems
                                 .map((item, i) =>
                                     typeof item === 'string' ? (
                                         <span key={`dots-${i}`} className="px-2 text-gray-400">

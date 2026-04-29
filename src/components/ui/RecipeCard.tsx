@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { FaClock, FaHeart, FaRegHeart } from 'react-icons/fa';
 import type { RecipeSummary } from '../../types/Recipe';
@@ -55,9 +56,14 @@ function RecipeCard({
         }
     };
 
-    const keywords: string[] = recipe.keywordsJson
-        ? JSON.parse(recipe.keywordsJson)
-        : [];
+    const keywords = useMemo<string[]>(() => {
+        if (!recipe.keywordsJson) return [];
+        try {
+            return JSON.parse(recipe.keywordsJson) as string[];
+        } catch {
+            return [];
+        }
+    }, [recipe.keywordsJson]);
 
     // Check if there's any content to show in the card body
     const hasCardContent = 
@@ -173,4 +179,4 @@ function RecipeCard({
     );
 }
 
-export default RecipeCard;
+export default memo(RecipeCard);

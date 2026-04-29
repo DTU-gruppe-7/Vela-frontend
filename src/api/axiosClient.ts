@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   headers: {
@@ -49,6 +50,10 @@ axiosClient.interceptors.response.use(
 
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/Auth/refresh')) {
+                return Promise.reject(error);
+            }
+
+            if (typeof window === 'undefined') {
                 return Promise.reject(error);
             }
 

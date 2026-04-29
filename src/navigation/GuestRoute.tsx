@@ -9,8 +9,7 @@ function GuestRoute() {
     if (isHydrating) return null;
 
     if (isAuthenticated) {
-        const from = (location.state as { from?: Location })?.from?.pathname || '/';
-        return <Navigate to={from} replace />;
+        return <Navigate to="/" replace />;
     }
 
     return <Outlet />
