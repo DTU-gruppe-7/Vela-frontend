@@ -1,13 +1,13 @@
 export interface AuthResponse {
-    id?: string;
-    userId: string;
-    token: string;
-    refreshToken: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    profilePictureUrl?: string;
-    dateOfBirth?: string;
+    accessToken: string;
+    user: {
+        userId: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        profilePictureUrl?: string | null;
+        dateOfBirth?: string;
+    };
 }
 
 export interface LoginRequest {
@@ -29,6 +29,6 @@ export interface AuthUser {
     email: string;
     firstName: string;
     lastName: string;
-    profilePictureUrl?: string;
+    profilePictureUrl?: string | null;
     dateOfBirth?: string;
 }

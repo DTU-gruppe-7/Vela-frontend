@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { authApi } from '../api/authApi';
-import { persistSession, clearSession, loadSession, userFromResponse } from '../utils/authStorage';
+import { updateToken } from '../api/axiosClient';
 import type { AuthUser, LoginRequest, RegisterRequest } from '../types/Auth';
 
 interface AuthState {
@@ -8,11 +8,12 @@ interface AuthState {
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isHydrating: boolean;
 
+    hydrate:  ()                      => Promise<void>;
     login:    (data: LoginRequest)    => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
     logout:   ()                      => Promise<void>;
-    hydrate:  ()                      => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -20,15 +21,34 @@ export const useAuthStore = create<AuthState>((set) => ({
     token: null,
     isAuthenticated: false,
     isLoading: false,
+    isHydrating: true,
+
+    hydrate: async () => {
+        const storedToken = localStorage.getItem('accessToken');
+        if (!storedToken) {
+            set({ isHydrating: false });
+            return;
+        }
+        try {
+            const res = await authApi.refresh(storedToken);
+            updateToken(res.accessToken);
+            localStorage.setItem('accessToken', res.accessToken);
+            set({ user: res.user, token: res.accessToken, isAuthenticated: true, isHydrating: false });
+        } catch {
+            localStorage.removeItem('accessToken');
+            set({ isHydrating: false });
+        }
+    },
 
     login: async (data) => {
         set({ isLoading: true });
         try {
             const res = await authApi.login(data);
-            persistSession(res);
+            updateToken(res.accessToken);
+            localStorage.setItem('accessToken', res.accessToken);
             set({
-                user: userFromResponse(res),
-                token: res.token,
+                user: res.user,
+                token: res.accessToken,
                 isAuthenticated: true,
             });
         } finally {
@@ -40,10 +60,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ isLoading: true });
         try {
             const res = await authApi.register(data);
-            persistSession(res);
+            updateToken(res.accessToken);
+            localStorage.setItem('accessToken', res.accessToken);
             set({
-                user: userFromResponse(res),
-                token: res.token,
+                user: res.user,
+                token: res.accessToken,
                 isAuthenticated: true,
             });
         } finally {
@@ -55,21 +76,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             await authApi.logout();
         } catch {
-            // Server-fejl stopper ikke logout lokalt
+            // server error doesn't stop local logout
         } finally {
-            clearSession();
+            updateToken(null);
+            localStorage.removeItem('accessToken');
             set({ user: null, token: null, isAuthenticated: false });
-        }
-    },
-
-    hydrate: () => {
-        const session = loadSession();
-        if (session) {
-            set({
-                user: session.user,
-                token: session.token,
-                isAuthenticated: true,
-            });
         }
     },
 }));
