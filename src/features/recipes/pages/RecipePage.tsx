@@ -73,8 +73,8 @@ function RecipePage() {
 
     // Hent ALLE opskrifter én gang
     useEffect(() => {
-        fetchAllRecipes();
-    }, [excludeFilters]);
+        void fetchAllRecipes();
+    }, [fetchAllRecipes]);
 
     const handlePageSizeChange = (newSize: number) => {
         setPageSize(newSize);
@@ -207,11 +207,7 @@ function RecipePage() {
 
     return (
         <div className="min-h-screen bg-orange-50/40">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                {/* Title */}
-                <h1 className="text-3xl font-semibold text-gray-900 mb-8">
-                    Opskrift Bibliotek
-                </h1>
+            <div className="max-w-7xl mx-auto px-4 pt-2 pb-10 sm:px-6 sm:pt-3 lg:px-8">
 
                 {/* Search bar + filter button */}
                 <div className="flex items-center gap-3 mb-6">

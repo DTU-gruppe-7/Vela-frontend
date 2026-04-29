@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { AddShoppingListItem } from '../../../types/ShoppingList';
 import { useShoppingList } from '../hooks/useShoppingList';
@@ -6,10 +7,52 @@ import ItemsSection from '../components/ItemsSection';
 import { EmptyListState, ErrorBanner, LoadingList } from '../components/ListStates';
 import Toolbar from '../components/Toolbar';
 import { shoppingListApi } from '../../../api/shoppingListApi';
+import { groupApi } from '../../../api/groupApi';
+import type { GroupMember } from '../../../types/Group';
+import { getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();
-    const { shoppingList, loading, error, addItem, toogleItem, removeItem, refetch } = useShoppingList(groupId);
+    const { shoppingList, loading, error, addItem, toogleItem, removeItem, handleAssignMember, refetch } = useShoppingList(groupId);
+    const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+
+    useEffect(() => {
+        if (!groupId) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const fetchGroupMembers = async () => {
+            try {
+                const group = await groupApi.getGroup(groupId);
+                if (!isCancelled) {
+                    setGroupMembers(group.members ?? []);
+                }
+            } catch (err) {
+                console.error('Fejl ved hentning af gruppemedlemmer:', err);
+                if (!isCancelled) {
+                    setGroupMembers([]);
+                }
+            }
+        };
+
+        void fetchGroupMembers();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [groupId]);
+
+    const visibleGroupMembers = useMemo(() => (groupId ? groupMembers : []), [groupId, groupMembers]);
+
+    const assignees = useMemo(
+        () => visibleGroupMembers.map((member) => ({
+            userId: member.userId,
+            label: getGroupMemberDisplayName(member),
+        })),
+        [visibleGroupMembers],
+    );
 
     const handleAddItem = async (item: AddShoppingListItem): Promise<void> => {
         await addItem(item);
@@ -75,10 +118,11 @@ function ShoppingListPage() {
     };
 
     const items = shoppingList?.items ?? [];
+    const hasOnlyAssignedItems = !groupId && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-screen-2xl px-4 pt-2 pb-10 sm:px-6 sm:pt-3 lg:px-8">
                 {error && <ErrorBanner error={error} />}
 
                 <AddItemForm onAddItem={handleAddItem} />
@@ -86,6 +130,7 @@ function ShoppingListPage() {
                 <Toolbar
                     hasCheckedItems={items.some((item) => item.isBought)}
                     hasItems={items.length > 0}
+                    disableBulkActions={hasOnlyAssignedItems}
                     onDeleteChecked={() => {
                         void handleDeleteChecked();
                     }}
@@ -102,6 +147,9 @@ function ShoppingListPage() {
                         onToggle={toogleItem}
                         onRemove={removeItem}
                         onRemoveGroup={handleRemoveGroup}
+                        showAssignment={Boolean(groupId)}
+                        assignees={assignees}
+                        onAssign={handleAssignMember}
                     />
                 )}
 

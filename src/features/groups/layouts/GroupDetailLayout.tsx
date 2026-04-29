@@ -76,10 +76,10 @@ const GroupDetailLayout: React.FC = () => {
 
             {/* Main Content Area - Sømløs baggrund uden luft mod venstremenu */}
             <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)] bg-slate-50 pb-20 md:pb-0">
-                <div className="pt-6 md:pt-8 pb-0 w-full">
+                <div className="pt-2 md:pt-4 pb-0 w-full">
                     {/* Header */}
-                    <div className="flex items-center gap-5 md:gap-6 mb-8 md:mb-10 px-6 md:px-10 xl:px-14">
-                        <Link 
+                    <div className="flex items-center gap-5 md:gap-6 mb-4 md:mb-6 px-6 md:px-10 xl:px-14">
+                        <Link
                             to="/groups" 
                             className="group flex items-center justify-center w-10 h-10 bg-slate-50 rounded-full text-slate-400 hover:bg-orange-500 hover:text-white transition-all shadow-sm"
                         >

@@ -3,6 +3,10 @@ import { useAuthStore } from "../stores/authStore.ts";
 
 function GuestRoute() {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const isHydrating = useAuthStore((s) => s.isHydrating);
+    const location = useLocation();
+
+    if (isHydrating) return null;
 
     if (isAuthenticated) {
         return <Navigate to="/" replace />;

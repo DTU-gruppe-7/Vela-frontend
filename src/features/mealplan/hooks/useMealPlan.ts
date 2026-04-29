@@ -5,6 +5,7 @@ import { mealplanApi} from '../../../api/mealplanApi';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import { recipeApi } from '../../../api/recipeApi';
 import { shoppingListApi } from '../../../api/shoppingListApi';
+import { groupApi } from '../../../api/groupApi';
 
 type MealPlanData = { [key: string]: MealPlanEntry[] };
 
@@ -119,16 +120,27 @@ export function useMealPlan(
     if (!mealPlanId) return;
     const targetDate = dateKey;
     const tempId = `temp-${Date.now()}`;
-    // Default servings; will be overridden if recipe details are available
-    let initialServings = 4;
+    // Start with default servings
+    let initialServings = 1;
+
+    // Try to use group size as default servings
+    if (groupId) {
+      try {
+        const group = await groupApi.getGroup(groupId);
+        initialServings = group.members?.length || 4;
+      } catch {
+        // If group fetch fails, keep default
+      }
+    }
+
     try {
       try {
         const fullRecipe = await recipeApi.getRecipeById(recipe.id);
-        if (fullRecipe) {
+        if (fullRecipe && fullRecipe.servings) {
           initialServings = fullRecipe.servings;
         }
       } catch {
-        // If fetching full recipe fails, fall back to default servings
+        // If fetching full recipe fails, fall back to group size or default servings
       }
       const tempEntry: MealPlanEntry = {
         id: tempId,
@@ -154,9 +166,9 @@ export function useMealPlan(
         ...prev,
         [dateKey]: (prev[dateKey] || []).filter(e => e.id !== tempId)
       }));
-      setError('Kunne ikke gemme');
-    }
-  }, [mealPlanId]);
+       setError('Kunne ikke gemme');
+     }
+   }, [mealPlanId, groupId]);
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;

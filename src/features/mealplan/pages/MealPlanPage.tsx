@@ -264,11 +264,9 @@ export default function MealPlanPage() {
   };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="w-full max-w-none px-2 sm:px-4 lg:px-6 pt-1 pb-4 lg:pt-2 lg:pb-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                    <h1 className="text-2xl font-bold text-slate-800">Madplan</h1>
-                    
                     {isPersonalView && (
                       <div className="relative ml-0 sm:ml-4">
                         <select
@@ -650,7 +648,7 @@ function DayColumn({
         </div>
       </div>
       <div
-        className={`p-4 flex flex-col min-h-96 transition-colors ${isDropTarget ? 'bg-indigo-50/60' : 'bg-white'}`}
+        className={`p-3 sm:p-4 lg:p-5 flex flex-col min-h-44 transition-colors ${isDropTarget ? 'bg-indigo-50/60' : 'bg-white'}`}
         onDragOver={(event) => event.preventDefault()}
         onDragEnter={() => onDragEnterDay(dateKey)}
         onDrop={(event) => {
@@ -664,8 +662,10 @@ function DayColumn({
 {entries.filter(e => e.recipe).map((entry) => {
                 // En entry kan kun redigeres hvis den er personlig. Gruppe-entries er locked fast.
                 const isEditable = !isPersonalView || entry.source !== 'group';
-                const canRemoveFromShoppingList =
-                  entry.addedToShoppingList && (!isPersonalView || entry.source !== 'group');
+                const showShoppingListCheckmark = entry.addedToShoppingList;
+                const isLockedGroupEntryInPersonalView = isPersonalView && entry.source === 'group';
+                const canClickShoppingListCheckmark =
+                  showShoppingListCheckmark && !isLockedGroupEntryInPersonalView;
                 const isDraggable = isEditable;
                 return (
                   <div
@@ -697,17 +697,26 @@ function DayColumn({
                               👥 {entry.servings}
                             </span>
                           )}
-                          {canRemoveFromShoppingList && (
+                          {showShoppingListCheckmark && (
                             <button
                               type="button"
                               onClick={(event) => {
+                                if (!canClickShoppingListCheckmark) return;
                                 event.stopPropagation();
                                 onRequestRemoveFromShoppingList(entry);
                               }}
-                              disabled={isRemovingFromShoppingList}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                              title="Fjern fra indkøbsliste"
-                              aria-label="Fjern fra indkøbsliste"
+                              disabled={isRemovingFromShoppingList || !canClickShoppingListCheckmark}
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 transition ${
+                                canClickShoppingListCheckmark
+                                  ? 'hover:bg-emerald-200'
+                                  : 'opacity-60 cursor-default'
+                              } disabled:cursor-not-allowed`}
+                              title={canClickShoppingListCheckmark
+                                ? 'Fjern fra indkøbsliste'
+                                : 'Kan kun fjernes via gruppens madplan'}
+                              aria-label={canClickShoppingListCheckmark
+                                ? 'Fjern fra indkøbsliste'
+                                : 'Tilføjet til indkøbsliste. Kan kun fjernes via gruppens madplan'}
                             >
                               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="20 6 9 17 4 12" />
