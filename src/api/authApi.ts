@@ -13,18 +13,14 @@ export const authApi = {
     return response.data;
   },
 
+  refresh: async (accessToken: string): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/Auth/refresh', { accessToken }, { withCredentials: true });
+    return response.data;
+  },
+
   // Logout requires auth header
   logout: async (): Promise<void> => {
     await axiosClient.post('/auth/logout');
-  },
-
-  // Refresh token endpoint
-  refreshToken: async (token: string, refreshToken: string): Promise<AuthResponse> => {
-    const response = await axiosClient.post<AuthResponse>('/auth/refresh-token', {
-      token,
-      refreshToken
-    });
-    return response.data;
   },
 
   getPreferences: async (): Promise<UserDietaryPreferencesDto> => {
