@@ -23,8 +23,8 @@ export default function GroupManagePage() {
     const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const userIdentifiers = useMemo(
-        () => [user?.id, user?.userId, user?.email],
-        [user?.id, user?.userId, user?.email]
+        () => [user?.userId, user?.email],
+        [user?.userId, user?.email]
     );
 
     const currentRole = useMemo(() => {

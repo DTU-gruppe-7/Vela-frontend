@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
@@ -8,7 +8,7 @@ import FormField from "../../../components/ui/FormField.tsx";
 function LoginPage() {
     const { login, isLoading } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
+    const [rememberMe, setRememberMe] = useState(false);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -16,17 +16,17 @@ function LoginPage() {
 
     const dashboardRoute = '/';
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setError(null);
+     const handleSubmit = async (e: FormEvent) => {
+         e.preventDefault();
+         setError(null);
 
-        try {
-            await login({ email, password });
-            navigate(dashboardRoute, { replace: true });
-        } catch {
-            setError('Forkert email eller adgangskode');
-        }
-    };
+         try {
+             await login({ email, password, rememberMe });
+             navigate(dashboardRoute, { replace: true });
+         } catch {
+             setError('Forkert email eller adgangskode');
+         }
+     };
 
     return (
         <div className="flex items-center justify-center min-h-[80vh] px-4">
@@ -44,34 +44,47 @@ function LoginPage() {
                     </div>
                 )}
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <FormField
-                        id="email"
-                        label="Email"
-                        type="email"
-                        placeholder="din@email.dk"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="email"
-                    />
+                 {/* Form */}
+                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                     <FormField
+                         id="email"
+                         label="Email"
+                         type="email"
+                         placeholder="din@email.dk"
+                         value={email}
+                         onChange={(e) => setEmail(e.target.value)}
+                         required
+                         autoComplete="email"
+                     />
 
-                    <FormField
-                        id="password"
-                        label="Adgangskode"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="current-password"
-                    />
+                     <FormField
+                         id="password"
+                         label="Adgangskode"
+                         type="password"
+                         placeholder="••••••••"
+                         value={password}
+                         onChange={(e) => setPassword(e.target.value)}
+                         required
+                         autoComplete="current-password"
+                     />
 
-                    <Button type="submit" disabled={isLoading} className="mt-2 w-full">
-                        {isLoading ? 'Logger ind…' : 'Log ind'}
-                    </Button>
-                </form>
+                     <div className="flex items-center gap-2">
+                         <input
+                             type="checkbox"
+                             id="rememberMe"
+                             checked={rememberMe}
+                             onChange={(e) => setRememberMe(e.target.checked)}
+                             className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                         />
+                         <label htmlFor="rememberMe" className="text-sm text-slate-600">
+                             Hold mig logget ind
+                         </label>
+                     </div>
+
+                     <Button type="submit" disabled={isLoading} className="mt-2 w-full">
+                         {isLoading ? 'Logger ind…' : 'Log ind'}
+                     </Button>
+                 </form>
 
                 <div className="mt-3 text-center">
                     <button

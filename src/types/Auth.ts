@@ -1,18 +1,21 @@
+export interface AuthUser {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    profilePictureUrl?: string | null;
+    dateOfBirth?: string;
+}
+
 export interface AuthResponse {
     accessToken: string;
-    user: {
-        userId: string;
-        email: string;
-        firstName: string;
-        lastName: string;
-        profilePictureUrl?: string | null;
-        dateOfBirth?: string;
-    };
+    user: AuthUser;
 }
 
 export interface LoginRequest {
     email: string;
     password: string;
+    rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
@@ -20,15 +23,5 @@ export interface RegisterRequest {
     password: string;
     firstName: string;
     lastName: string;
-    dateOfBirth?: string;
-}
-
-export interface AuthUser {
-    id?: string;
-    userId: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    profilePictureUrl?: string | null;
     dateOfBirth?: string;
 }

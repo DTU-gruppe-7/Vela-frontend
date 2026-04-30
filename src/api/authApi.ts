@@ -14,7 +14,12 @@ export const authApi = {
   },
 
   refresh: async (accessToken: string): Promise<AuthResponse> => {
-    const response = await axiosClient.post<AuthResponse>('/Auth/refresh', { accessToken }, { withCredentials: true });
+    const response = await axiosClient.post<AuthResponse>('/Auth/refresh', { accessToken });
+    return response.data;
+  },
+
+  validateSession: async (): Promise<AuthResponse> => {
+    const response = await axiosClient.get<AuthResponse>('/auth/validate');
     return response.data;
   },
 

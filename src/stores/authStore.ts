@@ -9,34 +9,96 @@ interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     isHydrating: boolean;
+    rememberMe: boolean;
 
-    hydrate:  ()                      => Promise<void>;
-    login:    (data: LoginRequest)    => Promise<void>;
+    hydrate: () => Promise<void>;
+    login: (data: LoginRequest) => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
-    logout:   ()                      => Promise<void>;
+    logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+const REMEMBER_ME_KEY = 'vela_remember_me';
+
+let currentTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getTokenExpiry(token: string): number | null {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return payload.exp * 1000;
+    } catch {
+        return null;
+    }
+}
+
+function startAutoRefresh() {
+    const { token } = useAuthStore.getState();
+    if (!token) return;
+
+    stopAutoRefresh();
+
+    const expiry = getTokenExpiry(token);
+    if (!expiry) return;
+
+    const refreshIn = Math.max(0, expiry - Date.now() - 5 * 60 * 1000);
+    currentTimer = setTimeout(performAutoRefresh, refreshIn);
+}
+
+function stopAutoRefresh() {
+    if (currentTimer) {
+        clearTimeout(currentTimer);
+        currentTimer = null;
+    }
+}
+
+async function performAutoRefresh() {
+    const { token, rememberMe } = useAuthStore.getState();
+    if (!token) return;
+
+    try {
+        const response = await authApi.refresh(token);
+        updateToken(response.accessToken);
+        useAuthStore.setState({ token: response.accessToken });
+
+        if (rememberMe) startAutoRefresh();
+    } catch {
+        stopAutoRefresh();
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
+    }
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
     token: null,
     isAuthenticated: false,
     isLoading: false,
     isHydrating: true,
+    rememberMe: typeof window !== 'undefined' && localStorage.getItem(REMEMBER_ME_KEY) === 'true',
 
     hydrate: async () => {
-        const storedToken = localStorage.getItem('accessToken');
-        if (!storedToken) {
-            set({ isHydrating: false });
-            return;
-        }
         try {
-            const res = await authApi.refresh(storedToken);
+            const res = await authApi.validateSession();
             updateToken(res.accessToken);
-            localStorage.setItem('accessToken', res.accessToken);
-            set({ user: res.user, token: res.accessToken, isAuthenticated: true, isHydrating: false });
+            set({
+                user: res.user,
+                token: res.accessToken,
+                isAuthenticated: true,
+                isHydrating: false,
+            });
+
+            if (get().rememberMe) {
+                startAutoRefresh();
+            }
         } catch {
-            localStorage.removeItem('accessToken');
-            set({ isHydrating: false });
+            updateToken(null);
+            set({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                isHydrating: false,
+            });
+            stopAutoRefresh();
         }
     },
 
@@ -45,12 +107,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             const res = await authApi.login(data);
             updateToken(res.accessToken);
-            localStorage.setItem('accessToken', res.accessToken);
+
+            const rememberMe = data.rememberMe ?? false;
+            if (rememberMe) {
+                localStorage.setItem(REMEMBER_ME_KEY, 'true');
+            }
+
             set({
                 user: res.user,
                 token: res.accessToken,
                 isAuthenticated: true,
+                rememberMe,
             });
+
+            if (rememberMe) {
+                startAutoRefresh();
+            }
         } finally {
             set({ isLoading: false });
         }
@@ -61,7 +133,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             const res = await authApi.register(data);
             updateToken(res.accessToken);
-            localStorage.setItem('accessToken', res.accessToken);
             set({
                 user: res.user,
                 token: res.accessToken,
@@ -78,9 +149,15 @@ export const useAuthStore = create<AuthState>((set) => ({
         } catch {
             // server error doesn't stop local logout
         } finally {
+            localStorage.removeItem(REMEMBER_ME_KEY);
             updateToken(null);
-            localStorage.removeItem('accessToken');
-            set({ user: null, token: null, isAuthenticated: false });
+            stopAutoRefresh();
+            set({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                rememberMe: false,
+            });
         }
     },
 }));

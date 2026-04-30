@@ -52,7 +52,7 @@ export const RecipeDetailPage: React.FC<RecipeDetailPageProps> = ({ initialRecip
         if (!sectionName) return -1;
         const name = sectionName.toLowerCase();
         
-        const idx = instructions.findIndex((s: InstructionSection) => {
+        const idx = instructions.findIndex((s) => {
            if (!s.sectionName) return false;
            const sName = s.sectionName.toLowerCase();
            return sName.includes(name) || name.includes(sName);

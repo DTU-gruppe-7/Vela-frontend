@@ -22,7 +22,7 @@ export function getCurrentUserDisplayName(user: AuthUser | null | undefined): st
     const email = normalize(user?.email);
     if (email) return email;
 
-    return normalize(user?.userId) || normalize(user?.id) || 'Ukendt bruger';
+    return normalize(user?.userId) || 'Ukendt bruger';
 }
 
 export function getDisplayInitials(displayName: string): string {

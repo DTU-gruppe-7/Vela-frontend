@@ -14,7 +14,7 @@ const GroupDetailLayout: React.FC = () => {
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const currentRole = getCurrentUserGroupRole(group, user?.id, user?.userId, user?.email);
+    const currentRole = getCurrentUserGroupRole(group, user?.userId, user?.email);
     const isOwner = currentRole === 'owner';
 
     useEffect(() => {
