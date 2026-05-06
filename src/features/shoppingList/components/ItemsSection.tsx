@@ -165,10 +165,11 @@ function ItemsSection({
                           if (!confirmed) return;
                           void onRemoveGroup(group.items.map((item) => item.id));
                         }}
-                        className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-red-200 text-red-500 transition-all duration-200 hover:border-red-300 hover:bg-red-50"
+                        className="shrink-0 p-1.5 text-gray-300 rounded-lg opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                        aria-label="Fjern varegruppe"
                         title="Slet alle varer i gruppen"
                       >
-                        <FiTrash2 className="text-xs" />
+                        <FiTrash2 className="text-sm" />
                       </button>
                     )}
                   </div>
