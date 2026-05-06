@@ -79,32 +79,40 @@ export const ShoppingListWidget = () => {
             ) : (
                 <div className="hide-scrollbar flex-1 overflow-y-auto pr-1">
                     <div className="space-y-2">
-                        {uncheckedItems.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => navigate('/shoppinglist')}
-                                className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:bg-slate-100"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-slate-800 capitalize">
-                                        {item.ingredientName}
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                        {item.quantity > 0 ? item.quantity : ''} {item.unit ?? ''}
-                                    </p>
-                                    {item.recipeName?.trim() && (
-                                        <p className="truncate text-xs text-slate-500">
-                                            Fra opskrift: {item.recipeName.trim()}
+                        {uncheckedItems.map((item) => {
+                            const recipeName = item.recipeName?.trim();
+                            const hasRecipeName =
+                                Boolean(recipeName) &&
+                                recipeName?.toLowerCase() !== 'null' &&
+                                recipeName?.toLowerCase() !== 'undefined' &&
+                                recipeName?.toLowerCase() !== '()';
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => navigate('/shoppinglist')}
+                                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:bg-slate-100"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-medium text-slate-800 capitalize">
+                                            {item.ingredientName}
                                         </p>
-                                    )}
-                                </div>
-                                <div className="ml-2 flex items-center gap-2 text-slate-400">
-                                    <FiCheck className="opacity-40" />
-                                    <FiArrowRight />
-                                </div>
-                            </button>
-                        ))}
+                                        <p className="text-xs text-slate-500">
+                                            {item.quantity > 0 ? item.quantity : ''} {item.unit ?? ''}
+                                        </p>
+                                        {hasRecipeName && (
+                                            <p className="truncate text-xs text-slate-500">
+                                                Fra opskrift: {recipeName}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="ml-2 flex items-center gap-2 text-slate-400">
+                                        <FiCheck className="opacity-40" />
+                                        <FiArrowRight />
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}

@@ -1,4 +1,5 @@
 import { createElement } from 'react';
+import { randomBytes } from 'node:crypto';
 import express from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -31,7 +32,7 @@ async function readTemplate(vite: Awaited<ReturnType<typeof createViteServer>> |
     return template;
 }
 
-async function renderPage(url: string, template: string, initialData: SsrInitialData): Promise<string> {
+async function renderPage(url: string, template: string, initialData: SsrInitialData, nonce: string): Promise<string> {
     const appHtml = renderToString(
         createElement(
             StaticRouter,
@@ -42,7 +43,7 @@ async function renderPage(url: string, template: string, initialData: SsrInitial
 
     return template
         .replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`)
-        .replace('</body>', `<script>window.__INITIAL_DATA__ = ${serializeInitialData(initialData)};</script></body>`);
+        .replace('</body>', `<script nonce="${nonce}">window.__INITIAL_DATA__ = ${serializeInitialData(initialData)};</script></body>`);
 }
 
 async function createServer() {
@@ -53,6 +54,36 @@ async function createServer() {
               server: { middlewareMode: true },
               appType: 'custom',
           });
+
+    app.use((_req, res, next) => {
+        const nonce = randomBytes(16).toString('base64');
+        res.locals.cspNonce = nonce;
+
+        const backendUrl = process.env.BACKEND_URL ?? '';
+        const connectSrc = backendUrl
+            ? `'self' ${backendUrl} ${backendUrl.replace('https://', 'wss://')}`
+            : "'self'";
+
+        res.setHeader(
+            'Content-Security-Policy',
+            `default-src 'self'; ` +
+            `script-src 'self' 'nonce-${nonce}'; ` +
+            `style-src 'self' 'unsafe-inline'; ` +
+            `img-src 'self' data: https:; ` +
+            `font-src 'self'; ` +
+            `connect-src ${connectSrc}; ` +
+            `frame-ancestors 'none'; ` +
+            `base-uri 'self'; ` +
+            `form-action 'self'; ` +
+            `object-src 'none';`,
+        );
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+        next();
+    });
 
     if (vite) {
         app.use(vite.middlewares);
@@ -87,7 +118,7 @@ async function createServer() {
 
             const template = await readTemplate(vite);
             const initialData = await resolveSsrInitialData(pathname, context);
-            const html = await renderPage(url, template, initialData);
+            const html = await renderPage(url, template, initialData, res.locals.cspNonce as string);
 
             res.status(200).setHeader('Content-Type', 'text/html').end(html);
         } catch (error) {

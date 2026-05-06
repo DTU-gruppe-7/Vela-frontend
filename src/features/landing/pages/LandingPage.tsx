@@ -38,18 +38,6 @@ export const LandingPage = ({ initialRecipes, showAuthPanel = true }: LandingPag
 
     return (
         <>
-            <style>{`
-                .hide-scrollbar {
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-                .hide-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                html {
-                    scroll-behavior: smooth;
-                }
-            `}</style>
             <div className={`flex min-h-screen flex-col bg-stone-50 ${showAuthPanel ? 'lg:flex-row lg:h-screen lg:overflow-hidden' : ''}`}>
 
                 {/* Venstre side — indhold */}
