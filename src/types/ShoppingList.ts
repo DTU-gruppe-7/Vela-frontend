@@ -83,25 +83,7 @@ export interface ShoppingListItemOffer {
   offers: StoreOffer[];
 }
 
-export interface ShoppingListStrategyItem {
-  itemId: string;
-  offerId: string;
-  storeName: string;
-  price: number;
-}
-
-export interface ShoppingListOfferStrategy {
-  strategy: 'singleStore' | 'maxTwoStores' | 'allStores' | string;
-  label: string;
-  knownTotal: number;
-  coveredItemCount: number;
-  unknownItemCount: number;
-  storeNames: string[];
-  items: ShoppingListStrategyItem[];
-}
-
 export interface ShoppingListOfferOverview {
   shoppingListId: string;
   items: ShoppingListItemOffer[];
-  strategies: ShoppingListOfferStrategy[];
 }

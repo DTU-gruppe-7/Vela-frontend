@@ -155,14 +155,4 @@ export const shoppingListApi = {
     return response.data;
   },
 
-  applyOfferStrategy: async (
-    shoppingListId: string,
-    strategy: 'singleStore' | 'maxTwoStores' | 'allStores' | string,
-  ): Promise<ShoppingListOfferOverview> => {
-    const response = await axiosClient.post<ShoppingListOfferOverview>(
-      `/shoppingList/${shoppingListId}/offers/apply-strategy`,
-      { strategy },
-    );
-    return response.data;
-  },
 };

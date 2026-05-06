@@ -214,18 +214,6 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
-    const applyOfferStrategy = useCallback(async (strategy: string) => {
-        if (!shoppingList) return;
-
-        try {
-            await shoppingListApi.applyOfferStrategy(shoppingList.id, strategy);
-            await fetchShoppingList();
-        } catch (err) {
-            console.error('Error applying strategy: ', err);
-            setError('Kunne ikke anvende tilbudsstrategien.');
-        }
-    }, [fetchShoppingList, shoppingList]);
-
     return {
         shoppingList,
         offersOverview,
@@ -237,7 +225,6 @@ export function useShoppingList(groupId?: string) {
         handleAssignMember,
         assignGroupItems,
         acceptItemOffer,
-        applyOfferStrategy,
         assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };

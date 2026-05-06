@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { StoreOffer } from '../../../types/ShoppingList';
 import type { AddShoppingListItem } from '../../../types/ShoppingList';
