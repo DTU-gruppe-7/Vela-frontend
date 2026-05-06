@@ -35,18 +35,21 @@ export const useRecipeQueue = (category?: string) => {
             fetchMoreRecipes();
     },  [fetchMoreRecipes]);
 
-    const swipe = useCallback(
-        async (recipeId: string, direction: "like" | "dislike") => {
-            // Optimistisk UI – fjern kortet med det same
-            setQueue((prev) => prev.filter((r) => r.id !== recipeId));
+    const swipe = useCallback((recipeId: string, direction: "like" | "dislike") => {
+        // Øjeblikkelig UI-opdatering — blokerer aldrig
+        setQueue((prev) => prev.filter((r) => r.id !== recipeId));
 
-            // Fire-and-forget til backend
-            recipeApi.recordSwipe(recipeId, direction).catch((error) => {
-                console.error("Failed to record swipe:", error);
+        // Retry i baggrunden uden at blokere UI
+        let attempt = 0;
+        const tryRecord = () => {
+            recipeApi.recordSwipe(recipeId, direction).catch(() => {
+                if (++attempt < 3) {
+                    setTimeout(tryRecord, 500 * 2 ** attempt);
+                }
             });
-        },
-        [],
-    );
+        };
+        tryRecord();
+    }, []);
 
     // Prefetch når køen er ved at løbe tør
     useEffect(() => {

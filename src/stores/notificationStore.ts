@@ -40,8 +40,9 @@ interface NotificationState {
     hideDropdown: () => void;
 }
 
-// BEMÆRK: Ret denne URL, så den peger på din rigtige backend adresse
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+
+let connectionGeneration = 0;
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
@@ -79,15 +80,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     },
 
     connectToSignalR: () => {
-        // Hvis der allerede er en forbindelse ELLER vi er i gang med at oprette forbindelse, gør ingenting
         if (get().connection || get().isConnecting) return;
 
-        // Hent token fra authStore for at autentificere mod SignalR Hubben
         const token = useAuthStore.getState().token;
         if (!token) return;
 
-        // Sæt flag for at forhindre concurrent connection attempts
         set({ isConnecting: true });
+
+        const myGeneration = ++connectionGeneration;
 
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${BACKEND_URL}/api/hubs/notifications`, {
@@ -99,11 +99,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
         set({ connection: newConnection });
 
-        // Definer hvad der skal ske, når vi modtager begivenheden "ReceiveNotification"
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newConnection.on('ReceiveNotification', (notification: any) => {
-            // SignalR sender PascalCase fra C# backend
-            // Sørg for at mappe felterne, så de passer til din NotificationDto.
             const newNotif: Notification = {
                 id: notification.payload?.notificationId || crypto.randomUUID(),
                 title: notification.title ?? '',
@@ -114,7 +111,6 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 createdAt: notification.timestamp || new Date().toISOString()
             };
 
-            // Tilføj den nye notifikation og sorter listen
             set((state) => {
                 if (state.notifications.some(n => n.id === newNotif.id)) return state;
                 const updatedNotifications = sortNotifications([newNotif, ...state.notifications]);
@@ -127,10 +123,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             });
         });
 
-        // Start forbindelsen
         newConnection.start()
             .then(() => {
-                console.log('SignalR Connected to Notifications Hub');
+                // Afbryd hvis en nyere forbindelse er startet imens
+                if (myGeneration !== connectionGeneration) {
+                    newConnection.stop();
+                    return;
+                }
                 set({ isConnecting: false });
             })
             .catch(err => {
@@ -142,6 +141,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     disconnectSignalR: () => {
         const { connection } = get();
+        connectionGeneration++; // Ugyldiggør eventuelle in-flight forbindelsesforsøg
         if (connection) {
             connection.stop();
             set({ connection: null, isConnecting: false });

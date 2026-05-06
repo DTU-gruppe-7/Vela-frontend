@@ -54,8 +54,11 @@ async function performAutoRefresh() {
     const { token, rememberMe } = useAuthStore.getState();
     if (!token) return;
 
+    const tokenSnapshot = token;
     try {
         const response = await authApi.refresh(token);
+        // Afbryd hvis tokenet er blevet opdateret af login/hydrate imens
+        if (useAuthStore.getState().token !== tokenSnapshot) return;
         updateToken(response.accessToken);
         useAuthStore.setState({ token: response.accessToken });
 

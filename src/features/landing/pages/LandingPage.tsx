@@ -41,7 +41,7 @@ export const LandingPage = ({ initialRecipes, showAuthPanel = true }: LandingPag
             <div className={`flex min-h-screen flex-col bg-stone-50 ${showAuthPanel ? 'lg:flex-row lg:h-screen lg:overflow-hidden' : ''}`}>
 
                 {/* Venstre side — indhold */}
-                <div className={`hide-scrollbar w-full px-8 sm:px-12 py-14 space-y-8 ${showAuthPanel ? 'lg:w-2/3 lg:overflow-y-auto' : 'lg:max-w-5xl lg:mx-auto'}`}>
+                <div className={`hide-scrollbar w-full px-8 sm:px-12 py-10 lg:py-6 space-y-8 lg:space-y-5 ${showAuthPanel ? 'lg:w-2/3 lg:overflow-hidden' : 'lg:max-w-5xl lg:mx-auto'}`}>
 
                     {/* Logo + mobil log ind-knap */}
                     <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ export const LandingPage = ({ initialRecipes, showAuthPanel = true }: LandingPag
                     <Guide />
 
                     {/* Populære opskrifter */}
-                    <section className="mt-14">
+                    <section className="mt-8 lg:mt-4">
                         <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-5">
                             Populære opskrifter
                         </p>

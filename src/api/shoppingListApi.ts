@@ -21,14 +21,13 @@ export const shoppingListApi = {
   searchIngredients: async (
     query: string,
     limit = 10,
+    signal?: AbortSignal,
   ): Promise<IngredientSearchResult[]> => {
     const response = await axiosClient.get<IngredientSearchResult[]>(
       '/Ingredients/search',
       {
-        params: {
-          query,
-          limit,
-        },
+        params: { query, limit },
+        signal,
       },
     );
     return response.data;

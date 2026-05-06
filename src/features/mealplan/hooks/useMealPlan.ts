@@ -172,23 +172,24 @@ export function useMealPlan(
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;
+
+    // Læs previousServings fra den aktuelle state inde i setMealPlan for at undgå stale closure
     let previousServings: number | undefined;
-    for (const entries of Object.values(mealPlan)) {
-      const found = entries.find(e => e.id === entryId);
-      if (found) { previousServings = found.servings; break; }
-    }
-    // Optimistic update
     setMealPlan(prev => {
+      for (const entries of Object.values(prev)) {
+        const found = entries.find(e => e.id === entryId);
+        if (found) { previousServings = found.servings; break; }
+      }
       const next = { ...prev };
       for (const day of Object.keys(next)) {
         next[day] = next[day].map(e => e.id === entryId ? { ...e, servings: newServings } : e);
       }
       return next;
     });
+
     try {
       await mealplanApi.updateEntryServings(mealPlanId, entryId, newServings);
     } catch {
-      // Rollback ved fejl
       if (previousServings !== undefined) {
         setMealPlan(prev => {
           const next = { ...prev };
@@ -200,7 +201,7 @@ export function useMealPlan(
       }
       setError('Kunne ikke opdatere antal personer');
     }
-  }, [mealPlanId, mealPlan]);
+  }, [mealPlanId]);
 
   const removeRecipe = useCallback(async (dateKey: string, entryId: string) => {
     setMealPlan(prev => ({ ...prev, [dateKey]: (prev[dateKey] || []).filter(e => e.id !== entryId) }));
