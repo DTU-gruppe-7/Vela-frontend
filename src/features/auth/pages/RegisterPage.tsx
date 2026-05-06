@@ -5,6 +5,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import FormField from "../../../components/ui/FormField.tsx";
+import { extractApiError } from '../../../utils/extractApiError';
 
 // Returnér dagens dato som YYYY-MM-DD (bruges til max-dato)
 function todayISO(): string {
@@ -58,14 +59,7 @@ function RegisterPage() {
             await register({ email, password, firstName, lastName, dateOfBirth });
             navigate('/swipe', { replace: true });
         } catch (err: unknown) {
-            const message: string =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '';
-
-            if (message.toLowerCase().includes('date of birth')) {
-                setFieldErrors({ dateOfBirth: 'Fødselsdato må ikke være i fremtiden' });
-            } else {
-                setError('Kunne ikke oprette konto. Prøv igen.');
-            }
+            setError(extractApiError(err, 'Kunne ikke oprette konto. Prøv igen.'));
         }
     };
 
@@ -143,7 +137,7 @@ function RegisterPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         autoComplete="new-password"
                     />
 
@@ -155,7 +149,7 @@ function RegisterPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         error={fieldErrors.confirmPassword}
                         autoComplete="new-password"
                     />

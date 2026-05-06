@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FiCheck, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi';
 import type { ShoppingListItem } from '../../../types/ShoppingList';
+import { AssignmentMenu } from './AssignmentMenu';
 import ShoppingItem from './ShoppingItem';
 import { groupItemsByCategory } from '../utils/groupItems';
 import { formatShoppingQuantityLabel } from '../utils/quantityDisplay';
@@ -10,9 +11,11 @@ interface ItemsSectionProps {
   onToggle: (id: string) => Promise<void> | void;
   onRemove: (id: string) => Promise<void> | void;
   onRemoveGroup: (itemIds: string[]) => Promise<void> | void;
+  isPersonalList?: boolean;
   showAssignment?: boolean;
   assignees?: { userId: string; label: string }[];
   onAssign?: (itemId: string, assignedUserId: string | null) => Promise<void> | void;
+  onAssignGroup?: (itemIds: string[], assignedUserId: string | null) => Promise<void> | void;
 }
 
 function ItemsSection({
@@ -20,9 +23,11 @@ function ItemsSection({
   onToggle,
   onRemove,
   onRemoveGroup,
+  isPersonalList = false,
   showAssignment = false,
   assignees = [],
   onAssign,
+  onAssignGroup,
 }: ItemsSectionProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
@@ -49,6 +54,30 @@ function ItemsSection({
     return `${quantityLabel} (${groupItems.length} varer)`;
   };
 
+  const getGroupAssignmentState = (groupItems: ShoppingListItem[]): { assignedUserId: string | null; isMixed: boolean } => {
+    if (groupItems.length === 0) {
+      return { assignedUserId: null, isMixed: false };
+    }
+
+    const firstAssignedUserId = groupItems[0].assignedUserId;
+    const isUniform = groupItems.every((item) => item.assignedUserId === firstAssignedUserId);
+
+    if (isUniform) {
+      return { assignedUserId: firstAssignedUserId, isMixed: false };
+    }
+
+    return { assignedUserId: null, isMixed: true };
+  };
+
+  const handleGroupAssign = async (groupItems: ShoppingListItem[], assignedUserId: string | null): Promise<void> => {
+    if (!onAssignGroup) return;
+
+    await onAssignGroup(
+      groupItems.map((item) => item.id),
+      assignedUserId,
+    );
+  };
+
   return (
     <div className="flex flex-col gap-5">
       {groupedCategories.map((category) => (
@@ -57,14 +86,20 @@ function ItemsSection({
 
           <div className="flex flex-col gap-2">
             {category.groups.map((group) => {
+              const isMultiItemGroup = group.items.length > 1;
+              const canAssignGroup = showAssignment && isMultiItemGroup && Boolean(onAssignGroup);
+              const groupAssignmentState = getGroupAssignmentState(group.items);
+
               if (group.items.length === 1) {
                 const item = group.items[0];
+                const canRemoveItem = !isPersonalList || !item.assignedUserId;
                 return (
                   <ShoppingItem
                     key={item.id}
                     item={item}
                     onToggle={onToggle}
                     onRemove={onRemove}
+                    canRemove={canRemoveItem}
                     showAssignment={showAssignment}
                     assignees={assignees}
                     onAssign={onAssign}
@@ -72,9 +107,10 @@ function ItemsSection({
                 );
               }
 
-              const isExpanded = !!expandedGroups[group.key];
+              const isExpanded = expandedGroups[group.key];
               const isGroupChecked = group.allBought;
               const groupQuantityLabel = getGroupQuantityLabel(group.items, group.totalQuantity, group.unitLabel);
+              const canRemoveGroup = !isPersonalList || group.items.every((item) => !item.assignedUserId);
 
               return (
                 <div key={group.key} className="rounded-xl bg-white">
@@ -106,21 +142,35 @@ function ItemsSection({
                       <span className="text-gray-400">{isExpanded ? <FiChevronUp /> : <FiChevronDown />}</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const confirmed = window.confirm(
-                          `Er du sikker på at du vil slette alle "${group.name}" varer (${group.items.length})? Dette kan ikke fortrydes.`,
-                        );
+                    {canAssignGroup && (
+                      <AssignmentMenu
+                        assignees={assignees}
+                        assignedUserId={groupAssignmentState.assignedUserId}
+                        enabled={showAssignment}
+                        isMixed={groupAssignmentState.isMixed}
+                        onAssign={(assignedUserId) => handleGroupAssign(group.items, assignedUserId)}
+                        ariaLabel={`Åbn tildelingsmenu for hele gruppen ${group.name}`}
+                        wrapperClassName="relative h-8 w-44 flex-shrink-0"
+                      />
+                    )}
 
-                        if (!confirmed) return;
-                        void onRemoveGroup(group.items.map((item) => item.id));
-                      }}
-                      className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-red-200 text-red-500 transition-all duration-200 hover:border-red-300 hover:bg-red-50"
-                      title="Slet alle varer i gruppen"
-                    >
-                      <FiTrash2 className="text-xs" />
-                    </button>
+                    {canRemoveGroup && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const confirmed = window.confirm(
+                            `Er du sikker på at du vil slette alle "${group.name}" varer (${group.items.length})? Dette kan ikke fortrydes.`,
+                          );
+
+                          if (!confirmed) return;
+                          void onRemoveGroup(group.items.map((item) => item.id));
+                        }}
+                        className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-red-200 text-red-500 transition-all duration-200 hover:border-red-300 hover:bg-red-50"
+                        title="Slet alle varer i gruppen"
+                      >
+                        <FiTrash2 className="text-xs" />
+                      </button>
+                    )}
                   </div>
 
                   {isExpanded && (
@@ -131,7 +181,8 @@ function ItemsSection({
                           item={item}
                           onToggle={onToggle}
                           onRemove={onRemove}
-                          showAssignment={showAssignment}
+                          canRemove={!isPersonalList || !item.assignedUserId}
+                          showAssignment={showAssignment && !isMultiItemGroup}
                           assignees={assignees}
                           onAssign={onAssign}
                         />

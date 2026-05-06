@@ -13,8 +13,19 @@ import { getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();
-    const { shoppingList, loading, error, addItem, toogleItem, removeItem, handleAssignMember, refetch } = useShoppingList(groupId);
+    const {
+        shoppingList,
+        loading,
+        error,
+        addItem,
+        toogleItem,
+        removeItem,
+        handleAssignMember,
+        assignGroupItems,
+        refetch,
+    } = useShoppingList(groupId);
     const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+    const isPersonalList = !groupId;
 
     useEffect(() => {
         if (!groupId) {
@@ -58,6 +69,43 @@ function ShoppingListPage() {
         await addItem(item);
     };
 
+    const deleteRemovableItems = async (itemIds: string[]): Promise<void> => {
+        if (!shoppingList?.id || itemIds.length === 0) return;
+
+        const deletableItemIds = isPersonalList
+            ? itemIds.filter((itemId) => {
+                const item = (shoppingList.items ?? []).find((candidate) => candidate.id === itemId);
+                return !item?.assignedUserId;
+            })
+            : itemIds;
+
+        const skippedAssignedItems = isPersonalList && deletableItemIds.length !== itemIds.length;
+
+        if (deletableItemIds.length === 0) {
+            if (skippedAssignedItems) {
+                alert('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+            }
+
+            return;
+        }
+
+        const results = await Promise.allSettled(
+            deletableItemIds.map((itemId) => shoppingListApi.removeItem(shoppingList.id, itemId)),
+        );
+
+        await refetch();
+
+        const hasFailures = results.some((result) => result.status === 'rejected');
+
+        if (hasFailures && skippedAssignedItems) {
+            alert('Nogle varer kunne ikke slettes, og tildelte varer blev bevaret.');
+        } else if (hasFailures) {
+            alert('Nogle varer kunne ikke slettes. Prøv igen.');
+        } else if (skippedAssignedItems) {
+            alert('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+        }
+    };
+
     const handleClearAll = async () => {
         if (!shoppingList?.id) return;
 
@@ -69,8 +117,7 @@ function ShoppingListPage() {
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearAll(shoppingList.id);
-            await refetch();
+            await deleteRemovableItems(itemIds);
         } catch (err) {
             console.error('Fejl ved sletning af indkøbsliste:', err);
             alert('Der skete en fejl ved sletning af indkøbslisten');
@@ -90,8 +137,7 @@ function ShoppingListPage() {
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearPurchased(shoppingList.id);
-            await refetch();
+            await deleteRemovableItems(purchasedItemIds);
         } catch (err) {
             console.error('Fejl ved sletning af købte varer:', err);
             alert('Der skete en fejl ved sletning af købte varer');
@@ -102,15 +148,7 @@ function ShoppingListPage() {
         if (!shoppingList?.id || itemIds.length === 0) return;
 
         try {
-            const results = await Promise.allSettled(
-                itemIds.map((itemId) => shoppingListApi.removeItem(shoppingList.id, itemId)),
-            );
-
-            await refetch();
-
-            if (results.some((result) => result.status === 'rejected')) {
-                alert('Nogle varer kunne ikke slettes. Prøv igen.');
-            }
+            await deleteRemovableItems(itemIds);
         } catch (err) {
             console.error('Fejl ved sletning af gruppevarer:', err);
             alert('Der skete en fejl ved sletning af gruppevarer');
@@ -118,7 +156,7 @@ function ShoppingListPage() {
     };
 
     const items = shoppingList?.items ?? [];
-    const hasOnlyAssignedItems = !groupId && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
+    const hasOnlyAssignedItems = isPersonalList && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -147,9 +185,11 @@ function ShoppingListPage() {
                         onToggle={toogleItem}
                         onRemove={removeItem}
                         onRemoveGroup={handleRemoveGroup}
+                        isPersonalList={isPersonalList}
                         showAssignment={Boolean(groupId)}
                         assignees={assignees}
                         onAssign={handleAssignMember}
+                        onAssignGroup={assignGroupItems}
                     />
                 )}
 

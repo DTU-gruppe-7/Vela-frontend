@@ -93,6 +93,11 @@ export function useShoppingList(groupId?: string) {
         const items = shoppingList.items ?? [];
         const removedItem = items.find(i => i.id === itemId);
 
+        if (!groupId && removedItem?.assignedUserId) {
+            setError('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+            return;
+        }
+
         setShoppingList(prev => prev
             ? { ...prev, items: (prev.items ?? []).filter(i => i.id !== itemId) }
             : prev
@@ -110,7 +115,7 @@ export function useShoppingList(groupId?: string) {
                 );
             }
         }
-    }, [shoppingList]);
+    }, [groupId, shoppingList]);
 
     const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
         if (!shoppingList || !itemId) return;
@@ -130,7 +135,6 @@ export function useShoppingList(groupId?: string) {
 
         try {
             await shoppingListApi.assignItem(shoppingList.id, itemId, userId);
-            await fetchShoppingList();
         } catch (err) {
             console.error('Error assigning item: ', err);
             setError('Kunne ikke tildele varen.');
@@ -139,7 +143,51 @@ export function useShoppingList(groupId?: string) {
                 : prev
             );
         }
-    }, [shoppingList, fetchShoppingList]);
+    }, [shoppingList]);
+
+    const assignGroupItems = useCallback(async (itemIds: string[], userId: string | null) => {
+        if (!shoppingList || itemIds.length === 0) return;
+
+        const itemIdSet = new Set(itemIds);
+        const currentItems = shoppingList.items ?? [];
+        const previousItems = currentItems.map((item) => ({ ...item }));
+
+        setShoppingList((prev) => prev
+            ? {
+                ...prev,
+                items: (prev.items ?? []).map((item) => itemIdSet.has(item.id)
+                    ? { ...item, assignedUserId: userId }
+                    : item),
+            }
+            : prev
+        );
+
+        try {
+            const results = await Promise.allSettled(
+                itemIds.map((itemId) => shoppingListApi.assignItem(shoppingList.id, itemId, userId)),
+            );
+            const hasFailures = results.some((result) => result.status === 'rejected');
+
+            if (hasFailures) {
+                console.error('Error assigning group items: ', results);
+            }
+
+            if (hasFailures) {
+                setShoppingList((prev) => prev
+                    ? { ...prev, items: previousItems }
+                    : prev
+                );
+                setError('Kunne ikke tildele alle varerne i gruppen.');
+            }
+        } catch (err) {
+            console.error('Error assigning group items: ', err);
+            setShoppingList((prev) => prev
+                ? { ...prev, items: previousItems }
+                : prev
+            );
+            setError('Kunne ikke tildele alle varerne i gruppen.');
+        }
+    }, [shoppingList]);
 
     return {
         shoppingList,
@@ -149,6 +197,7 @@ export function useShoppingList(groupId?: string) {
         toogleItem,
         removeItem,
         handleAssignMember,
+        assignGroupItems,
         assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };
