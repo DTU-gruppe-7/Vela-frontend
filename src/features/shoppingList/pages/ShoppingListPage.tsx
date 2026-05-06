@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import type { StoreOffer } from '../../../types/ShoppingList';
 import type { AddShoppingListItem } from '../../../types/ShoppingList';
 import { useShoppingList } from '../hooks/useShoppingList';
 import AddItemForm from '../components/add-item/AddItemForm';
 import ItemsSection from '../components/ItemsSection';
 import { EmptyListState, ErrorBanner, LoadingList } from '../components/ListStates';
 import Toolbar from '../components/Toolbar';
+import OffersPanel from '../components/OffersPanel';
 import { shoppingListApi } from '../../../api/shoppingListApi';
 import { groupApi } from '../../../api/groupApi';
 import type { GroupMember } from '../../../types/Group';
@@ -22,6 +24,8 @@ function ShoppingListPage() {
         removeItem,
         handleAssignMember,
         assignGroupItems,
+        offersOverview,
+        acceptItemOffer,
         refetch,
     } = useShoppingList(groupId);
     const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
@@ -56,6 +60,78 @@ function ShoppingListPage() {
     }, [groupId]);
 
     const visibleGroupMembers = useMemo(() => (groupId ? groupMembers : []), [groupId, groupMembers]);
+
+    const allStoreNames = useMemo<string[]>(() => {
+        const names = new Set<string>();
+        for (const itemOffer of offersOverview?.items ?? []) {
+            for (const offer of itemOffer.offers) names.add(offer.storeName);
+        }
+        return Array.from(names).sort();
+    }, [offersOverview]);
+
+    // Selected stores can be seeded from available store names when offers arrive,
+    // but we must avoid synchronously calling setState inside an effect.
+    // Strategy: track whether the user has modified the selection. If not, derive
+    // the selection from `allStoreNames`. Once the user changes the selection we
+    // persist it in state.
+    const [selectedStores, setSelectedStores] = useState<Set<string>>(new Set());
+    const [userHasModifiedStores, setUserHasModifiedStores] = useState(false);
+
+    const displayedSelectedStores = useMemo<Set<string>>(() => {
+        if (!userHasModifiedStores && allStoreNames.length > 0) {
+            return new Set(allStoreNames);
+        }
+        return selectedStores;
+    }, [userHasModifiedStores, selectedStores, allStoreNames]);
+
+    const handleToggleStore = useCallback((storeName: string) => {
+        setSelectedStores((prev) => {
+            const next = new Set(prev);
+            if (next.has(storeName)) {
+                next.delete(storeName);
+            } else {
+                next.add(storeName);
+            }
+            return next;
+        });
+        setUserHasModifiedStores(true);
+    }, []);
+
+    const allFilteredOffersByItemId = useMemo<Map<string, StoreOffer[]>>(() => {
+        if (!offersOverview) return new Map();
+        return new Map(offersOverview.items.map((itemOffer) => {
+            const eligible = displayedSelectedStores.size === 0
+                ? itemOffer.offers
+                : itemOffer.offers.filter((o) => displayedSelectedStores.has(o.storeName));
+            return [itemOffer.itemId, eligible];
+        }));
+    }, [offersOverview, displayedSelectedStores]);
+
+    const filteredOffersByItemId = useMemo<Map<string, StoreOffer | undefined>>(() => {
+        const shoppingItemsMap = new Map((shoppingList?.items ?? []).map((i) => [i.id, i]));
+        return new Map(Array.from(allFilteredOffersByItemId.entries()).map(([itemId, eligible]) => {
+            const existingBestOffer = shoppingItemsMap.get(itemId)?.bestOffer;
+            if (existingBestOffer && eligible.some((o) => o.id === existingBestOffer.id)) {
+                return [itemId, existingBestOffer];
+            }
+            const cheapest = eligible.reduce<StoreOffer | undefined>(
+                (best, o) => (!best || o.price < best.price ? o : best),
+                undefined,
+            );
+            return [itemId, cheapest];
+        }));
+    }, [allFilteredOffersByItemId, shoppingList]);
+
+    const filteredSummary = useMemo(() => {
+        let total = 0;
+        let covered = 0;
+        let uncovered = 0;
+        for (const offer of filteredOffersByItemId.values()) {
+            if (offer) { total += offer.price; covered++; }
+            else { uncovered++; }
+        }
+        return { total, covered, uncovered };
+    }, [filteredOffersByItemId]);
 
     const assignees = useMemo(
         () => visibleGroupMembers.map((member) => ({
@@ -164,6 +240,22 @@ function ShoppingListPage() {
                 {error && <ErrorBanner error={error} />}
 
                 <AddItemForm onAddItem={handleAddItem} />
+                <OffersPanel
+                    items={offersOverview?.items ?? []}
+                    selectedStores={displayedSelectedStores}
+                    onToggleStore={handleToggleStore}
+                    onSelectAll={() => {
+                        setSelectedStores(new Set(allStoreNames));
+                        setUserHasModifiedStores(true);
+                    }}
+                    onDeselectAll={() => {
+                        setSelectedStores(new Set());
+                        setUserHasModifiedStores(true);
+                    }}
+                    filteredTotal={filteredSummary.total}
+                    coveredItemCount={filteredSummary.covered}
+                    uncoveredItemCount={filteredSummary.uncovered}
+                />
 
                 <Toolbar
                     hasCheckedItems={items.some((item) => item.isBought)}
@@ -190,6 +282,10 @@ function ShoppingListPage() {
                         assignees={assignees}
                         onAssign={handleAssignMember}
                         onAssignGroup={assignGroupItems}
+                        itemOffers={offersOverview?.items ?? []}
+                        offersByItemId={filteredOffersByItemId}
+                        allOffersByItemId={allFilteredOffersByItemId}
+                        onAcceptOffer={acceptItemOffer}
                     />
                 )}
 
@@ -200,4 +296,3 @@ function ShoppingListPage() {
 }
 
 export default ShoppingListPage;
-

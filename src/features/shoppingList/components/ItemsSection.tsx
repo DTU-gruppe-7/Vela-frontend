@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FiCheck, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi';
-import type { ShoppingListItem } from '../../../types/ShoppingList';
+import type { ShoppingListItem, ShoppingListItemOffer, StoreOffer } from '../../../types/ShoppingList';
 import { AssignmentMenu } from './AssignmentMenu';
 import ShoppingItem from './ShoppingItem';
 import { groupItemsByCategory } from '../utils/groupItems';
@@ -16,6 +16,10 @@ interface ItemsSectionProps {
   assignees?: { userId: string; label: string }[];
   onAssign?: (itemId: string, assignedUserId: string | null) => Promise<void> | void;
   onAssignGroup?: (itemIds: string[], assignedUserId: string | null) => Promise<void> | void;
+  itemOffers?: ShoppingListItemOffer[];
+  offersByItemId?: Map<string, StoreOffer | undefined>;
+  allOffersByItemId?: Map<string, StoreOffer[]>;
+  onAcceptOffer?: (itemId: string, offerId: string) => Promise<void> | void;
 }
 
 function ItemsSection({
@@ -28,10 +32,18 @@ function ItemsSection({
   assignees = [],
   onAssign,
   onAssignGroup,
+  itemOffers = [],
+  offersByItemId: offersByItemIdProp,
+  allOffersByItemId,
+  onAcceptOffer,
 }: ItemsSectionProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const groupedCategories = useMemo(() => groupItemsByCategory(items), [items]);
+  const offersByItemId = useMemo(
+    () => offersByItemIdProp ?? new Map(itemOffers.map((itemOffer) => [itemOffer.itemId, itemOffer.bestOffer])),
+    [offersByItemIdProp, itemOffers],
+  );
 
   const toggleGroupExpanded = (key: string): void => {
     setExpandedGroups((current) => ({ ...current, [key]: !current[key] }));
@@ -103,6 +115,9 @@ function ItemsSection({
                     showAssignment={showAssignment}
                     assignees={assignees}
                     onAssign={onAssign}
+                    bestOffer={offersByItemId.get(item.id)}
+                    allOffers={allOffersByItemId?.get(item.id)}
+                    onAcceptOffer={onAcceptOffer}
                   />
                 );
               }
@@ -186,6 +201,9 @@ function ItemsSection({
                           showAssignment={showAssignment && !isMultiItemGroup}
                           assignees={assignees}
                           onAssign={onAssign}
+                          bestOffer={offersByItemId.get(item.id)}
+                          allOffers={allOffersByItemId?.get(item.id)}
+                          onAcceptOffer={onAcceptOffer}
                         />
                       ))}
                     </div>
@@ -201,4 +219,3 @@ function ItemsSection({
 }
 
 export default ItemsSection;
-

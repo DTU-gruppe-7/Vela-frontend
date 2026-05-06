@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { shoppingListApi } from "../../../api/shoppingListApi.ts";
-import type { ShoppingList, ShoppingListItem, AddShoppingListItem } from "../../../types/ShoppingList.ts";
+import type {
+    ShoppingList,
+    ShoppingListItem,
+    AddShoppingListItem,
+    ShoppingListOfferOverview,
+} from "../../../types/ShoppingList.ts";
 
 export function useShoppingList(groupId?: string) {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [offersOverview, setOffersOverview] = useState<ShoppingListOfferOverview | null>(null);
 
     const fetchShoppingList = useCallback(async () => {
         setLoading(true);
@@ -13,6 +19,8 @@ export function useShoppingList(groupId?: string) {
         try {
             const data = await shoppingListApi.getShoppingList(groupId);
             setShoppingList({ ...data, items: data.items ?? [] });
+            const offers = await shoppingListApi.getOffers(data.id);
+            setOffersOverview(offers);
         } catch (err) {
             console.error('Error loading the list: ', err);
             setError('Kunne ikke hente indkøbslisten. Prøv igen senere.');
@@ -189,8 +197,38 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
+    const acceptItemOffer = useCallback(async (itemId: string, offerId: string) => {
+        if (!shoppingList) return;
+
+        try {
+            const updatedItem = await shoppingListApi.acceptOffer(shoppingList.id, itemId, offerId);
+            setShoppingList((prev) => prev
+                ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? updatedItem : item) }
+                : prev
+            );
+            const offers = await shoppingListApi.getOffers(shoppingList.id);
+            setOffersOverview(offers);
+        } catch (err) {
+            console.error('Error accepting offer: ', err);
+            setError('Kunne ikke anvende tilbuddet.');
+        }
+    }, [shoppingList]);
+
+    const applyOfferStrategy = useCallback(async (strategy: string) => {
+        if (!shoppingList) return;
+
+        try {
+            await shoppingListApi.applyOfferStrategy(shoppingList.id, strategy);
+            await fetchShoppingList();
+        } catch (err) {
+            console.error('Error applying strategy: ', err);
+            setError('Kunne ikke anvende tilbudsstrategien.');
+        }
+    }, [fetchShoppingList, shoppingList]);
+
     return {
         shoppingList,
+        offersOverview,
         loading,
         error,
         addItem,
@@ -198,6 +236,8 @@ export function useShoppingList(groupId?: string) {
         removeItem,
         handleAssignMember,
         assignGroupItems,
+        acceptItemOffer,
+        applyOfferStrategy,
         assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };

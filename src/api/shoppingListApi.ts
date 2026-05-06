@@ -5,6 +5,7 @@ import type {
   ShoppingListItem,
   AddShoppingListItem,
   IngredientSearchResult,
+  ShoppingListOfferOverview,
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
@@ -139,5 +140,29 @@ export const shoppingListApi = {
       console.error('Fejl ved tildeling af vare:', error);
       throw error;
     }
+  },
+
+  getOffers: async (shoppingListId: string): Promise<ShoppingListOfferOverview> => {
+    const response = await axiosClient.get<ShoppingListOfferOverview>(`/shoppingList/${shoppingListId}/offers`);
+    return response.data;
+  },
+
+  acceptOffer: async (shoppingListId: string, itemId: string, offerId: string): Promise<ShoppingListItem> => {
+    const response = await axiosClient.post<ShoppingListItem>(
+      `/shoppingList/${shoppingListId}/items/${itemId}/offer/${offerId}/accept`,
+      {},
+    );
+    return response.data;
+  },
+
+  applyOfferStrategy: async (
+    shoppingListId: string,
+    strategy: 'singleStore' | 'maxTwoStores' | 'allStores' | string,
+  ): Promise<ShoppingListOfferOverview> => {
+    const response = await axiosClient.post<ShoppingListOfferOverview>(
+      `/shoppingList/${shoppingListId}/offers/apply-strategy`,
+      { strategy },
+    );
+    return response.data;
   },
 };

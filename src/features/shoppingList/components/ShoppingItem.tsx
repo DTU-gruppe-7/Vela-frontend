@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { FiCheck, FiTrash2 } from 'react-icons/fi';
-import type { ShoppingListItem } from '../../../types/ShoppingList';
+import type { ShoppingListItem, StoreOffer } from '../../../types/ShoppingList';
 import { AssignmentMenu } from './AssignmentMenu';
+import OfferPickerModal from './OfferPickerModal';
 import QuantityLabel from './QuantityLabel';
 
 interface ShoppingItemProps {
@@ -11,9 +13,31 @@ interface ShoppingItemProps {
     showAssignment?: boolean;
     assignees?: { userId: string; label: string }[];
     onAssign?: (itemId: string, assignedUserId: string | null) => Promise<void> | void;
+    bestOffer?: StoreOffer;
+    allOffers?: StoreOffer[];
+    onAcceptOffer?: (itemId: string, offerId: string) => Promise<void> | void;
 }
 
-function ShoppingItem({ item, onToggle, onRemove, canRemove = true, showAssignment = false, assignees = [], onAssign }: ShoppingItemProps) {
+function formatQuantity(quantity: number, unit: string): string {
+    const formatted = Number.isInteger(quantity)
+        ? quantity.toString()
+        : quantity.toLocaleString('da-DK', { maximumFractionDigits: 2 });
+    return `${formatted} ${unit}`;
+}
+
+function ShoppingItem({
+    item,
+    onToggle,
+    onRemove,
+    canRemove = true,
+    showAssignment = false,
+    assignees = [],
+    onAssign,
+    bestOffer,
+    allOffers,
+    onAcceptOffer,
+}: ShoppingItemProps) {
+    const [offerModalOpen, setOfferModalOpen] = useState(false);
     const recipeName = item.recipeName?.trim();
     const hasRecipeName =
         Boolean(recipeName) &&
@@ -68,6 +92,17 @@ function ShoppingItem({ item, onToggle, onRemove, canRemove = true, showAssignme
                         </span>
                     </p>
                 )}
+                {bestOffer && (
+                    <div className="mt-1 leading-tight">
+                        <p className="text-xs font-medium text-emerald-700">
+                            {bestOffer.productName}
+                            {bestOffer.packageQuantity && bestOffer.packageUnit && !(bestOffer.packageUnit === 'stk' && bestOffer.packageQuantity === 1)
+                                ? ` · ${formatQuantity(bestOffer.packageQuantity, bestOffer.packageUnit)} · ${bestOffer.price.toFixed(2)} kr`
+                                : ` · ${bestOffer.price.toFixed(2)} kr`}
+                        </p>
+                        <p className="text-xs text-emerald-600/80">{bestOffer.storeName}</p>
+                    </div>
+                )}
             </div>
 
             <AssignmentMenu
@@ -78,9 +113,28 @@ function ShoppingItem({ item, onToggle, onRemove, canRemove = true, showAssignme
                 ariaLabel="Åbn tildelingsmenu"
             />
 
-            {canRemove && (
+            {!item.isBought && allOffers && allOffers.length > 0 && onAcceptOffer && (
                 <>
-                {/* Delete */}
+                    <button
+                        type="button"
+                        onClick={() => setOfferModalOpen(true)}
+                        className="shrink-0 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                    >
+                        Vælg tilbud
+                    </button>
+                    {offerModalOpen && (
+                        <OfferPickerModal
+                            ingredientName={item.ingredientName}
+                            offers={allOffers}
+                            selectedOfferId={bestOffer?.id}
+                            onSelect={(offerId) => void onAcceptOffer(item.id, offerId)}
+                            onClose={() => setOfferModalOpen(false)}
+                        />
+                    )}
+                </>
+            )}
+
+            {canRemove && (
                 <button
                     type="button"
                     onClick={() => onRemove(item.id)}
@@ -89,7 +143,6 @@ function ShoppingItem({ item, onToggle, onRemove, canRemove = true, showAssignme
                 >
                     <FiTrash2 className="text-sm" />
                 </button>
-                </>
             )}
         </div>
     );

@@ -51,10 +51,57 @@ export interface IngredientSearchResult {
 
 export interface ShoppingListItem extends AddShoppingListItem {
   id: string;
-  price?: string;
+  price?: number;
   shop?: string;
   recipeName?: string;
+  bestOffer?: StoreOffer;
   isBought: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface StoreOffer {
+  id: string;
+  storeName: string;
+  productName: string;
+  price: number;
+  packageQuantity?: number;
+  packageUnit?: string;
+  normalizedUnitPrice?: number;
+  validFrom: string;
+  validTo: string;
+  sourceUrl?: string;
+  confidence: number;
+  matchScore: number;
+  canAutoApply: boolean;
+}
+
+export interface ShoppingListItemOffer {
+  itemId: string;
+  ingredientName: string;
+  bestOffer?: StoreOffer;
+  offers: StoreOffer[];
+}
+
+export interface ShoppingListStrategyItem {
+  itemId: string;
+  offerId: string;
+  storeName: string;
+  price: number;
+}
+
+export interface ShoppingListOfferStrategy {
+  strategy: 'singleStore' | 'maxTwoStores' | 'allStores' | string;
+  label: string;
+  knownTotal: number;
+  coveredItemCount: number;
+  unknownItemCount: number;
+  storeNames: string[];
+  items: ShoppingListStrategyItem[];
+}
+
+export interface ShoppingListOfferOverview {
+  shoppingListId: string;
+  items: ShoppingListItemOffer[];
+  strategies: ShoppingListOfferStrategy[];
 }
