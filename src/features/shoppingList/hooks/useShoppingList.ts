@@ -197,15 +197,11 @@ export function useShoppingList(groupId?: string) {
         }
     }, [shoppingList]);
 
-    const acceptItemOffer = useCallback(async (itemId: string, offerId: string) => {
+    const acceptGroupOffer = useCallback(async (groupKey: string, offerId: string) => {
         if (!shoppingList) return;
 
         try {
-            const updatedItem = await shoppingListApi.acceptOffer(shoppingList.id, itemId, offerId);
-            setShoppingList((prev) => prev
-                ? { ...prev, items: (prev.items ?? []).map((item) => item.id === itemId ? updatedItem : item) }
-                : prev
-            );
+            await shoppingListApi.acceptGroupOffer(shoppingList.id, groupKey, offerId);
             const offers = await shoppingListApi.getOffers(shoppingList.id);
             setOffersOverview(offers);
         } catch (err) {
@@ -224,7 +220,7 @@ export function useShoppingList(groupId?: string) {
         removeItem,
         handleAssignMember,
         assignGroupItems,
-        acceptItemOffer,
+        acceptGroupOffer,
         assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };

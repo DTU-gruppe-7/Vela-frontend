@@ -7,6 +7,14 @@ import Button from '../../../components/ui/Button';
 import FormField from "../../../components/ui/FormField.tsx";
 import { extractApiError } from '../../../utils/extractApiError';
 
+const passwordRules = [
+    { label: 'Mindst 8 tegn', test: (p: string) => p.length >= 8 },
+    { label: 'Mindst ét stort bogstav (A–Z)', test: (p: string) => /[A-Z]/.test(p) },
+    { label: 'Mindst ét lille bogstav (a–z)', test: (p: string) => /[a-z]/.test(p) },
+    { label: 'Mindst ét tal (0–9)', test: (p: string) => /[0-9]/.test(p) },
+    { label: 'Mindst ét specialtegn (fx !@#$%)', test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
+
 // Returnér dagens dato som YYYY-MM-DD (bruges til max-dato)
 function todayISO(): string {
     return new Date().toISOString().split('T')[0];
@@ -129,17 +137,32 @@ function RegisterPage() {
                         autoComplete="bday"
                     />
 
-                    <FormField
-                        id="password"
-                        label="Adgangskode"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        autoComplete="new-password"
-                    />
+                    <div>
+                        <FormField
+                            id="password"
+                            label="Adgangskode"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            autoComplete="new-password"
+                        />
+                        {password.length > 0 && (
+                            <ul className="flex flex-col gap-1 mt-2">
+                                {passwordRules.map(({ label, test }) => {
+                                    const met = test(password);
+                                    return (
+                                        <li key={label} className={`flex items-center gap-1.5 text-xs ${met ? 'text-green-600' : 'text-slate-400'}`}>
+                                            <span>{met ? '✓' : '○'}</span>
+                                            {label}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
 
                     <FormField
                         id="confirmPassword"
@@ -154,7 +177,7 @@ function RegisterPage() {
                         autoComplete="new-password"
                     />
 
-                    <Button type="submit" disabled={isLoading} className="mt-2 w-full">
+                    <Button type="submit" disabled={isLoading || !passwordRules.every(({ test }) => test(password))} className="mt-2 w-full">
                         {isLoading ? 'Opretter konto…' : 'Opret konto'}
                     </Button>
                 </form>

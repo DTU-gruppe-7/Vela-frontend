@@ -28,13 +28,15 @@ describe('getCurrentUserGroupRole', () => {
     const baseGroup: Group = {
         id: 'group-1',
         name: 'Test Group',
+        status: 'active',
+        matches: [],
         ownerId: 'owner-123',
         currentUserRole: undefined,
         members: [
-            { userId: 'member-456', role: 'Member', firstName: 'Test', lastName: 'User', email: 'test@test.dk' },
-            { userId: 'admin-789', role: 'Admin', firstName: 'Admin', lastName: 'User', email: 'admin@test.dk' },
+            { userId: 'member-456', groupId: 'group-1', role: 'member', joinedAt: '2024-01-01T00:00:00Z', firstName: 'Test', lastName: 'User', email: 'test@test.dk' },
+            { userId: 'admin-789', groupId: 'group-1', role: 'administrator', joinedAt: '2024-01-01T00:00:00Z', firstName: 'Admin', lastName: 'User', email: 'admin@test.dk' },
         ],
-    } as Group;
+    };
 
     it('returns normalized role from currentUserRole when present', () => {
         const group = { ...baseGroup, currentUserRole: 'Owner' };
@@ -49,8 +51,8 @@ describe('getCurrentUserGroupRole', () => {
         expect(getCurrentUserGroupRole(baseGroup, 'member-456')).toBe('member');
     });
 
-    it('returns admin role from members array', () => {
-        expect(getCurrentUserGroupRole(baseGroup, 'admin-789')).toBe('admin');
+    it('returns administrator role from members array', () => {
+        expect(getCurrentUserGroupRole(baseGroup, 'admin-789')).toBe('administrator');
     });
 
     it('returns null when no match found', () => {
