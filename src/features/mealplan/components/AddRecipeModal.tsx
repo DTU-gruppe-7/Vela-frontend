@@ -26,7 +26,7 @@ export function AddRecipeModal({
 }: AddRecipeModalProps) {
 
   const { groupId } = useParams<{ groupId: string }>();
-  const [filterMode, setFilterMode] = useState<'all' | 'liked'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'liked'>('liked');
   const [searchTerm, setSearchTerm] = useState('');
   const [groupMatchIds, setGroupMatchIds] = useState<Set<string>>(new Set());
 
@@ -82,15 +82,6 @@ export function AddRecipeModal({
     <Modal isOpen={isOpen} onClose={onClose} title={`Tilføj opskrift – ${day}`}>
       <div className="mb-6 flex gap-2">
         <button
-          onClick={() => setFilterMode('all')}
-          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${filterMode === 'all'
-              ? 'bg-orange-500 text-white shadow-md'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-        >
-          Alle
-        </button>
-        <button
           onClick={() => setFilterMode('liked')}
           className={`px-5 py-2 rounded-full text-sm font-semibold transition ${filterMode === 'liked'
               ? 'bg-orange-500 text-white shadow-md'
@@ -98,6 +89,15 @@ export function AddRecipeModal({
             }`}
         >
           {groupId ? 'Fælles Matches' : 'Likede'}
+        </button>
+        <button
+          onClick={() => setFilterMode('all')}
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${filterMode === 'all'
+              ? 'bg-orange-500 text-white shadow-md'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+        >
+          Alle
         </button>
         <input
           type="text"
