@@ -147,10 +147,24 @@ export const shoppingListApi = {
     return response.data;
   },
 
-  acceptOffer: async (shoppingListId: string, itemId: string, offerId: string): Promise<ShoppingListItem> => {
-    const response = await axiosClient.post<ShoppingListItem>(
-      `/shoppingList/${shoppingListId}/items/${itemId}/offer/${offerId}/accept`,
-      {},
+  acceptGroupOffer: async (shoppingListId: string, groupKey: string, offerId: string): Promise<void> => {
+    await axiosClient.post(
+      `/shoppingList/${shoppingListId}/group-offers`,
+      { groupKey, offerId },
+    );
+  },
+
+  addExcludedStore: async (shoppingListId: string, storeName: string): Promise<string[]> => {
+    const response = await axiosClient.post<string[]>(
+      `/shoppingList/${shoppingListId}/excluded-stores`,
+      { storeName },
+    );
+    return response.data;
+  },
+
+  removeExcludedStore: async (shoppingListId: string, storeName: string): Promise<string[]> => {
+    const response = await axiosClient.delete<string[]>(
+      `/shoppingList/${shoppingListId}/excluded-stores/${encodeURIComponent(storeName)}`,
     );
     return response.data;
   },

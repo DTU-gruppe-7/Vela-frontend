@@ -1,7 +1,7 @@
-import type { ShoppingListItemOffer } from '../../../types/ShoppingList';
+import type { ShoppingListGroupOffer } from '../../../types/ShoppingList';
 
 interface OffersPanelProps {
-  items: ShoppingListItemOffer[];
+  groups: ShoppingListGroupOffer[];
   selectedStores: Set<string>;
   onToggleStore: (storeName: string) => void;
   onSelectAll: () => void;
@@ -12,7 +12,7 @@ interface OffersPanelProps {
 }
 
 function OffersPanel({
-  items,
+  groups,
   selectedStores,
   onToggleStore,
   onSelectAll,
@@ -21,12 +21,12 @@ function OffersPanel({
   coveredItemCount,
   uncoveredItemCount,
 }: OffersPanelProps) {
-  if (items.length === 0) {
+  if (groups.length === 0) {
     return null;
   }
 
   const allStoreNames = Array.from(
-    new Set(items.flatMap((item) => item.offers.map((o) => o.storeName))),
+    new Set(groups.flatMap((g) => g.offers.map((o) => o.storeName))),
   ).sort();
 
   if (allStoreNames.length === 0) {
@@ -37,19 +37,22 @@ function OffersPanel({
 
   return (
     <section className="mb-4 rounded-lg border border-emerald-100 bg-emerald-50 p-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-emerald-900">Tilbud</h2>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-semibold text-emerald-900">Tilbud</h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {coveredItemCount} {coveredItemCount === 1 ? 'vare' : 'varer'} med tilbud
+            {uncoveredItemCount > 0 && (
+              <span className="text-amber-600"> · {uncoveredItemCount} uden tilbud</span>
+            )}
+          </p>
+        </div>
         {coveredItemCount > 0 && (
-          <span className="text-sm font-semibold text-emerald-800">
+          <div className="shrink-0 rounded-md bg-emerald-600 px-3 py-1 text-sm font-bold text-white shadow-sm">
             {filteredTotal.toFixed(2)} kr
-          </span>
+          </div>
         )}
       </div>
-
-      <p className="mt-0.5 text-xs text-slate-500">
-        {coveredItemCount} {coveredItemCount === 1 ? 'vare' : 'varer'} med tilbud
-        {uncoveredItemCount > 0 && ` · ${uncoveredItemCount} uden`}
-      </p>
 
       <div className="mt-2 flex flex-wrap gap-2">
         {allStoreNames.map((storeName) => {
@@ -95,12 +98,6 @@ function OffersPanel({
           {allSelected ? 'Fravælg alle' : 'Vælg alle'}
         </button>
       </div>
-
-      {uncoveredItemCount > 0 && selectedStores.size > 0 && (
-        <p className="mt-2 text-xs text-amber-600">
-          {uncoveredItemCount} {uncoveredItemCount === 1 ? 'vare har' : 'varer har'} ingen tilbud fra de valgte butikker
-        </p>
-      )}
     </section>
   );
 }

@@ -31,6 +31,7 @@ export interface ShoppingListSummary {
 
 export interface ShoppingList extends ShoppingListSummary {
   items: ShoppingListItem[];
+  excludedStores: string[];
 }
 
 export interface AddShoppingListItem {
@@ -51,10 +52,7 @@ export interface IngredientSearchResult {
 
 export interface ShoppingListItem extends AddShoppingListItem {
   id: string;
-  price?: number;
-  shop?: string;
   recipeName?: string;
-  bestOffer?: StoreOffer;
   isBought: boolean;
   createdAt: string;
   updatedAt: string;
@@ -76,8 +74,8 @@ export interface StoreOffer {
   canAutoApply: boolean;
 }
 
-export interface ShoppingListItemOffer {
-  itemId: string;
+export interface ShoppingListGroupOffer {
+  groupKey: string;
   ingredientName: string;
   bestOffer?: StoreOffer;
   offers: StoreOffer[];
@@ -85,5 +83,5 @@ export interface ShoppingListItemOffer {
 
 export interface ShoppingListOfferOverview {
   shoppingListId: string;
-  items: ShoppingListItemOffer[];
+  groups: ShoppingListGroupOffer[];
 }
