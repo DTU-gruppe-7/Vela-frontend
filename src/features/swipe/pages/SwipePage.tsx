@@ -4,6 +4,7 @@ import { useRecipeQueue } from "../../../hooks/useRecipeQueue";
 import { recipeApi } from "../../../api/recipeApi";
 import CategoryFilter from "../../../components/ui/CategoryFilter";
 import SwipeCard from "../components/SwipeCard";
+import RecipePreviewModal from "../components/RecipePreviewModal";
 
 function SwipePage() {
 
@@ -11,11 +12,20 @@ function SwipePage() {
     const [activeCategory, setActiveCategory] = useState("Aftensmad");
     const { queue, swipe, isLoading } = useRecipeQueue(activeCategory);
     const [lastDir, setLastDir] = useState<"like" | "dislike">("like");
+    const [previewRecipeId, setPreviewRecipeId] = useState<string | null>(null);
 
     /** Sæt retning før kortet fjernes, så exit-animation ved hvilken vej */
     const handleSwipe = (id: string, dir: "like" | "dislike") => {
         setLastDir(dir);
         swipe(id, dir);
+    };
+
+    const handleOpenPreview = (id: string) => {
+        setPreviewRecipeId(id);
+    };
+
+    const handleClosePreview = () => {
+        setPreviewRecipeId(null);
     };
 
     useEffect(() => {
@@ -85,7 +95,7 @@ function SwipePage() {
                 </AnimatePresence>
             </div>
 
-            <div className="flex items-center gap-10 -mt-10 z-20">
+            <div className="flex items-center gap-6 -mt-10 z-20">
                 {/* Dislike – venstre */}
                 <button
                     type="button"
@@ -96,6 +106,20 @@ function SwipePage() {
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+
+                {/* Preview – midten */}
+                <button
+                    type="button"
+                    onClick={() => handleOpenPreview(currentRecipe.id)}
+                    className="flex items-center justify-center w-18 h-18 rounded-full bg-linear-to-br from-sky-400 to-blue-600 text-white shadow-xl shadow-sky-200/60 hover:shadow-2xl hover:shadow-sky-300 hover:-translate-y-1 active:scale-90 transition-all duration-300 transform"
+                    aria-label={`Forhåndsvis opskriften ${currentRecipe.name}`}
+                >
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="5" y1="7" x2="19" y2="7" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <line x1="5" y1="17" x2="19" y2="17" />
                     </svg>
                 </button>
                             
@@ -115,6 +139,12 @@ function SwipePage() {
             <p className="mt-4 text-xs text-gray-400">
                 Swipe kortet eller brug knapperne
             </p>
+
+            <RecipePreviewModal
+                recipeId={previewRecipeId}
+                isOpen={previewRecipeId !== null}
+                onClose={handleClosePreview}
+            />
         </div>
     );
 }
