@@ -92,6 +92,7 @@ function SwipeCard({ recipeSummary, isTop, stackIndex, onSwipe }: SwipeCardProps
                     </>
                 )}
             </div>
+
         </motion.div>
     );
 }
