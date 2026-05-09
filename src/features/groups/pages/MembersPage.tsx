@@ -29,7 +29,7 @@ const MembersPage: React.FC = () => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const currentUserIdentifiers = [currentUser?.id, currentUser?.userId, currentUser?.email]
+    const currentUserIdentifiers = [currentUser?.userId, currentUser?.email]
         .filter((identifier): identifier is string => Boolean(identifier))
         .map((identifier) => identifier.toLowerCase());
 

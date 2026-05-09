@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { FiX, FiUsers, FiFileText, FiPlus } from 'react-icons/fi';
+import { extractApiError } from '../../../utils/extractApiError';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreate: (name: string, description: string) => void;
+    onCreate: (name: string, description: string) => Promise<void>;
 }
 
 export default function CreateGroupModal({ isOpen, onClose, onCreate }: CreateGroupModalProps) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!isOpen) return null;
 
@@ -19,16 +21,18 @@ export default function CreateGroupModal({ isOpen, onClose, onCreate }: CreateGr
         if (!name.trim()) return;
 
         setIsSubmitting(true);
-        // Vi simulerer et kort delay for at det føles ægte
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        onCreate(name, description);
-        
-        // Nulstil og luk
-        setName('');
-        setDescription('');
-        setIsSubmitting(false);
-        onClose();
+        setError(null);
+
+        try {
+            await onCreate(name, description);
+            setName('');
+            setDescription('');
+            onClose();
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Kunne ikke oprette gruppe. Prøv igen.'));
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -89,6 +93,12 @@ export default function CreateGroupModal({ isOpen, onClose, onCreate }: CreateGr
                             />
                         </div>
                     </div>
+
+                    {error && (
+                        <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
+                            {error}
+                        </div>
+                    )}
 
                     <div className="flex gap-3 pt-2">
                         <button

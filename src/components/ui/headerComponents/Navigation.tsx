@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaHome, FaUsers, FaCalendarAlt, FaClipboardList, FaBook } from 'react-icons/fa';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const navItems = [
   { href: '/', icon: <FaHome />, label: 'Hjem', key: 'home' },
@@ -33,9 +33,9 @@ const Navigation: React.FC = () => {
   return (
     <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-2">
       {navItems.map((item) => (
-        <a
+        <Link
           key={item.key}
-          href={item.href}
+          to={item.href}
           className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-lg text-xs transition-all duration-200 
             ${activePage === item.key
               ? 'text-indigo-600 bg-indigo-50'
@@ -44,7 +44,7 @@ const Navigation: React.FC = () => {
         >
           <span className="text-xl">{item.icon}</span>
           <span>{item.label}</span>
-        </a>
+        </Link>
       ))}
     </nav>
   );

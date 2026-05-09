@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { shoppingListApi } from "../../../api/shoppingListApi.ts";
-import type { ShoppingList, ShoppingListItem, AddShoppingListItem } from "../../../types/ShoppingList.ts";
+import type {
+    ShoppingList,
+    ShoppingListItem,
+    AddShoppingListItem,
+    ShoppingListOfferOverview,
+} from "../../../types/ShoppingList.ts";
 
 export function useShoppingList(groupId?: string) {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [offersOverview, setOffersOverview] = useState<ShoppingListOfferOverview | null>(null);
 
     const fetchShoppingList = useCallback(async () => {
         setLoading(true);
@@ -13,6 +19,8 @@ export function useShoppingList(groupId?: string) {
         try {
             const data = await shoppingListApi.getShoppingList(groupId);
             setShoppingList({ ...data, items: data.items ?? [] });
+            const offers = await shoppingListApi.getOffers(data.id);
+            setOffersOverview(offers);
         } catch (err) {
             console.error('Error loading the list: ', err);
             setError('Kunne ikke hente indkøbslisten. Prøv igen senere.');
@@ -93,6 +101,11 @@ export function useShoppingList(groupId?: string) {
         const items = shoppingList.items ?? [];
         const removedItem = items.find(i => i.id === itemId);
 
+        if (!groupId && removedItem?.assignedUserId) {
+            setError('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+            return;
+        }
+
         setShoppingList(prev => prev
             ? { ...prev, items: (prev.items ?? []).filter(i => i.id !== itemId) }
             : prev
@@ -110,7 +123,7 @@ export function useShoppingList(groupId?: string) {
                 );
             }
         }
-    }, [shoppingList]);
+    }, [groupId, shoppingList]);
 
     const handleAssignMember = useCallback(async (itemId: string, userId: string | null) => {
         if (!shoppingList || !itemId) return;
@@ -130,7 +143,6 @@ export function useShoppingList(groupId?: string) {
 
         try {
             await shoppingListApi.assignItem(shoppingList.id, itemId, userId);
-            await fetchShoppingList();
         } catch (err) {
             console.error('Error assigning item: ', err);
             setError('Kunne ikke tildele varen.');
@@ -139,16 +151,76 @@ export function useShoppingList(groupId?: string) {
                 : prev
             );
         }
-    }, [shoppingList, fetchShoppingList]);
+    }, [shoppingList]);
+
+    const assignGroupItems = useCallback(async (itemIds: string[], userId: string | null) => {
+        if (!shoppingList || itemIds.length === 0) return;
+
+        const itemIdSet = new Set(itemIds);
+        const currentItems = shoppingList.items ?? [];
+        const previousItems = currentItems.map((item) => ({ ...item }));
+
+        setShoppingList((prev) => prev
+            ? {
+                ...prev,
+                items: (prev.items ?? []).map((item) => itemIdSet.has(item.id)
+                    ? { ...item, assignedUserId: userId }
+                    : item),
+            }
+            : prev
+        );
+
+        try {
+            const results = await Promise.allSettled(
+                itemIds.map((itemId) => shoppingListApi.assignItem(shoppingList.id, itemId, userId)),
+            );
+            const hasFailures = results.some((result) => result.status === 'rejected');
+
+            if (hasFailures) {
+                console.error('Error assigning group items: ', results);
+            }
+
+            if (hasFailures) {
+                setShoppingList((prev) => prev
+                    ? { ...prev, items: previousItems }
+                    : prev
+                );
+                setError('Kunne ikke tildele alle varerne i gruppen.');
+            }
+        } catch (err) {
+            console.error('Error assigning group items: ', err);
+            setShoppingList((prev) => prev
+                ? { ...prev, items: previousItems }
+                : prev
+            );
+            setError('Kunne ikke tildele alle varerne i gruppen.');
+        }
+    }, [shoppingList]);
+
+    const acceptGroupOffer = useCallback(async (groupKey: string, offerId: string) => {
+        if (!shoppingList) return;
+
+        try {
+            await shoppingListApi.acceptGroupOffer(shoppingList.id, groupKey, offerId);
+            const offers = await shoppingListApi.getOffers(shoppingList.id);
+            setOffersOverview(offers);
+        } catch (err) {
+            console.error('Error accepting offer: ', err);
+            setError('Kunne ikke anvende tilbuddet.');
+        }
+    }, [shoppingList]);
 
     return {
         shoppingList,
+        offersOverview,
         loading,
         error,
         addItem,
         toogleItem,
         removeItem,
         handleAssignMember,
+        assignGroupItems,
+        acceptGroupOffer,
         assignItem: handleAssignMember,
         refetch: fetchShoppingList,
     };

@@ -37,6 +37,7 @@ function AddItemForm({ onAddItem }: AddItemFormProps) {
   });
   const [isAddFormExpanded, setIsAddFormExpanded] = useState(false);
   const addFormRef = useRef<HTMLDivElement | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   const selectedIngredientName = selectedIngredient?.name ?? '';
 
@@ -52,32 +53,31 @@ function AddItemForm({ onAddItem }: AddItemFormProps) {
       return;
     }
 
-    let isCancelled = false;
     setIngredientSearchLoading(true);
 
     const timeoutId = window.setTimeout(async () => {
-      try {
-        const results = await shoppingListApi.searchIngredients(query, INGREDIENT_SEARCH_LIMIT);
-        if (isCancelled) return;
+      searchAbortRef.current?.abort();
+      searchAbortRef.current = new AbortController();
+      const signal = searchAbortRef.current.signal;
 
+      try {
+        const results = await shoppingListApi.searchIngredients(query, INGREDIENT_SEARCH_LIMIT, signal);
         setIngredientSuggestions(results);
         setIsSuggestionOpen(results.length > 0);
         setActiveSuggestionIndex(0);
       } catch (error) {
+        if ((error as { name?: string }).name === 'CanceledError') return;
         console.error('Error searching ingredients:', error);
-        if (!isCancelled) {
-          setIngredientSuggestions([]);
-          setIsSuggestionOpen(false);
-        }
+        setIngredientSuggestions([]);
+        setIsSuggestionOpen(false);
       } finally {
-        if (!isCancelled) {
+        if (!signal.aborted) {
           setIngredientSearchLoading(false);
         }
       }
     }, INGREDIENT_SEARCH_DEBOUNCE_MS);
 
     return () => {
-      isCancelled = true;
       window.clearTimeout(timeoutId);
     };
   }, [newItemName, selectedIngredientName, isNameInputFocused]);

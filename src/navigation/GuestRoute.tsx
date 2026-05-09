@@ -1,13 +1,14 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from "../stores/authStore.ts";
 
 function GuestRoute() {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-    const location = useLocation();
+    const isHydrating = useAuthStore((s) => s.isHydrating);
+
+    if (isHydrating) return null;
 
     if (isAuthenticated) {
-        const from = (location.state as { from?: Location })?.from?.pathname || '/';
-        return <Navigate to={from} replace />;
+        return <Navigate to="/" replace />;
     }
 
     return <Outlet />

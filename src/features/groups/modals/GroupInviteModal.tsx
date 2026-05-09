@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiX, FiMail, FiSend, FiCheckCircle } from 'react-icons/fi';
 import { groupApi } from '../../../api/groupApi';
+import { extractApiError } from '../../../utils/extractApiError';
 
 interface InviteGroupModalProps {
     isOpen: boolean;
@@ -39,9 +40,7 @@ export default function InviteGroupModal({ isOpen, onClose, groupName, groupId }
             }, 2500);
 
             } catch (err: unknown) {
-                const serverErrorMessage = err instanceof Error ? err.message : null;
-
-                setError(serverErrorMessage);
+                setError(extractApiError(err, 'Kunne ikke sende invitation. Prøv igen.'));
             } finally {
                 setIsSending(false);
             }

@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import { useRecipeDetails } from '../../../hooks/useRecipeDetails';
 import { useParams, useNavigate } from 'react-router-dom';
+import type { Recipe } from '../../../types/Recipe';
+
+interface RecipeDetailPageProps {
+  initialRecipe?: Recipe | null;
+}
 
 /**
  * Parse an ISO 8601 duration string (e.g. "PT1H20M", "PT45M", "PT2H") into a
@@ -17,14 +22,13 @@ function formatDuration(iso: string): string {
   return parts.length > 0 ? parts.join(' ') : '0 min';
 }
 
-export const RecipeDetailPage: React.FC = () => {
+export const RecipeDetailPage: React.FC<RecipeDetailPageProps> = ({ initialRecipe }) => {
   // 1. Hent ID fra URL'en i stedet for props (f.eks. /recipes/123)
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   // 2. Brug ID'et fra URL'en til at hente data
-  const { recipe, loading, error, instructions } = useRecipeDetails(id || null);
-  type InstructionSection = (typeof instructions)[number];
+  const { recipe, loading, error, instructions } = useRecipeDetails(id || null, { initialRecipe });
 
   // Gruppér ingredienser efter sektion (fx. "Dej", "Fyld")
   const groupedIngredients = useMemo(() => {
@@ -48,7 +52,7 @@ export const RecipeDetailPage: React.FC = () => {
         if (!sectionName) return -1;
         const name = sectionName.toLowerCase();
         
-        const idx = instructions.findIndex((s: InstructionSection) => {
+        const idx = instructions.findIndex((s) => {
            if (!s.sectionName) return false;
            const sName = s.sectionName.toLowerCase();
            return sName.includes(name) || name.includes(sName);

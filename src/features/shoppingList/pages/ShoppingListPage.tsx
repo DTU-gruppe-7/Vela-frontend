@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { AddShoppingListItem } from '../../../types/ShoppingList';
+import type { StoreOffer, AddShoppingListItem } from '../../../types/ShoppingList';
 import { useShoppingList } from '../hooks/useShoppingList';
 import AddItemForm from '../components/add-item/AddItemForm';
 import ItemsSection from '../components/ItemsSection';
 import { EmptyListState, ErrorBanner, LoadingList } from '../components/ListStates';
 import Toolbar from '../components/Toolbar';
+import OffersPanel from '../components/OffersPanel';
 import { shoppingListApi } from '../../../api/shoppingListApi';
 import { groupApi } from '../../../api/groupApi';
 import type { GroupMember } from '../../../types/Group';
@@ -13,8 +14,21 @@ import { getGroupMemberDisplayName } from '../../../utils/groupMemberDisplay';
 
 function ShoppingListPage() {
     const { groupId } = useParams<{ groupId: string }>();
-    const { shoppingList, loading, error, addItem, toogleItem, removeItem, handleAssignMember, refetch } = useShoppingList(groupId);
+    const {
+        shoppingList,
+        loading,
+        error,
+        addItem,
+        toogleItem,
+        removeItem,
+        handleAssignMember,
+        assignGroupItems,
+        offersOverview,
+        acceptGroupOffer,
+        refetch,
+    } = useShoppingList(groupId);
     const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+    const isPersonalList = !groupId;
 
     useEffect(() => {
         if (!groupId) {
@@ -44,7 +58,71 @@ function ShoppingListPage() {
         };
     }, [groupId]);
 
-    const visibleGroupMembers = useMemo(() => (groupId ? groupMembers : []), [groupId, groupMembers]);
+    const visibleGroupMembers = useMemo<GroupMember[]>(() => (groupId ? groupMembers : []), [groupId, groupMembers]);
+
+    const allStoreNames = useMemo<string[]>(() => {
+        const names = new Set<string>();
+        for (const groupOffer of offersOverview?.groups ?? []) {
+            for (const offer of groupOffer.offers) names.add(offer.storeName);
+        }
+        return Array.from(names).sort();
+    }, [offersOverview]);
+
+    // Excluded stores are persisted via backend. Derive selected stores as the
+    // inverse: all known stores minus the excluded ones.
+    const excludedStores = useMemo<Set<string>>(
+        () => new Set(shoppingList?.excludedStores ?? []),
+        [shoppingList?.excludedStores],
+    );
+
+    const displayedSelectedStores = useMemo<Set<string>>(() => {
+        return new Set(allStoreNames.filter((s) => !excludedStores.has(s)));
+    }, [allStoreNames, excludedStores]);
+
+    const handleToggleStore = async (storeName: string): Promise<void> => {
+        if (!shoppingList?.id) return;
+        if (excludedStores.has(storeName)) {
+            await shoppingListApi.removeExcludedStore(shoppingList.id, storeName);
+        } else {
+            await shoppingListApi.addExcludedStore(shoppingList.id, storeName);
+        }
+        await refetch();
+    };
+
+    const allFilteredOffersByGroupKey = useMemo<Map<string, StoreOffer[]>>(() => {
+        if (!offersOverview) return new Map();
+        return new Map(offersOverview.groups.map((groupOffer) => {
+            const eligible = displayedSelectedStores.size === 0
+                ? groupOffer.offers
+                : groupOffer.offers.filter((o) => displayedSelectedStores.has(o.storeName));
+            return [groupOffer.groupKey, eligible];
+        }));
+    }, [offersOverview, displayedSelectedStores]);
+
+    const filteredOffersByGroupKey = useMemo<Map<string, StoreOffer | undefined>>(() => {
+        return new Map(Array.from(allFilteredOffersByGroupKey.entries()).map(([groupKey, eligible]) => {
+            const storedBestOffer = offersOverview?.groups.find((g) => g.groupKey === groupKey)?.bestOffer;
+            if (storedBestOffer && eligible.some((o) => o.id === storedBestOffer.id)) {
+                return [groupKey, storedBestOffer];
+            }
+            const cheapest = eligible.reduce<StoreOffer | undefined>(
+                (best, o) => (!best || o.price < best.price ? o : best),
+                undefined,
+            );
+            return [groupKey, cheapest];
+        }));
+    }, [allFilteredOffersByGroupKey, offersOverview]);
+
+    const filteredSummary = useMemo(() => {
+        let total = 0;
+        let covered = 0;
+        let uncovered = 0;
+        for (const offer of filteredOffersByGroupKey.values()) {
+            if (offer) { total += offer.price; covered++; }
+            else { uncovered++; }
+        }
+        return { total, covered, uncovered };
+    }, [filteredOffersByGroupKey]);
 
     const assignees = useMemo(
         () => visibleGroupMembers.map((member) => ({
@@ -58,6 +136,43 @@ function ShoppingListPage() {
         await addItem(item);
     };
 
+    const deleteRemovableItems = async (itemIds: string[]): Promise<void> => {
+        if (!shoppingList?.id || itemIds.length === 0) return;
+
+        const deletableItemIds = isPersonalList
+            ? itemIds.filter((itemId) => {
+                const item = (shoppingList.items ?? []).find((candidate) => candidate.id === itemId);
+                return !item?.assignedUserId;
+            })
+            : itemIds;
+
+        const skippedAssignedItems = isPersonalList && deletableItemIds.length !== itemIds.length;
+
+        if (deletableItemIds.length === 0) {
+            if (skippedAssignedItems) {
+                alert('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+            }
+
+            return;
+        }
+
+        const results = await Promise.allSettled(
+            deletableItemIds.map((itemId) => shoppingListApi.removeItem(shoppingList.id, itemId)),
+        );
+
+        await refetch();
+
+        const hasFailures = results.some((result) => result.status === 'rejected');
+
+        if (hasFailures && skippedAssignedItems) {
+            alert('Nogle varer kunne ikke slettes, og tildelte varer blev bevaret.');
+        } else if (hasFailures) {
+            alert('Nogle varer kunne ikke slettes. Prøv igen.');
+        } else if (skippedAssignedItems) {
+            alert('Tildelte varer kan ikke slettes i den personlige indkøbsliste.');
+        }
+    };
+
     const handleClearAll = async () => {
         if (!shoppingList?.id) return;
 
@@ -69,8 +184,7 @@ function ShoppingListPage() {
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearAll(shoppingList.id);
-            await refetch();
+            await deleteRemovableItems(itemIds);
         } catch (err) {
             console.error('Fejl ved sletning af indkøbsliste:', err);
             alert('Der skete en fejl ved sletning af indkøbslisten');
@@ -90,8 +204,7 @@ function ShoppingListPage() {
         if (!confirmed) return;
 
         try {
-            await shoppingListApi.clearPurchased(shoppingList.id);
-            await refetch();
+            await deleteRemovableItems(purchasedItemIds);
         } catch (err) {
             console.error('Fejl ved sletning af købte varer:', err);
             alert('Der skete en fejl ved sletning af købte varer');
@@ -102,15 +215,7 @@ function ShoppingListPage() {
         if (!shoppingList?.id || itemIds.length === 0) return;
 
         try {
-            const results = await Promise.allSettled(
-                itemIds.map((itemId) => shoppingListApi.removeItem(shoppingList.id, itemId)),
-            );
-
-            await refetch();
-
-            if (results.some((result) => result.status === 'rejected')) {
-                alert('Nogle varer kunne ikke slettes. Prøv igen.');
-            }
+            await deleteRemovableItems(itemIds);
         } catch (err) {
             console.error('Fejl ved sletning af gruppevarer:', err);
             alert('Der skete en fejl ved sletning af gruppevarer');
@@ -118,7 +223,7 @@ function ShoppingListPage() {
     };
 
     const items = shoppingList?.items ?? [];
-    const hasOnlyAssignedItems = !groupId && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
+    const hasOnlyAssignedItems = isPersonalList && items.length > 0 && items.every((item) => Boolean(item.assignedUserId));
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -126,6 +231,30 @@ function ShoppingListPage() {
                 {error && <ErrorBanner error={error} />}
 
                 <AddItemForm onAddItem={handleAddItem} />
+                <OffersPanel
+                    groups={offersOverview?.groups ?? []}
+                    selectedStores={displayedSelectedStores}
+                    onToggleStore={handleToggleStore}
+                    onSelectAll={() => {
+                        if (!shoppingList?.id) return;
+                        void Promise.all(
+                            Array.from(excludedStores).map((s) =>
+                                shoppingListApi.removeExcludedStore(shoppingList.id, s),
+                            ),
+                        ).then(() => refetch());
+                    }}
+                    onDeselectAll={() => {
+                        if (!shoppingList?.id) return;
+                        void Promise.all(
+                            allStoreNames
+                                .filter((s) => !excludedStores.has(s))
+                                .map((s) => shoppingListApi.addExcludedStore(shoppingList.id, s)),
+                        ).then(() => refetch());
+                    }}
+                    filteredTotal={filteredSummary.total}
+                    coveredItemCount={filteredSummary.covered}
+                    uncoveredItemCount={filteredSummary.uncovered}
+                />
 
                 <Toolbar
                     hasCheckedItems={items.some((item) => item.isBought)}
@@ -147,9 +276,14 @@ function ShoppingListPage() {
                         onToggle={toogleItem}
                         onRemove={removeItem}
                         onRemoveGroup={handleRemoveGroup}
+                        isPersonalList={isPersonalList}
                         showAssignment={Boolean(groupId)}
                         assignees={assignees}
                         onAssign={handleAssignMember}
+                        onAssignGroup={assignGroupItems}
+                        offersByGroupKey={filteredOffersByGroupKey}
+                        allOffersByGroupKey={allFilteredOffersByGroupKey}
+                        onAcceptGroupOffer={acceptGroupOffer}
                     />
                 )}
 
@@ -160,4 +294,3 @@ function ShoppingListPage() {
 }
 
 export default ShoppingListPage;
-

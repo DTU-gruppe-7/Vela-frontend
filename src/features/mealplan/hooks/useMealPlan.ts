@@ -5,6 +5,7 @@ import { mealplanApi} from '../../../api/mealplanApi';
 import type { MealPlanEntry } from '../../../types/MealPlan';
 import { recipeApi } from '../../../api/recipeApi';
 import { shoppingListApi } from '../../../api/shoppingListApi';
+import { groupApi } from '../../../api/groupApi';
 
 type MealPlanData = { [key: string]: MealPlanEntry[] };
 
@@ -119,16 +120,27 @@ export function useMealPlan(
     if (!mealPlanId) return;
     const targetDate = dateKey;
     const tempId = `temp-${Date.now()}`;
-    // Default servings; will be overridden if recipe details are available
-    let initialServings = 4;
+    // Start with default servings
+    let initialServings = 1;
+
+    // Try to use group size as default servings
+    if (groupId) {
+      try {
+        const group = await groupApi.getGroup(groupId);
+        initialServings = group.members?.length || 4;
+      } catch {
+        // If group fetch fails, keep default
+      }
+    }
+
     try {
       try {
         const fullRecipe = await recipeApi.getRecipeById(recipe.id);
-        if (fullRecipe) {
+        if (fullRecipe && fullRecipe.servings) {
           initialServings = fullRecipe.servings;
         }
       } catch {
-        // If fetching full recipe fails, fall back to default servings
+        // If fetching full recipe fails, fall back to group size or default servings
       }
       const tempEntry: MealPlanEntry = {
         id: tempId,
@@ -154,29 +166,30 @@ export function useMealPlan(
         ...prev,
         [dateKey]: (prev[dateKey] || []).filter(e => e.id !== tempId)
       }));
-      setError('Kunne ikke gemme');
-    }
-  }, [mealPlanId]);
+       setError('Kunne ikke gemme');
+     }
+   }, [mealPlanId, groupId]);
 
   const updateServings = useCallback(async (entryId: string, newServings: number) => {
     if (!mealPlanId || newServings < 1) return;
+
+    // Læs previousServings fra den aktuelle state inde i setMealPlan for at undgå stale closure
     let previousServings: number | undefined;
-    for (const entries of Object.values(mealPlan)) {
-      const found = entries.find(e => e.id === entryId);
-      if (found) { previousServings = found.servings; break; }
-    }
-    // Optimistic update
     setMealPlan(prev => {
+      for (const entries of Object.values(prev)) {
+        const found = entries.find(e => e.id === entryId);
+        if (found) { previousServings = found.servings; break; }
+      }
       const next = { ...prev };
       for (const day of Object.keys(next)) {
         next[day] = next[day].map(e => e.id === entryId ? { ...e, servings: newServings } : e);
       }
       return next;
     });
+
     try {
       await mealplanApi.updateEntryServings(mealPlanId, entryId, newServings);
     } catch {
-      // Rollback ved fejl
       if (previousServings !== undefined) {
         setMealPlan(prev => {
           const next = { ...prev };
@@ -188,7 +201,7 @@ export function useMealPlan(
       }
       setError('Kunne ikke opdatere antal personer');
     }
-  }, [mealPlanId, mealPlan]);
+  }, [mealPlanId]);
 
   const removeRecipe = useCallback(async (dateKey: string, entryId: string) => {
     setMealPlan(prev => ({ ...prev, [dateKey]: (prev[dateKey] || []).filter(e => e.id !== entryId) }));

@@ -32,12 +32,8 @@ export default function GroupPage() {
     }, []);
 
     const handleCreateGroup = async (name: string, description: string) => {
-        try {
-            const newGroup = await groupApi.createGroup({ name, description });
-            setGroups(prev => [...prev, newGroup]);
-        } catch (error) {
-            console.error("Fejl ved oprettelse af gruppe:", error);
-        }
+        const newGroup = await groupApi.createGroup({ name, description });
+        setGroups(prev => [...prev, newGroup]);
     };
 
     const handleGroupClick = (id: string) => {

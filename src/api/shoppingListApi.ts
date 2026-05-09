@@ -5,6 +5,7 @@ import type {
   ShoppingListItem,
   AddShoppingListItem,
   IngredientSearchResult,
+  ShoppingListOfferOverview,
 } from '../types/ShoppingList';
 
 export const shoppingListApi = {
@@ -21,14 +22,13 @@ export const shoppingListApi = {
   searchIngredients: async (
     query: string,
     limit = 10,
+    signal?: AbortSignal,
   ): Promise<IngredientSearchResult[]> => {
     const response = await axiosClient.get<IngredientSearchResult[]>(
       '/Ingredients/search',
       {
-        params: {
-          query,
-          limit,
-        },
+        params: { query, limit },
+        signal,
       },
     );
     return response.data;
@@ -141,4 +141,32 @@ export const shoppingListApi = {
       throw error;
     }
   },
+
+  getOffers: async (shoppingListId: string): Promise<ShoppingListOfferOverview> => {
+    const response = await axiosClient.get<ShoppingListOfferOverview>(`/shoppingList/${shoppingListId}/offers`);
+    return response.data;
+  },
+
+  acceptGroupOffer: async (shoppingListId: string, groupKey: string, offerId: string): Promise<void> => {
+    await axiosClient.post(
+      `/shoppingList/${shoppingListId}/group-offers`,
+      { groupKey, offerId },
+    );
+  },
+
+  addExcludedStore: async (shoppingListId: string, storeName: string): Promise<string[]> => {
+    const response = await axiosClient.post<string[]>(
+      `/shoppingList/${shoppingListId}/excluded-stores`,
+      { storeName },
+    );
+    return response.data;
+  },
+
+  removeExcludedStore: async (shoppingListId: string, storeName: string): Promise<string[]> => {
+    const response = await axiosClient.delete<string[]>(
+      `/shoppingList/${shoppingListId}/excluded-stores/${encodeURIComponent(storeName)}`,
+    );
+    return response.data;
+  },
+
 };

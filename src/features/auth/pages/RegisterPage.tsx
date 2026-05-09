@@ -1,11 +1,19 @@
 // src/features/auth/RegisterPage.tsx
 import { type FormEvent, useState } from 'react';
-import velaLogo from '../../../assets/vela-logo.svg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import FormField from "../../../components/ui/FormField.tsx";
+import { extractApiError } from '../../../utils/extractApiError';
+
+const passwordRules = [
+    { label: 'Mindst 8 tegn', test: (p: string) => p.length >= 8 },
+    { label: 'Mindst ét stort bogstav (A–Z)', test: (p: string) => /[A-Z]/.test(p) },
+    { label: 'Mindst ét lille bogstav (a–z)', test: (p: string) => /[a-z]/.test(p) },
+    { label: 'Mindst ét tal (0–9)', test: (p: string) => /[0-9]/.test(p) },
+    { label: 'Mindst ét specialtegn (fx !@#$%)', test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 // Returnér dagens dato som YYYY-MM-DD (bruges til max-dato)
 function todayISO(): string {
@@ -59,14 +67,7 @@ function RegisterPage() {
             await register({ email, password, firstName, lastName, dateOfBirth });
             navigate('/swipe', { replace: true });
         } catch (err: unknown) {
-            const message: string =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '';
-
-            if (message.toLowerCase().includes('date of birth')) {
-                setFieldErrors({ dateOfBirth: 'Fødselsdato må ikke være i fremtiden' });
-            } else {
-                setError('Kunne ikke oprette konto. Prøv igen.');
-            }
+            setError(extractApiError(err, 'Kunne ikke oprette konto. Prøv igen.'));
         }
     };
 
@@ -75,7 +76,7 @@ function RegisterPage() {
             <Card className="w-full max-w-md p-8">
                 {/* Header */}
                 <div className="flex flex-col items-center gap-2 mb-8">
-                    <img src={velaLogo} alt="Vela" className="h-10 w-10" />
+                    <img src="/vela-logo.svg" alt="Vela" className="h-10 w-10" />
                     <h1 className="text-2xl font-bold text-slate-900">Opret konto</h1>
                     <p className="text-sm text-slate-500">Kom i gang med Vela</p>
                 </div>
@@ -136,17 +137,32 @@ function RegisterPage() {
                         autoComplete="bday"
                     />
 
-                    <FormField
-                        id="password"
-                        label="Adgangskode"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        autoComplete="new-password"
-                    />
+                    <div>
+                        <FormField
+                            id="password"
+                            label="Adgangskode"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            autoComplete="new-password"
+                        />
+                        {password.length > 0 && (
+                            <ul className="flex flex-col gap-1 mt-2">
+                                {passwordRules.map(({ label, test }) => {
+                                    const met = test(password);
+                                    return (
+                                        <li key={label} className={`flex items-center gap-1.5 text-xs ${met ? 'text-green-600' : 'text-slate-400'}`}>
+                                            <span>{met ? '✓' : '○'}</span>
+                                            {label}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
 
                     <FormField
                         id="confirmPassword"
@@ -156,12 +172,12 @@ function RegisterPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         error={fieldErrors.confirmPassword}
                         autoComplete="new-password"
                     />
 
-                    <Button type="submit" disabled={isLoading} className="mt-2 w-full">
+                    <Button type="submit" disabled={isLoading || !passwordRules.every(({ test }) => test(password))} className="mt-2 w-full">
                         {isLoading ? 'Opretter konto…' : 'Opret konto'}
                     </Button>
                 </form>

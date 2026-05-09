@@ -1,11 +1,19 @@
 import axios from 'axios';
 
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+let currentToken: string | null = null;
+
+export function updateToken(token: string | null): void {
+    currentToken = token;
+}
 
 interface QueueItem {
     resolve: (token: string | null) => void;
@@ -15,7 +23,7 @@ interface QueueItem {
 let isRefreshing = false;
 let failedQueue: QueueItem[] = [];
 
-const processQueue = (error: Error | null, token: string | null = null ) => {
+const processQueue = (error: Error | null, token: string | null = null) => {
     failedQueue.forEach(prom => {
         if (error) {
             prom.reject(error);
@@ -24,28 +32,33 @@ const processQueue = (error: Error | null, token: string | null = null ) => {
         }
     });
     failedQueue = [];
-}
+};
 
-// Request interceptor (for adding auth tokens, etc.)
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+    if (currentToken && config.headers) {
+        config.headers.Authorization = `Bearer ${currentToken}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor (handles 401 (expired token))
 axiosClient.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh-token')) {
+            if (
+                originalRequest.url.includes('/auth/login') ||
+                originalRequest.url.includes('/Auth/refresh') ||
+                originalRequest.url.includes('/auth/validate')
+            ) {
+                return Promise.reject(error);
+            }
+
+            if (typeof window === 'undefined') {
                 return Promise.reject(error);
             }
 
@@ -59,50 +72,40 @@ axiosClient.interceptors.response.use(
                     })
                     .catch((err) => {
                         return Promise.reject(err);
-                    })
+                    });
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
-            const token = localStorage.getItem('token');
-            const refreshToken = localStorage.getItem('refreshToken');
+            try {
+                const response = await axios.post(
+                    `${axiosClient.defaults.baseURL}/Auth/refresh`,
+                    { accessToken: currentToken },
+                    { withCredentials: true }
+                );
 
-            if (token && refreshToken) {
-                try {
-                    const response = await axios.post(`${axiosClient.defaults.baseURL}/auth/refresh-token`, {
-                        token: token,
-                        refreshToken: refreshToken
-                    });
+                const newToken = response.data.accessToken;
+                updateToken(newToken);
 
-                    const newToken = response.data.token;
-                    const newRefreshToken = response.data.refreshToken;
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                processQueue(null, newToken);
 
-                    localStorage.setItem('token', newToken);
-                    localStorage.setItem('refreshToken', newRefreshToken);
-
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-                    processQueue(null, newToken);
-
-                    return axiosClient(originalRequest);
-                } catch (refreshError) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('refreshToken');
-                    localStorage.removeItem('user');
+                return axiosClient(originalRequest);
+            } catch (refreshError) {
+                updateToken(null);
+                processQueue(refreshError as Error, null);
+                if (window.location.pathname !== '/login') {
                     window.location.href = '/login';
-                    return Promise.reject(refreshError);
-                } finally {
-                    isRefreshing = false;
                 }
-            } else {
-                window.location.href = '/login';
-                return Promise.reject(error);
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
             }
         }
 
         return Promise.reject(error);
     }
-)
+);
 
 export default axiosClient;
