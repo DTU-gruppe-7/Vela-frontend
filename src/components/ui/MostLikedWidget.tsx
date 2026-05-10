@@ -82,7 +82,7 @@ export const MostLikedRecipesWidget = ({ recipes, onRecipeClick }: Props) => {
                 }, 600);
             }}
         >
-            <div ref={trackRef} className="flex gap-2" style={{ willChange: 'transform' }}>
+            <div ref={trackRef} className="flex gap-2 will-change-transform">
                 {loopedRecipes.map((recipe, index) => (
                     <div
                         key={`${recipe.id}-${index}`}

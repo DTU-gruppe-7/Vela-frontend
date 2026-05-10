@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { authApi } from '../api/authApi';
-import { updateToken } from '../api/axiosClient';
+import { updateToken, setAuthCallbacks } from '../api/axiosClient';
 import type { AuthUser, LoginRequest, RegisterRequest } from '../types/Auth';
 
 interface AuthState {
@@ -56,8 +56,7 @@ async function performAutoRefresh() {
 
     const tokenSnapshot = token;
     try {
-        const response = await authApi.refresh(token);
-        // Afbryd hvis tokenet er blevet opdateret af login/hydrate imens
+        const response = await authApi.refresh(token, rememberMe);
         if (useAuthStore.getState().token !== tokenSnapshot) return;
         updateToken(response.accessToken);
         useAuthStore.setState({ token: response.accessToken });
@@ -114,6 +113,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const rememberMe = data.rememberMe ?? false;
             if (rememberMe) {
                 localStorage.setItem(REMEMBER_ME_KEY, 'true');
+            } else {
+                localStorage.removeItem(REMEMBER_ME_KEY);
             }
 
             set({
@@ -164,3 +165,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
     },
 }));
+
+setAuthCallbacks({
+    onTokenRefreshed: (token) => useAuthStore.setState({ token }),
+    getRememberMe: () => useAuthStore.getState().rememberMe,
+});

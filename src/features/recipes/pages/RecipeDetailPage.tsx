@@ -109,10 +109,11 @@ export const RecipeDetailPage: React.FC<RecipeDetailPageProps> = ({ initialRecip
             {/* Venstre side: Billede og Ingredienser */}
             <div className="md:col-span-1">
               {recipe.thumbnailUrl && (
-                <img 
-                  src={recipe.thumbnailUrl} 
-                  alt={recipe.name} 
-                  className="w-full h-64 object-cover rounded-xl mb-8 shadow-md" 
+                <img
+                  src={recipe.thumbnailUrl}
+                  alt={recipe.name}
+                  loading="lazy"
+                  className="w-full h-64 object-cover rounded-xl mb-8 shadow-md"
                 />
               )}
               

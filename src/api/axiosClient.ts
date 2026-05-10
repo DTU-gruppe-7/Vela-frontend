@@ -10,9 +10,19 @@ const axiosClient = axios.create({
 });
 
 let currentToken: string | null = null;
+let onTokenRefreshed: ((token: string) => void) | null = null;
+let getRememberMe: () => boolean = () => false;
 
 export function updateToken(token: string | null): void {
     currentToken = token;
+}
+
+export function setAuthCallbacks(callbacks: {
+    onTokenRefreshed: (token: string) => void;
+    getRememberMe: () => boolean;
+}): void {
+    onTokenRefreshed = callbacks.onTokenRefreshed;
+    getRememberMe = callbacks.getRememberMe;
 }
 
 interface QueueItem {
@@ -80,13 +90,14 @@ axiosClient.interceptors.response.use(
 
             try {
                 const response = await axios.post(
-                    `${axiosClient.defaults.baseURL}/Auth/refresh`,
-                    { accessToken: currentToken },
+                    `${axiosClient.defaults.baseURL}/auth/refresh`,
+                    { accessToken: currentToken, rememberMe: getRememberMe() },
                     { withCredentials: true }
                 );
 
                 const newToken = response.data.accessToken;
                 updateToken(newToken);
+                onTokenRefreshed?.(newToken);
 
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 processQueue(null, newToken);

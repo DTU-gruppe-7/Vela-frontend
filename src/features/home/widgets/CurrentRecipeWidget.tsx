@@ -109,6 +109,7 @@ export const CurrentRecipeWidget = () => {
                                     <img
                                         src={recipe.thumbnailUrl}
                                         alt={recipe.name}
+                                        loading="lazy"
                                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
                                 ) : (
