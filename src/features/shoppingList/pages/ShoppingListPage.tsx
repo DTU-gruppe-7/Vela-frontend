@@ -65,8 +65,12 @@ function ShoppingListPage() {
         for (const groupOffer of offersOverview?.groups ?? []) {
             for (const offer of groupOffer.offers) names.add(offer.storeName);
         }
+        // Ekskluderede butikker kendes fra listen, selvom backend filtrerer dem fra offers
+        for (const storeName of shoppingList?.excludedStores ?? []) {
+            names.add(storeName);
+        }
         return Array.from(names).sort();
-    }, [offersOverview]);
+    }, [offersOverview, shoppingList?.excludedStores]);
 
     // Excluded stores are persisted via backend. Derive selected stores as the
     // inverse: all known stores minus the excluded ones.
@@ -233,6 +237,7 @@ function ShoppingListPage() {
                 <AddItemForm onAddItem={handleAddItem} />
                 <OffersPanel
                     groups={offersOverview?.groups ?? []}
+                    allStoreNames={allStoreNames}
                     selectedStores={displayedSelectedStores}
                     onToggleStore={handleToggleStore}
                     onSelectAll={() => {
