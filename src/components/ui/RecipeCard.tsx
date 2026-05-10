@@ -74,6 +74,7 @@ function RecipeCard({
                     <img
                         src={recipe.thumbnailUrl}
                         alt={recipe.name}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (

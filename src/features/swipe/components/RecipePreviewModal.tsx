@@ -138,6 +138,7 @@ export function RecipePreviewModal({ recipeId, isOpen, onClose }: RecipePreviewM
                                 <img
                                     src={recipe.thumbnailUrl}
                                     alt={recipe.name}
+                                    loading="lazy"
                                     className="h-72 w-full object-cover"
                                 />
                             ) : (
