@@ -19,7 +19,7 @@ export const Guide = () => {
                                 {index + 1}
                             </span>
                             {index < steps.length - 1 && (
-                                <div className="w-px flex-1 bg-slate-200 mt-2" style={{ minHeight: '1.5rem' }} />
+                                <div className="w-px flex-1 bg-slate-200 mt-2 min-h-6" />
                             )}
                         </div>
                         <div className="pb-2">

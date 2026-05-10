@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { ALL_ALLERGENS, ALLERGEN_LABELS, type Allergen } from '../../types/User';
-import { saveAllergensToStorage, isAllergenFilterEnabled, setAllergenFilterEnabled } from '../../utils/allergenStorage';
 
 interface AllergiesDialogProps {
   isOpen: boolean;
@@ -23,7 +22,6 @@ export function AllergiesDialog({
 
   useEffect(() => {
     setSelectedAllergens(currentAllergens);
-    setFilterAllergenEnabled(isAllergenFilterEnabled());
     setError(null);
   }, [currentAllergens, isOpen]);
 
@@ -39,9 +37,6 @@ export function AllergiesDialog({
     try {
       setIsSaving(true);
       setError(null);
-      // Gem allergener og filter-indstilling lokalt
-      saveAllergensToStorage(selectedAllergens);
-      setAllergenFilterEnabled(filterAllergenEnabled);
       onSave(selectedAllergens);
       // Luk dialog efter succesfuld gemning
       setTimeout(() => {
