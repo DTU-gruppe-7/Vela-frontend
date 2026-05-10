@@ -13,8 +13,8 @@ export const authApi = {
     return response.data;
   },
 
-  refresh: async (accessToken: string): Promise<AuthResponse> => {
-    const response = await axiosClient.post<AuthResponse>('/Auth/refresh', { accessToken });
+  refresh: async (accessToken: string, rememberMe: boolean = false): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/refresh', { accessToken, rememberMe });
     return response.data;
   },
 
